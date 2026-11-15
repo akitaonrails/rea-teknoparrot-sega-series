@@ -1,6 +1,6 @@
 # Sega Racing Arcade Series Launcher
 
-Play **your own dumps** of six Sega arcade racers on Linux, with your wheel
+Play your own dumps of six Sega arcade racers on Linux, with your wheel
 or pad: OutRun 2 SP SDX, OutRun 2 SP Special Tours, Crazy Taxi High Roller,
 SEGA Rally 3, SEGA Racing Classic and Daytona Championship USA. Point the
 launcher at the folder with your TeknoParrot game folders and press **Play**.
