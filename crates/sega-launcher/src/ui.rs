@@ -253,6 +253,20 @@ impl App {
             form.feeds_input = !matches!(g.route, Route::Lindbergh);
             form.render_fixed = g.id == sega_core::catalog::GameId::Daytona;
             form.screen = self.screen;
+            // the first time: the recommended look for this screen, saved
+            // (STANDARDS: the first run saves the recommended look's values)
+            let file = self.paths.settings(g.slug);
+            if !file.exists() {
+                sega_core::settings::Look::recommended(self.screen).apply(
+                    &mut form.settings,
+                    g.native,
+                    self.screen,
+                );
+                if form.render_fixed {
+                    form.settings.render = None;
+                }
+                let _ = form::save(&file, &form.settings);
+            }
             self.form = Some((i, form));
             self.note = None;
         }
@@ -3014,6 +3028,20 @@ mod tests {
     }
 
     #[test]
+    fn a_game_seen_for_the_first_time_gets_the_recommended_look_saved() {
+        let t = tempfile::tempdir().unwrap();
+        let mut h = hub(t.path());
+        h.state_mut().screen = Some((2560, 1440));
+        let paths = h.state().paths.clone();
+        select(&mut h, "src");
+        open_tab(&mut h, Tab::Settings);
+        let (saved, _) = settings_of(&paths, "src");
+        assert_eq!(saved.look, Some(sega_core::settings::Look::Recommended));
+        assert_eq!(saved.render, Some(Size::new(2560, 1440)));
+        assert_eq!(saved.output, Size::new(2560, 1440));
+    }
+
+    #[test]
     fn a_game_that_reads_the_wheel_itself_says_why_its_wheel_rows_are_off() {
         let t = tempfile::tempdir().unwrap();
         let mut h = hub(t.path());
@@ -3064,7 +3092,10 @@ mod tests {
             .click();
         h.run_steps(3);
         assert!(!settings_of(&paths, g.slug).0.fullscreen);
-        assert!(!paths.settings(GAMES[0].slug).exists());
+        assert!(
+            settings_of(&paths, GAMES[0].slug).0.fullscreen,
+            "another game untouched"
+        );
         // the cabinet's own size is named for this game
         assert_eq!(
             testing::value(&h.get_by_role_and_label(Role::Button, "Game resolution")).unwrap(),

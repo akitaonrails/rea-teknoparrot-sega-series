@@ -25,6 +25,8 @@ All notable changes to this launcher. The format follows
 - Wheel options per game: steering lock (270° by default, as the cabinets)
   and force feedback strength; a sequential shift drives SEGA Racing
   Classic's H lever, and one button walks through its four views.
+- A game's settings start from the recommended look for your screen, saved
+  the first time the window shows them.
 - Looks (Original, Recommended, Steam Deck), the option table for every
   setting (`--help`, settings files, the window), `--list`, `--check`,
   `--set`.

@@ -224,6 +224,9 @@ impl Form {
                     pick(&looks, cur, d, wrap)
                 };
                 next.apply(s, self.native, self.screen);
+                if self.render_fixed {
+                    s.render = None;
+                }
             }
             Row::Render => s.render = pick(&render_choices(s.render), s.render, d, wrap),
             Row::Output => s.output = pick(&output_choices(s.output), s.output, d, wrap),

@@ -32,6 +32,7 @@ read-only.
 | What | Author | Licence | Source |
 |---|---|---|---|
 | The hub's scenes, `assets/art/*.jpg` (a coast at sunset and at midday, a city avenue, a jungle dirt stage, a speedway by day and by night) | drawn for this launcher from shapes by `scripts/art/scenes.py`; no photos, game files or official art | GPL-3.0-or-later | this repository |
+| README screenshots, `docs/images/launcher-*.jpg` | the launcher's own window, taken headless | GPL-3.0-or-later | this repository |
 | The launcher's icon, `packaging/appimage/sega-launcher.png` | the rea-launcher-sdk template | MIT OR Apache-2.0 | rea-launcher-sdk |
 | Barlow and Barlow Condensed, `assets/fonts/` | Jeremy Tribby | SIL Open Font License 1.1 (`assets/fonts/OFL.txt`) | <https://github.com/jpt/barlow> |
 

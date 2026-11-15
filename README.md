@@ -36,8 +36,9 @@ repository, with its poster image. -->
 
 ## Screenshots
 
-<!-- The window's pages, JPEG under ~1 MB each in docs/images/, taken
-headless once the window's art is final. -->
+| Games | Controls | Settings |
+| --- | --- | --- |
+| ![The Games page: SEGA Rally 3 selected, its edition and folder, Play, and a tile per game](docs/images/launcher-games.jpg) | ![The Controls page: the wheels and pads found, the pad layout and a live check of steering, pedals and buttons](docs/images/launcher-controls.jpg) | ![The Settings page for SEGA Rally 3: look, resolution, screen size, upscaler, steering lock, force feedback](docs/images/launcher-settings.jpg) |
 
 ## What you need
 
