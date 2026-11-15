@@ -56,6 +56,8 @@ pub struct Places {
     pub runtime: PathBuf,
     /// windowsarcadeloader's root (shared by every Windows game: prefix, links).
     pub wal_root: PathBuf,
+    /// The player's wheel, for the loaders that read it themselves.
+    pub wheel: Option<LindberghWheel>,
 }
 
 /// How this machine reaches the network (lindbergh-loader's `NIC_NAME`):
@@ -135,27 +137,66 @@ pub fn lindbergh_ini(size: Size, nic: &str) -> String {
     )
 }
 
+/// The player's wheel as lindbergh-loader reads it (SDL joystick axes):
+/// the launcher finds it before the game starts, from the SDK's guess
+/// (`WheelProfile::guess`: steering on axis 0, pedals where they rest).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LindberghWheel {
+    /// SDL's GUID string: lindbergh-loader's `[ControllerGUIDs] P1_GUID`
+    /// makes this device player 1 (its `JOY0`).
+    pub guid: String,
+    pub steer_axis: usize,
+    /// A pedal axis and whether it rests at the top of its range (it then
+    /// reads `_INVERTED`).
+    pub gas: Option<(usize, bool)>,
+    pub brake: Option<(usize, bool)>,
+    /// The paddles' button numbers, when the wheel is a known model.
+    pub paddles: Option<(u32, u32)>,
+}
+
 /// lindbergh-loader's `controls.ini`: the launcher's pad layout for SDL game
-/// controllers, keyboard as a fallback.
-pub const LINDBERGH_CONTROLS: &str = "# Written by the launcher before every start.
-[Common]
-Test = KEY_T
-P1_Coin = KEY_5, GC0_BUTTON_BACK
-P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
-P1_Service = KEY_S
-[Driving]
-P1_Steer_Left = KEY_Left
-P1_Steer_Right = KEY_Right
-P1_Gas_Digital = KEY_Up
-P1_Brake_Digital = KEY_Down
-ViewChange = KEY_V, GC0_BUTTON_Y
-GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER
-GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER
-CardInsert = KEY_F7, GC0_BUTTON_X
-P1_Steer = GC0_AXIS_LEFTX
-P1_Gas = GC0_AXIS_RIGHTTRIGGER
-P1_Brake = GC0_AXIS_LEFTTRIGGER
-";
+/// controllers, the keyboard as a fallback, and the player's wheel when one
+/// was found (OutRun 2 SP SDX's drive board force feedback then goes to it).
+pub fn lindbergh_controls(wheel: Option<&LindberghWheel>) -> String {
+    let axis =
+        |a: (usize, bool)| format!(", JOY0_AXIS_{}{}", a.0, if a.1 { "_INVERTED" } else { "" });
+    let (steer, gas, brake, up, down, guids) = match wheel {
+        Some(w) => (
+            format!(", JOY0_AXIS_{}", w.steer_axis),
+            w.gas.map(axis).unwrap_or_default(),
+            w.brake.map(axis).unwrap_or_default(),
+            w.paddles
+                .map(|p| format!(", JOY0_BUTTON_{}", p.0))
+                .unwrap_or_default(),
+            w.paddles
+                .map(|p| format!(", JOY0_BUTTON_{}", p.1))
+                .unwrap_or_default(),
+            format!("[ControllerGUIDs]\nP1_GUID = {}\n", w.guid),
+        ),
+        None => Default::default(),
+    };
+    format!(
+        "# Written by the launcher before every start.\n\
+         {guids}\
+         [Common]\n\
+         Test = KEY_T\n\
+         P1_Coin = KEY_5, GC0_BUTTON_BACK\n\
+         P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A\n\
+         P1_Service = KEY_S\n\
+         [Driving]\n\
+         P1_Steer_Left = KEY_Left\n\
+         P1_Steer_Right = KEY_Right\n\
+         P1_Gas_Digital = KEY_Up\n\
+         P1_Brake_Digital = KEY_Down\n\
+         ViewChange = KEY_V, GC0_BUTTON_Y\n\
+         MusicChange = KEY_M, GC0_BUTTON_X\n\
+         GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER{up}\n\
+         GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER{down}\n\
+         P1_Steer = GC0_AXIS_LEFTX{steer}\n\
+         P1_Gas = GC0_AXIS_RIGHTTRIGGER{gas}\n\
+         P1_Brake = GC0_AXIS_LEFTTRIGGER{brake}\n"
+    )
+}
 
 /// The profile layer the launcher gives windowsarcadeloader for one game:
 /// the runner, a prefix with native XACT (the RingEdge games' sound thread
@@ -211,7 +252,10 @@ pub fn plan(
     let game_cmd = match game.route {
         Route::Lindbergh => {
             files.push((rt.join("lindbergh.ini"), lindbergh_ini(size, nic)));
-            files.push((rt.join("controls.ini"), LINDBERGH_CONTROLS.to_string()));
+            files.push((
+                rt.join("controls.ini"),
+                lindbergh_controls(places.wheel.as_ref()),
+            ));
             Command {
                 // the loader finds lindbergh.so next to the folder it starts in
                 program: c.lindbergh.join("lindbergh"),
@@ -303,6 +347,7 @@ mod tests {
         Places {
             runtime: PathBuf::from("/d/runtimes").join(slug),
             wal_root: "/d/wal".into(),
+            wheel: None,
         }
     }
 
@@ -384,6 +429,41 @@ mod tests {
             Some(start.to_string_lossy().into_owned())
         );
         assert!(p.input_pipe.is_none());
+    }
+
+    #[test]
+    fn a_wheel_found_before_the_start_reaches_lindbergh_controls() {
+        let pad_only = lindbergh_controls(None);
+        assert!(pad_only.contains("P1_Steer = GC0_AXIS_LEFTX\n"));
+        assert!(!pad_only.contains("JOY0") && !pad_only.contains("ControllerGUIDs"));
+        let w = LindberghWheel {
+            guid: "030000006d04000067c2000011010000".into(),
+            steer_axis: 0,
+            gas: Some((2, true)),
+            brake: Some((3, false)),
+            paddles: Some((4, 5)),
+        };
+        let mut places = places("or2sdx");
+        places.wheel = Some(w.clone());
+        let p = plan(
+            game(GameId::OutRun2SpSdx),
+            &places,
+            &comps(),
+            &Settings::default(),
+            "eth0",
+            false,
+            Host::Linux,
+        )
+        .unwrap();
+        let ini = file(&p, "controls.ini");
+        assert!(
+            ini.contains("[ControllerGUIDs]\nP1_GUID = 030000006d04000067c2000011010000\n"),
+            "{ini}"
+        );
+        assert!(ini.contains("P1_Steer = GC0_AXIS_LEFTX, JOY0_AXIS_0\n"));
+        assert!(ini.contains("P1_Gas = GC0_AXIS_RIGHTTRIGGER, JOY0_AXIS_2_INVERTED\n"));
+        assert!(ini.contains("P1_Brake = GC0_AXIS_LEFTTRIGGER, JOY0_AXIS_3\n"));
+        assert!(ini.contains("GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER, JOY0_BUTTON_4\n"));
     }
 
     #[test]

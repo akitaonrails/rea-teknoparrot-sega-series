@@ -309,6 +309,32 @@ fn idle_without_sdl(rx: Receiver<Command>) {
     }
 }
 
+/// The first wheel SDL sees, as lindbergh-loader will read it: a short
+/// look before a game that reads the wheel itself starts (SDL is closed
+/// again before the game opens it).
+pub fn find_wheel() -> Option<sega_core::launch::LindberghWheel> {
+    let sdl = Sdl::init(&[]).ok()?;
+    let mut devices = Devices::new(&sdl, HapticPolicy::default());
+    for _ in 0..5 {
+        devices.pump();
+        std::thread::sleep(Duration::from_millis(60));
+    }
+    let list = devices.list();
+    let d = list.iter().find(|d| d.kind == Kind::Wheel)?;
+    let profile: WheelProfile<Button> = WheelProfile::guess(d.id.clone(), &d.initial, None);
+    // a pedal resting at the top of its range reads backwards
+    let pedal = |p: &Option<(rea_launcher::wheel::Source, rea_launcher::wheel::PedalAxis)>| {
+        p.as_ref().map(|(_, a)| (a.axis, a.rest > 0))
+    };
+    Some(sega_core::launch::LindberghWheel {
+        guid: d.id.guid.clone(),
+        steer_axis: profile.steer_axis,
+        gas: pedal(&profile.gas),
+        brake: pedal(&profile.brake),
+        paddles: None,
+    })
+}
+
 /// The settings' dead zone (0–0.3 of the stick's travel) in raw stick units.
 pub fn stick_deadzone(fraction: f32) -> u16 {
     (fraction.clamp(0.0, 0.3) * 32767.0).round() as u16

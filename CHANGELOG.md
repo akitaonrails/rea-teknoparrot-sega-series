@@ -16,7 +16,9 @@ All notable changes to this launcher. The format follows
   bundled GE-Proton, with the launcher feeding the cabinet's controls and
   playing the force feedback: full races verified.
 - OutRun 2 SP SDX in lindbergh-loader (built on first use), with the
-  cabinet check skipped so it gets past "Initializing the drive board".
+  cabinet check skipped so it gets past "Initializing the drive board": full
+  race verified. A wheel found before the start is written into
+  lindbergh-loader's controls (steering and pedal axes, player 1).
 - Wheel options per game: steering lock (270° by default, as the cabinets)
   and force feedback strength; a sequential shift drives SEGA Racing
   Classic's H lever, and one button walks through its four views.

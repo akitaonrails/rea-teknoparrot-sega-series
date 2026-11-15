@@ -18,7 +18,8 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 |---|---|
 | SEGA Racing Classic | **race played**: attract (Ranking, Advanced course), 2 coins, Start, course and transmission taken with Start, accelerator held, Lap 2 of 8 at 221 km/h, steering both ways, the view button cycled the cameras, shifting through the H lever from the launcher's sequential shift. Coins needed (no free play in its profile). |
 | SEGA Rally 3 | **race played**: coin, Start, car select ("Confirm with Gas Pedal"), Citroën C4 WRC, Tropical stage, 125 km/h in 4th, steering both ways, view change. |
-| OutRun 2 SP SDX | without `SKIP_OUTRUN_CABINET_CHECK` the game stops 23 s in, after "Initializing the drive board" (the cabinet check fails); with it (the launcher's `lindbergh.ini`) it reaches the title screen and the attract mode and keeps running. **A race was not tried yet**: lindbergh-loader reads the controls itself, so the script input can't drive it; the next check sends keys to the session's Xwayland. |
+| OutRun 2 SP SDX | without `SKIP_OUTRUN_CABINET_CHECK` the game stops 23 s in, after "Initializing the drive board" (the cabinet check fails); with it (the launcher's `lindbergh.ini`) it reaches the title screen and the attract mode. |
+| OutRun 2 SP SDX, keys sent to the session's Xwayland (XTest) | **race played**: Start through driver, F50, automatic, OutRun mode (Special Tours), music select, then the coast at 111 km/h, score counting, steering both ways. Drive board emulation sends rumble to the SDL device. |
 | OutRun 2 SP SDX, output | lindbergh-loader buffers its stdout when it goes to a pipe: a crash loses its last lines, so a game that seems to stop "after loading the ranking" may have gone much further. Read the game's own state, not only the log. |
 
 ## Chihiro (Cxbx-Reloaded `CI-585c49a`, by hand, 2026-11-15)
@@ -48,6 +49,7 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 
 ## Not verified yet
 
+- OutRun 2 SP SDX with a wheel: the launcher writes the wheel's SDL GUID and axes into lindbergh-loader's `controls.ini` (steering on the guessed axis, pedals by where they rest, `_INVERTED` when they rest at the top); not tried on hardware.
 - Any wheel on hardware: steering lock, force feedback direction and strength, pedals on a second USB device (the owner's wheel).
 - The Windows build of the launcher on real Windows; Steam Deck; multi-monitor; ultrawide.
 - Free play in SEGA Rally 3 through `WAL_EUROPAR_FREEPLAY=1` (the race above used a coin).

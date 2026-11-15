@@ -45,6 +45,7 @@ fn every_look_of_every_game() {
             let places = Places {
                 runtime: PathBuf::from("/d/runtimes").join(g.slug),
                 wal_root: "/d/wal".into(),
+                wheel: None,
             };
             for look in Look::ALL {
                 let mut s = Settings::default();

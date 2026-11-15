@@ -160,6 +160,10 @@ pub fn prepare(
     let places = Places {
         runtime: rt.clone(),
         wal_root: paths.wal_root(),
+        // lindbergh-loader reads the wheel itself: tell it which one and how
+        wheel: (game.route == Route::Lindbergh && display == Display::Screen)
+            .then(input::find_wheel)
+            .flatten(),
     };
     let nic = launch::default_interface(&fs::read_to_string("/proc/net/route").unwrap_or_default());
     let plan = launch::plan(
@@ -348,6 +352,7 @@ mod tests {
         let places = Places {
             runtime: "/d/rt/src".into(),
             wal_root: "/d/wal".into(),
+            wheel: None,
         };
         let c = Components {
             lindbergh: "/c/l".into(),

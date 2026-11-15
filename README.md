@@ -10,9 +10,8 @@ from the launcher's own private copy.
 
 This project contains no game files: you need your own dumps.
 
-> **Work in progress.** SEGA Rally 3 and SEGA Racing Classic play full races
-> through the launcher on Linux. OutRun 2 SP SDX starts and runs its attract
-> mode; a race is not tried yet. OutRun 2 SP Special Tours and Crazy Taxi High
+> **Work in progress.** OutRun 2 SP SDX, SEGA Rally 3 and SEGA Racing Classic
+> play full races through the launcher on Linux. OutRun 2 SP Special Tours and Crazy Taxi High
 > Roller need three Chihiro BIOS files and are still being brought up;
 > Daytona Championship USA's loader is still being written. Wheels, the
 > Windows build and the Steam Deck are not tested on hardware yet

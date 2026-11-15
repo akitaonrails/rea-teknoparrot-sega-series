@@ -160,9 +160,7 @@ pub const GAMES: &[Game] = &[
             "1.003 (DVP-0015, TeknoParrot dump)",
         )],
         native: Size::new(800, 480),
-        support: Support::Unverified(
-            "Starts and shows its attract mode; a race was not tried yet.",
-        ),
+        support: Support::Ready,
     },
     Game {
         id: GameId::OutRun2Sp,
