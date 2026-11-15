@@ -14,6 +14,7 @@ pub enum GameId {
     SegaRally3,
     RacingClassic,
     Daytona,
+    F355Challenge2,
 }
 
 /// How a game is run.
@@ -29,6 +30,8 @@ pub enum Route {
     },
     /// Sega Chihiro title (an Xbox `.xbe`) in Cxbx-Reloaded.
     Cxbx,
+    /// Sega NAOMI cartridge (a MAME set, here unzipped) in Flycast.
+    Flycast { set: &'static str },
 }
 
 /// Whether the launcher can start a game today, and why not.
@@ -246,6 +249,24 @@ pub const GAMES: &[Game] = &[
         )],
         native: Size::new(1920, 1080),
         support: Support::Ready,
+    },
+    Game {
+        id: GameId::F355Challenge2,
+        slug: "f355",
+        title: "F355 Challenge 2",
+        short: "F355",
+        year: 2001,
+        board: "Sega NAOMI",
+        route: Route::Flycast { set: "f355twn2" },
+        main_file: "epr-23399.ic22",
+        editions: &[sha(
+            "a01e88c2621f8a70fe0161ef26fed9d16b0890e038464628e473336af37de9e7",
+            "International Course Edition, twin (MAME f355twn2)",
+        )],
+        native: Size::new(640, 480),
+        support: Support::Blocked(
+            "Flycast runs it as two linked boards; that is still being brought up.",
+        ),
     },
 ];
 

@@ -22,6 +22,8 @@ All notable changes to this launcher. The format follows
 - Daytona Championship USA in windowsarcadeloader, with a `segashell`
   profile written for this launcher (`patches/wal/0004`: the game's Shell
   protocol, its force feedback helper): full race verified.
+- F355 Challenge 2 (MAME set `f355twn2`) is found and listed; it can't
+  start yet (Flycast's two linked boards are still being brought up).
 - Wheel options per game: steering lock (270° by default, as the cabinets)
   and force feedback strength; a sequential shift drives SEGA Racing
   Classic's H lever, and one button walks through its four views.

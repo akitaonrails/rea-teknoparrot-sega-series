@@ -2772,18 +2772,18 @@ mod tests {
     }
 
     #[test]
-    fn the_hub_has_a_tile_for_each_of_the_six_games() {
+    fn the_hub_has_a_tile_for_each_of_the_seven_games() {
         let t = tempfile::tempdir().unwrap();
         let h = hub(t.path());
-        assert_eq!(GAMES.len(), 6);
-        assert_eq!(h.get_all_by_role(Role::RadioButton).count(), 6);
+        assert_eq!(GAMES.len(), 7);
+        assert_eq!(h.get_all_by_role(Role::RadioButton).count(), 7);
         for g in GAMES {
             let node = h.get_by_role_and_label(Role::RadioButton, g.title);
             let about = testing::description(&node).unwrap();
             assert!(about.contains(&g.year.to_string()), "{about}");
             assert!(about.contains(g.board), "{about}");
         }
-        assert!(says(&h, "Your games · 0 of 6 found"));
+        assert!(says(&h, "Your games · 0 of 7 found"));
         assert!(testing::checked(&tile(&h, GAMES[0].slug)));
         assert!(!testing::checked(&tile(&h, GAMES[1].slug)));
     }
@@ -2811,7 +2811,7 @@ mod tests {
         assert!(says(&h, &format!("Folder: {}", dir.display())));
         let play = h.get_by_role_and_label(Role::Button, "Play");
         assert!(!testing::disabled(&play));
-        assert!(says(&h, "Your games · 1 of 6 found"));
+        assert!(says(&h, "Your games · 1 of 7 found"));
     }
 
     #[test]
@@ -3084,7 +3084,8 @@ mod tests {
         let t = tempfile::tempdir().unwrap();
         let mut h = hub(t.path());
         let paths = h.state().paths.clone();
-        let g = GAMES.last().unwrap();
+        // Daytona: it always draws at its own size, so its row stays "Native"
+        let g = sega_core::catalog::by_slug("dcusa").unwrap();
         select(&mut h, g.slug);
         open_tab(&mut h, Tab::Settings);
         assert!(says(&h, &format!("{} settings", g.title)));
@@ -3142,10 +3143,10 @@ mod tests {
         let t = tempfile::tempdir().unwrap();
         let mut h = hub(t.path());
         open_tab(&mut h, Tab::Settings);
-        assert!(says(&h, "0 of 6 games found."));
+        assert!(says(&h, "0 of 7 games found."));
         click_button(&mut h, "Rescan");
         wait(&mut h, "the rescan", |a| a.entries.is_some());
-        assert!(says(&h, "0 of 6 games found."));
+        assert!(says(&h, "0 of 7 games found."));
         let lib = t.path().join("games");
         assert!(says(&h, &lib.display().to_string()));
     }
@@ -3211,8 +3212,8 @@ mod tests {
         ));
         click_button(&mut h, "Done");
         assert_eq!(h.state().model.page, Page::Hub);
-        assert!(says(&h, "Your games · 0 of 6 found"));
-        assert_eq!(h.get_all_by_role(Role::RadioButton).count(), 6);
+        assert!(says(&h, "Your games · 0 of 7 found"));
+        assert_eq!(h.get_all_by_role(Role::RadioButton).count(), 7);
     }
 
     #[test]

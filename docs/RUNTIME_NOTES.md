@@ -39,6 +39,15 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 | windowsarcadeloader `segashell` profile (`patches/wal/0004`), by hand | boots in about 2 minutes on a new prefix (shaders), 30 s later; attract, coins, start, mode, track and car select, races with steering, gas and brake; force feedback bytes from the emulated InpWrapper arrive as `out` lines (e.g. `0x13` → +8666). The game's Shell security challenge (it quits after 5 unanswered) is switched off by the profile, as Transformers' is. |
 | Through the launcher (`--play dcusa --headless`, 2026-11-15) | **race played**: coin, start, the menus taken with the gas pedal, "Start your engines", lap 1 at 44 mph in automatic, steering both ways; 0 leftover processes. The view and gear buttons were pressed but no camera change was seen: not verified. |
 
+## F355 Challenge 2 (Flycast 2.7, the box's package, by hand, 2026-11-15)
+
+| Step | Result |
+|---|---|
+| Flycast on the unzipped `f355twn2/` folder | "Can't open CD device": Flycast takes NAOMI sets only as archives. An uncompressed zip of the folder loads. |
+| with `naomi.zip` only | "cannot load BIOS f355bios": the F355 cabinet BIOS (`epr-22849/22850/22851.ic27`) is its own set; the owner's `bios/dc/f355bios.zip` has it |
+| with `f355bios.zip` | Flycast always runs F355 as a multiboard game: the master waits forever ("Time out waiting for multiboard vsync. Slave 0") when started as `flycast`, because it restarts itself for the slave with `execv(argv[0])`, which doesn't search `PATH`. Started as `/usr/bin/flycast`, the slave boots ("naomi multi system… found my master, being named…"). |
+| then | gamescope shows the focused window, which is the slave's: the master's picture was not seen yet. **Blocked** until the two boards are shown properly (the slave hidden, or its own display). |
+
 ## Quitting and leftovers
 
 | Way to quit | SEGA Racing Classic | SEGA Rally 3 | OutRun 2 SP SDX |

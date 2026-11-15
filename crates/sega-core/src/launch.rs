@@ -319,7 +319,7 @@ pub fn plan(
                 cwd: root.clone(),
             }
         }
-        Route::Cxbx => {
+        Route::Cxbx | Route::Flycast { .. } => {
             return Err(format!("{} can't be started yet.", game.title));
         }
     };

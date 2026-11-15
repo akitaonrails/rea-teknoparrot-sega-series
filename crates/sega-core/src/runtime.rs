@@ -96,6 +96,7 @@ fn skip(route: Route, name: &str) -> bool {
         }
         // TeknoParrot's own settings file, of no use to Cxbx
         Route::Cxbx => name.eq_ignore_ascii_case("teknoparrot.ini"),
+        Route::Flycast { .. } => false,
     }
 }
 

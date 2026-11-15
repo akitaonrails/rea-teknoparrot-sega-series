@@ -18,6 +18,7 @@ main file (`crates/sega-core/src/catalog.rs`).
 | Crazy Taxi High Roller (2003) | Sega Chihiro | `ctx_ac[r].xbe` | Cxbx-Reloaded (in progress) |
 | SEGA Rally 3 (2008) | Sega Europa-R (Windows XP PC) | `Rally/Rally.exe` (32-bit) | windowsarcadeloader under Wine |
 | SEGA Racing Classic (2009) | Sega RingWide (Windows Embedded) | `d1a.exe` (32-bit) | windowsarcadeloader under Wine |
+| F355 Challenge 2, twin (2001) | Sega NAOMI (cartridge, MAME set `f355twn2`, unzipped) | `epr-23399.ic22` | Flycast (in progress): needs `naomi.zip` and `f355bios.zip` |
 | Daytona Championship USA NSE (2019) | Sega PC with the Sega Shell | `Sega/Daytona/Daytona.exe` (32-bit) | windowsarcadeloader with a `segashell` profile of our own (Our own: C3) |
 
 ## 2. Community projects

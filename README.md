@@ -1,8 +1,9 @@
 # Sega Racing Arcade Series Launcher
 
-Play your own dumps of six Sega arcade racers on Linux, with your wheel
+Play your own dumps of seven Sega arcade racers on Linux, with your wheel
 or pad: OutRun 2 SP SDX, OutRun 2 SP Special Tours, Crazy Taxi High Roller,
-SEGA Rally 3, SEGA Racing Classic and Daytona Championship USA. Point the
+SEGA Rally 3, SEGA Racing Classic, Daytona Championship USA and F355
+Challenge 2. Point the
 launcher at the folder with your TeknoParrot game folders and press **Play**.
 The loaders, Wine and the settings each game needs come with it or are set up
 for you. Your game folders are only read, never changed: every game plays
@@ -13,7 +14,8 @@ This project contains no game files: you need your own dumps.
 > **Work in progress.** OutRun 2 SP SDX, SEGA Rally 3, SEGA Racing Classic and
 > Daytona Championship USA play full races through the launcher on Linux.
 > OutRun 2 SP Special Tours and Crazy Taxi High Roller need three Chihiro
-> BIOS files and are still being brought up. Wheels, the
+> BIOS files and are still being brought up, and so is F355 Challenge 2.
+> Wheels, the
 > Windows build and the Steam Deck are not tested on hardware yet
 > ([docs/RUNTIME_NOTES.md](docs/RUNTIME_NOTES.md)). Reports are welcome at
 > <https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues>.
@@ -143,6 +145,9 @@ start, without starting), `--library <folder>`, `--chihiro-bios <folder>`,
 - Daytona Championship USA: the view and gear buttons are mapped from the
   game's own table but not yet seen working in a race (races so far used the
   automatic transmission). Coins are needed (free play off).
+- F355 Challenge 2 can't start yet: Flycast runs it as two linked NAOMI
+  boards (it needs your `naomi.zip` and `f355bios.zip`), and that setup is
+  still being brought up.
 - OutRun 2 SP SDX runs only in the Linux version (it's a Linux game).
 - No wheel has been tried on hardware yet.
 

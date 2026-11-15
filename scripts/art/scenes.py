@@ -8,8 +8,9 @@ logos and no characters. Sega's arcade racers of the 2000s live under big
 skies, so each scene is a road receding to the horizon under its own sky: a
 sunset coast with palms (OutRun 2 SP SDX), a midday coast (OutRun 2 SP), a
 city at golden hour (Crazy Taxi), a jungle dirt stage (SEGA Rally 3), a
-speedway under a blue sky with clouds (SEGA Racing Classic) and the same
-speedway at night under floodlights (Daytona Championship USA).
+speedway under a blue sky with clouds (SEGA Racing Classic), the same
+speedway at night under floodlights (Daytona Championship USA) and a street
+circuit by the sea (F355 Challenge 2).
 
 usage: python3 -I scripts/art/scenes.py assets/art   (needs rsvg-convert, Pillow)
 """
@@ -58,6 +59,9 @@ SCENES = [
     # SEGA Racing Classic: the speedway under a blue sky and white clouds
     Scene('src', 17, '#0f4fd0', '#9fd2ff', '#ffffff', '#2f8a3a', 0.65,
           ['speedway', 'clouds_big']),
+    # F355 Challenge 2: a street circuit by the sea, late afternoon
+    Scene('f355', 23, '#3a62b8', '#ffd9a0', '#fff1c9', '#3b3f48', 0.75,
+          ['sun', 'sea_left', 'city', 'clouds_low'], sea='#2a7fb0'),
     # Daytona Championship USA: the speedway at night, floodlights
     Scene('dcusa', 19, '#050a1c', '#1e2f6a', '#e8f0ff', '#14361a', 0.65,
           ['speedway', 'floodlights'], night=True),
