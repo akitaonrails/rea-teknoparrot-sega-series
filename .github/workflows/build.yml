@@ -30,20 +30,46 @@ jobs:
       shell-tests: ""
       imports-check: false
 
+  # The Windows build: linted for its target and its tests run under Wine,
+  # headless (STANDARDS: Windows code is run, not only linted), with the
+  # pinned SDL2 MinGW package linked in (launcher-ci's extra build comes
+  # after its release build, too late for SDL2's import library). GE-Proton's
+  # Wine (the Linux package's runner): Ubuntu's Wine 9 doesn't follow the
+  # directory junctions the Windows runtime folder uses.
   windows-tests:
-    uses: akitaonrails/rea-launcher-sdk/.github/workflows/launcher-ci.yml@v0.9.0
-    with:
-      concurrency-key: windows-tests
-      rust-target: x86_64-pc-windows-gnu
-      apt-packages: gcc-mingw-w64-x86-64 lld zip unzip curl
-      extra-build: scripts/build-launcher.sh sdl2
-      wine-tests: true
-      audit: false
-      sdk-check: false
-      conformance: false
-      secret-scan: false
-      shell-syntax: ""
-      shell-tests: ""
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc-mingw-w64-x86-64 lld curl
+      - name: Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy
+          rustup default stable
+          rustup target add x86_64-pc-windows-gnu
+      - name: SDL2 (pinned MinGW package)
+        run: scripts/build-launcher.sh sdl2
+      - name: Clippy (x86_64-pc-windows-gnu)
+        run: |
+          sdl="$PWD/dist/sdl2/$(sed -n 's/^dir=//p' packaging/sdl2.pin)/lib"
+          export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS="-C link-arg=-fuse-ld=lld -L $sdl"
+          cargo clippy --workspace --all-targets --locked --target x86_64-pc-windows-gnu -- -D warnings
+      - name: Wine (GE-Proton, pinned)
+        run: |
+          scripts/build-components.sh "$RUNNER_TEMP/c" runner
+          echo "$RUNNER_TEMP/c/runner/bin" >> "$GITHUB_PATH"
+      - name: Tests under Wine
+        run: |
+          sdl="$PWD/dist/sdl2/$(sed -n 's/^dir=//p' packaging/sdl2.pin)/lib"
+          export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS="-C link-arg=-fuse-ld=lld -L $sdl"
+          export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUNNER=wine
+          export WINEPREFIX="$RUNNER_TEMP/wineprefix" WINEDEBUG=-all
+          export WINEPATH="Z:$(printf '%s' "$PWD/dist/sdl2" | tr / '\\')"
+          wine --version
+          cargo test --workspace --locked --target x86_64-pc-windows-gnu
 
   # Both packages from one build of windowsarcadeloader (its Linux and
   # Windows launchers, the Windows payloads), on Debian bookworm (glibc
