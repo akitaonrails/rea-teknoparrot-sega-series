@@ -228,6 +228,10 @@ fn check(paths: &Paths, config: &paths::Config, only: Option<&str>) -> Result<u8
             None => Err("not in your game folders".to_string()),
             Some(_) => match game.support_on(Host::current()) {
                 Support::Blocked(why) => Err(format!("not yet: {why}")),
+                _ if session::needs_lindbergh_build(paths, game) => Ok(format!(
+                    "{}; lindbergh-loader is built on its first Play (needs git and docker or podman)",
+                    state(game)
+                )),
                 _ => session::check_components(game, paths)
                     .map(|()| state(game))
                     .map_err(|e| format!("{e:#}")),
