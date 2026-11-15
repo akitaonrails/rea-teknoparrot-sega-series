@@ -36,7 +36,8 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 | Step | Result |
 |---|---|
 | TeknoParrot core (`TeknoMacaw.exe "<Daytona.exe>"`, as TeknoParrotUI starts it) under GE-Proton's Wine, bare metal | a message box "Sorry, this application cannot run under a Virtual Machine" (VMProtect). Not bypassed, by rule. |
-| windowsarcadeloader `segashell` profile | being written |
+| windowsarcadeloader `segashell` profile (`patches/wal/0004`), by hand | boots in about 2 minutes on a new prefix (shaders), 30 s later; attract, coins, start, mode, track and car select, races with steering, gas and brake; force feedback bytes from the emulated InpWrapper arrive as `out` lines (e.g. `0x13` → +8666). The game's Shell security challenge (it quits after 5 unanswered) is switched off by the profile, as Transformers' is. |
+| Through the launcher (`--play dcusa --headless`, 2026-11-15) | **race played**: coin, start, the menus taken with the gas pedal, "Start your engines", lap 1 at 44 mph in automatic, steering both ways; 0 leftover processes. The view and gear buttons were pressed but no camera change was seen: not verified. |
 
 ## Quitting and leftovers
 

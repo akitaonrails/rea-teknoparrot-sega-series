@@ -113,6 +113,10 @@ pub enum StickLayout {
     /// lever on b1–b4 (gear 1–4, held while in that gear; none is
     /// neutral) and four view buttons on up/down/left/right.
     HPattern4,
+    /// Daytona Championship USA (`segashell/daytona-championship-usa`,
+    /// patches/wal/0004): shift on b1/b2, the four view buttons on
+    /// up/down/left/right.
+    Shell,
 }
 
 /// Turns the player's controls into one game's pipe lines, keeping the
@@ -166,7 +170,23 @@ impl Cabinet {
                 bits |= bit;
             }
         }
+        let view = |bits: &mut u32, prev: u32, view: &mut u8| {
+            if pressed(Button::View) {
+                *bits |= VIEWS[usize::from(*view)];
+            } else if prev & Button::View.bit() != 0 {
+                // released: the next press chooses the next view
+                *view = (*view + 1) % 4;
+            }
+        };
         match self.layout {
+            StickLayout::Shell => {
+                for (b, bit) in [(Button::GearUp, wal::B1), (Button::GearDown, wal::B2)] {
+                    if pressed(b) {
+                        bits |= bit;
+                    }
+                }
+                view(&mut bits, self.prev, &mut self.view);
+            }
             StickLayout::Sequential => {
                 for (b, bit) in [
                     (Button::GearUp, wal::B1),
@@ -187,12 +207,7 @@ impl Cabinet {
                     self.gear = self.gear.saturating_sub(1).max(1);
                 }
                 bits |= GEARS[usize::from(self.gear - 1)];
-                if pressed(Button::View) {
-                    bits |= VIEWS[usize::from(self.view)];
-                } else if self.prev & Button::View.bit() != 0 {
-                    // released: the next press chooses the next view
-                    self.view = (self.view + 1) % 4;
-                }
+                view(&mut bits, self.prev, &mut self.view);
             }
         }
         self.prev = r.buttons;
@@ -278,6 +293,18 @@ mod tests {
             c.buttons(&read(&[]));
         }
         assert_eq!(seen, [wal::UP, wal::DOWN, wal::LEFT, wal::RIGHT, wal::UP]);
+    }
+
+    #[test]
+    fn daytona_shifts_on_b1_b2_and_walks_the_views() {
+        let mut c = Cabinet::new(StickLayout::Shell);
+        assert_eq!(c.buttons(&read(&[])), 0, "no gear held");
+        assert_eq!(c.buttons(&read(&[Button::GearUp])), wal::B1);
+        assert_eq!(c.buttons(&read(&[Button::GearDown])), wal::B2);
+        c.buttons(&read(&[]));
+        assert_eq!(c.buttons(&read(&[Button::View])), wal::UP);
+        c.buttons(&read(&[]));
+        assert_eq!(c.buttons(&read(&[Button::View])), wal::DOWN);
     }
 
     #[test]

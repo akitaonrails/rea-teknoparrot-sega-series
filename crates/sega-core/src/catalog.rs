@@ -27,10 +27,6 @@ pub enum Route {
         system: &'static str,
         profile: &'static str,
     },
-    /// Windows build under Wine with TeknoParrot's own loader
-    /// (OpenParrotLoader + `TeknoParrot.dll`), fed by the launcher's I/O
-    /// helper through TeknoParrot's shared memory.
-    TeknoParrot,
     /// Sega Chihiro title (an Xbox `.xbe`) in Cxbx-Reloaded.
     Cxbx,
 }
@@ -239,14 +235,17 @@ pub const GAMES: &[Game] = &[
         short: "DCUSA",
         year: 2017,
         board: "Sega PC (Shell)",
-        route: Route::TeknoParrot,
+        route: Route::Wal {
+            system: "segashell",
+            profile: "daytona-championship-usa",
+        },
         main_file: "Sega/Daytona/Daytona.exe",
         editions: &[sha(
             "8ba4048f9a6920e3ecdc991059301e17c53c3c605c0cc639454c14d2665d379e",
             "New Season Edition (TeknoParrot dump)",
         )],
         native: Size::new(1920, 1080),
-        support: Support::Blocked("Its loader is still being written."),
+        support: Support::Ready,
     },
 ];
 

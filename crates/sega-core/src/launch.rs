@@ -77,12 +77,15 @@ pub fn default_interface(proc_net_route: &str) -> String {
 
 /// The size the game draws at: the setting, within what the game can do.
 /// SEGA Rally 3 draws at 1280x720 (the cabinet's) or 1920x1080
-/// (windowsarcadeloader's `WAL_EUROPAR_RESOLUTION`), nothing else.
+/// (windowsarcadeloader's `WAL_EUROPAR_RESOLUTION`), nothing else;
+/// Daytona Championship USA always at its own 1920x1080.
 pub fn game_size(game: &Game, s: &Settings) -> Size {
     let want = s.render.unwrap_or(game.native);
     match game.id {
         GameId::SegaRally3 if want.h >= 1080 => Size::new(1920, 1080),
         GameId::SegaRally3 => Size::new(1280, 720),
+        // its profile has no resolution setting: the game's own 1920x1080
+        GameId::Daytona => game.native,
         _ => want,
     }
 }
@@ -216,6 +219,10 @@ pub fn wal_layer(game: &Game, size: Size, ffb: u8) -> String {
             env.push(("WAL_EUROPAR_FREEPLAY", "1".into()));
             env.push(("WAL_EUROPAR_FFB", ffb.to_string()));
         }
+        Route::Wal {
+            system: "segashell",
+            ..
+        } => env.push(("WAL_SEGASHELL_FFB", ffb.to_string())),
         _ => {}
     }
     let mut out = String::from(
@@ -288,10 +295,10 @@ pub fn plan(
                 links.push((root.join("wine-runners/runner"), c.runner.clone()));
                 links.push((root.join("wine-runners/winetricks"), c.winetricks.clone()));
             }
-            input_pipe = Some(if system == "ringedge" {
-                StickLayout::HPattern4
-            } else {
-                StickLayout::Sequential
+            input_pipe = Some(match system {
+                "ringedge" => StickLayout::HPattern4,
+                "segashell" => StickLayout::Shell,
+                _ => StickLayout::Sequential,
             });
             Command {
                 // Windows: windowsarcadeloader's own run without Wine (patches/wal)
@@ -312,7 +319,7 @@ pub fn plan(
                 cwd: root.clone(),
             }
         }
-        Route::TeknoParrot | Route::Cxbx => {
+        Route::Cxbx => {
             return Err(format!("{} can't be started yet.", game.title));
         }
     };

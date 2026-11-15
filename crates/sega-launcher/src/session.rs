@@ -68,7 +68,7 @@ pub fn check_components(game: &Game, p: &Paths) -> Result<()> {
             c.wal.join("systemprofiles"),
             c.runner.join("bin/wine"),
         ],
-        Route::TeknoParrot | Route::Cxbx => vec![],
+        Route::Cxbx => vec![],
     };
     let missing: Vec<String> = need
         .iter()

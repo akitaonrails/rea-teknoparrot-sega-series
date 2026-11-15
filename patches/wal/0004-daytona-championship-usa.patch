@@ -1,0 +1,461 @@
+diff --git a/crates/payload-common/src/port_ffb.rs b/crates/payload-common/src/port_ffb.rs
+index 94f5cf5..0afef3a 100644
+--- a/crates/payload-common/src/port_ffb.rs
++++ b/crates/payload-common/src/port_ffb.rs
+@@ -22,6 +22,10 @@
+ //! `<prefix>_FFB_FORMAT=grid`: GRID (`0xb9c900`) writes to port 0x1020 the low nibble
+ //! `15 - |force| * 15` (at least 1: 15 none, 1 strongest) with bit 0x10 set for a negative
+ //! force. Showdown (`0xd2dd80`) the same, `15 - |force| * 14` for a positive force.
++//!
++//! `<prefix>_FFB_FORMAT=daytona`: Daytona Championship USA (`0x528ef0`, through the Shell's
++//! `InpWrapper.exe`, port 0x378): SEGA Rally 3's byte (the low nibble 1 strongest .. 15
++//! weakest, 0 none; bit 0x10 set for a force to the right).
+ 
+ use std::sync::Once;
+ use std::sync::atomic::{AtomicI32, AtomicU8, Ordering};
+@@ -81,7 +85,7 @@ pub fn out(prefix: &str, port: u16, data: u16) {
+         let _ = PERCENT.set(std::env::var(format!("{prefix}_FFB")).ok().and_then(|v| v.trim().parse().ok()).unwrap_or(100));
+         let format = std::env::var(format!("{prefix}_FFB_FORMAT")).unwrap_or_default().trim().to_ascii_lowercase();
+         match format.as_str() {
+-            "rally3" => RALLY3.store(true, Ordering::Relaxed),
++            "rally3" | "daytona" => RALLY3.store(true, Ordering::Relaxed),
+             "grid" => GRID.store(true, Ordering::Relaxed),
+             _ => {}
+         }
+diff --git a/crates/payload-segashell/Cargo.toml b/crates/payload-segashell/Cargo.toml
+index 5bc55ab..8e3bf19 100644
+--- a/crates/payload-segashell/Cargo.toml
++++ b/crates/payload-segashell/Cargo.toml
+@@ -12,4 +12,4 @@ crate-type = ["cdylib"]
+ [dependencies]
+ wal-protocol = { path = "../protocol" }
+ wal-payload-common = { path = "../payload-common" }
+-windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_LibraryLoader", "Win32_System_Memory", "Win32_System_SystemServices", "Win32_System_Threading", "Win32_System_Environment", "Win32_System_Registry", "Win32_UI_WindowsAndMessaging"] }
++windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_LibraryLoader", "Win32_System_Memory", "Win32_System_SystemServices", "Win32_System_Threading", "Win32_System_Environment", "Win32_System_Registry", "Win32_UI_WindowsAndMessaging", "Win32_System_DataExchange"] }
+diff --git a/crates/payload-segashell/src/inpwrapper.rs b/crates/payload-segashell/src/inpwrapper.rs
+new file mode 100644
+index 0000000..d68f766
+--- /dev/null
++++ b/crates/payload-segashell/src/inpwrapper.rs
+@@ -0,0 +1,118 @@
++//! The Shell's `InpWrapper.exe` (`WAL_SEGASHELL_INPWRAPPER=1`): Daytona Championship USA's
++//! force feedback board on the parallel port, through a 64-bit helper (`inpoutx64.dll`).
++//!
++//! The game starts `c:\sega\shell\InpWrapper.exe -h=<game window> -p=<port>` (`0x5283e0`, the
++//! port from `../shell/Game.ini` `[Configuration] ParallelPort`, 888); the helper sends its own
++//! window to the game's (`WM_COPYDATA`, `dwData` 3, the handle: `0x4dc9d0`), then the game sends
++//! it each force byte (`SendMessageTimeoutA(helper, WM_COPYDATA)`, `dwData` 0x20, one byte;
++//! `0x528de0`), which it writes to the port. The answer (the message's result) 1 is done, 2 try
++//! again.
++//!
++//! Here the helper is not started: the payload answers its `CreateProcessA` and registers a
++//! made-up window with the game, and the game's sends to that window are taken: the byte goes to
++//! payload-common's `port_ffb` decoder (`WAL_SEGASHELL_FFB_FORMAT=daytona`).
++//!
++//! The byte (`0x528ef0`): 0 none, low nibble 1 (strongest) .. 15 (weakest), bit 0x10 clear for a
++//! force to the left (the wheel turned right: the centering spring), set to the right.
++
++use std::sync::atomic::{AtomicUsize, Ordering};
++
++use wal_payload_common::{iat, log};
++use windows_sys::Win32::Foundation::HWND;
++use windows_sys::Win32::System::DataExchange::COPYDATASTRUCT;
++use windows_sys::Win32::UI::WindowsAndMessaging::{SMTO_NORMAL, SendMessageTimeoutA, WM_COPYDATA};
++
++/// The made-up window of the helper.
++const HELPER: usize = 0x5741_4c01;
++
++type CreateProcessA = unsafe extern "system" fn(*const u8, *mut u8, usize, usize, i32, u32, usize, *const u8, usize, *mut ProcessInformation) -> i32;
++type SendMessageTimeout = unsafe extern "system" fn(usize, u32, usize, isize, u32, u32, *mut usize) -> isize;
++
++#[repr(C)]
++pub struct ProcessInformation {
++    process: usize,
++    thread: usize,
++    process_id: u32,
++    thread_id: u32,
++}
++
++static ORIG_CREATE: AtomicUsize = AtomicUsize::new(0);
++static ORIG_SEND: AtomicUsize = AtomicUsize::new(0);
++
++pub(crate) fn init() {
++    if let Some(o) = unsafe { iat::hook("kernel32.dll", "CreateProcessA", create_process as *const () as usize) } {
++        ORIG_CREATE.store(o, Ordering::Relaxed);
++    }
++    if let Some(o) = unsafe { iat::hook("user32.dll", "SendMessageTimeoutA", send_message_timeout as *const () as usize) } {
++        ORIG_SEND.store(o, Ordering::Relaxed);
++    }
++    log!("inpwrapper: the force feedback helper emulated");
++}
++
++fn c_str(p: *const u8) -> String {
++    if p.is_null() { String::new() } else { unsafe { std::ffi::CStr::from_ptr(p.cast()) }.to_string_lossy().into_owned() }
++}
++
++/// `-h=<hex>`: the game's window.
++fn game_window(command_line: &str) -> Option<usize> {
++    let h = command_line.split_whitespace().find_map(|w| w.strip_prefix("-h="))?;
++    usize::from_str_radix(h, 16).ok()
++}
++
++unsafe extern "system" fn create_process(
++    app: *const u8,
++    command_line: *mut u8,
++    process_attributes: usize,
++    thread_attributes: usize,
++    inherit: i32,
++    flags: u32,
++    environment: usize,
++    directory: *const u8,
++    startup: usize,
++    info: *mut ProcessInformation,
++) -> i32 {
++    let (name, args) = (c_str(app), c_str(command_line));
++    if name.to_ascii_lowercase().ends_with("inpwrapper.exe") {
++        log!("inpwrapper: {name} {args}: emulated");
++        if let Some(window) = game_window(&args) {
++            // the helper's registration, from another thread (the game's window thread is
++            // the caller)
++            std::thread::spawn(move || register(window));
++        }
++        if !info.is_null() {
++            // handles the game closes: none
++            unsafe { info.write(ProcessInformation { process: 0, thread: 0, process_id: 0, thread_id: 0 }) };
++        }
++        return 1;
++    }
++    let f: CreateProcessA = unsafe { std::mem::transmute(ORIG_CREATE.load(Ordering::Relaxed)) };
++    unsafe { f(app, command_line, process_attributes, thread_attributes, inherit, flags, environment, directory, startup, info) }
++}
++
++/// The helper's window sent to the game's (`WM_COPYDATA`, `dwData` 3).
++fn register(window: usize) {
++    std::thread::sleep(std::time::Duration::from_millis(500));
++    let handle: u32 = HELPER as u32;
++    let data = COPYDATASTRUCT { dwData: 3, cbData: 4, lpData: &handle as *const u32 as *mut _ };
++    let mut result = 0usize;
++    let ok = unsafe { SendMessageTimeoutA(window as HWND, WM_COPYDATA, 0, &data as *const _ as isize, SMTO_NORMAL, 5000, &mut result) };
++    log!("inpwrapper: registered with the game's window {window:#x}: {ok}");
++}
++
++unsafe extern "system" fn send_message_timeout(window: usize, msg: u32, wparam: usize, lparam: isize, flags: u32, timeout: u32, result: *mut usize) -> isize {
++    if window == HELPER {
++        if msg == WM_COPYDATA && lparam != 0 {
++            let data = unsafe { &*(lparam as *const COPYDATASTRUCT) };
++            if data.dwData == 0x20 && data.cbData >= 1 && !data.lpData.is_null() {
++                let byte = unsafe { *(data.lpData as *const u8) };
++                wal_payload_common::port_ffb::out("WAL_SEGASHELL", 0x378, byte as u16);
++            }
++        }
++        if !result.is_null() {
++            unsafe { *result = 1 };
++        }
++        return 1;
++    }
++    let f: SendMessageTimeout = unsafe { std::mem::transmute(ORIG_SEND.load(Ordering::Relaxed)) };
++    unsafe { f(window, msg, wparam, lparam, flags, timeout, result) }
++}
+diff --git a/crates/payload-segashell/src/lib.rs b/crates/payload-segashell/src/lib.rs
+index 6f177cb..13ec53b 100644
+--- a/crates/payload-segashell/src/lib.rs
++++ b/crates/payload-segashell/src/lib.rs
+@@ -13,11 +13,15 @@
+ //! * The game's resolution (`WAL_SEGASHELL_DEFAULT_RESOLUTION=<rva>`): its
+ //!   `DefaultResolution()` made to return 1280x720 (index 14) unless `WAL_SEGASHELL_FULLHD=1`
+ //!   (its own choice: 1920x1080).
++//! * `WAL_SEGASHELL_INPWRAPPER=1`: the Shell's force feedback helper `InpWrapper.exe` emulated
++//!   (`inpwrapper.rs`, Daytona Championship USA): the force bytes the game sends it go to
++//!   `port_ffb` too.
+ //! * The test menu (`testmenu.rs`): TEST starts the Shell's program
+ //!   (`WAL_SEGASHELL_TEST_MENU`), which gets its own patches and inputs.
+ 
+ mod board;
+ mod input;
++mod inpwrapper;
+ mod rapture3d;
+ mod settings;
+ mod shell;
+@@ -44,6 +48,9 @@ pub extern "system" fn DllMain(_module: HINSTANCE, reason: u32, _reserved: *mut
+         rapture3d::init();
+         board::init();
+         parallel_port();
++        if std::env::var("WAL_SEGASHELL_INPWRAPPER").is_ok_and(|v| v.trim() == "1") {
++            inpwrapper::init();
++        }
+         if std::env::var("WAL_SEGASHELL_PC_INPUT_HIDDEN").is_ok_and(|v| v.trim() == "1") {
+             input::init();
+         }
+diff --git a/crates/payload-segashell/src/shell.rs b/crates/payload-segashell/src/shell.rs
+index d1172bd..31507c0 100644
+--- a/crates/payload-segashell/src/shell.rs
++++ b/crates/payload-segashell/src/shell.rs
+@@ -15,6 +15,14 @@
+ //! `SHELL_MSG_*`: `SETCREDIT` 0x0d (data: the credit count), `SECURITY_AUTHENTICATE`, `EXIT`,
+ //! `SET_SKU`, keypad, bonus codes, motion base, QR code, spoofed button). The game waits for
+ //! `SET_SKU` (the cabinet's configuration) after its `LAUNCHED_OK`.
++//!
++//! Daytona Championship USA (`WAL_SEGASHELL_PROTOCOL=dyt`): magic `DYT`, one numbering for both
++//! ways (`0x584970`'s name table): game 0x00-0x2b (`GAME_MSG_*`: keepalive, launched, attract,
++//! start pressed, mode / track / car / transmission select, race events, game over, high
++//! scores, 0x2a security challenge, 0x2b shutdown), Shell 0x2c `SET_SKU` (data byte 1: a
++//! cabinet option), 0x2d `SETCREDIT` (data: the credit count), 0x2e `SECURITY_AUTHENTICATE`,
++//! 0x2f `RESET`, 0x30 `EXIT`, 0x31-0x33 party mode, then game 0x34-0x36 party mode
++//! acknowledge, continue offered / chosen.
+ 
+ use std::io::{Read, Write};
+ use std::net::{TcpListener, TcpStream};
+@@ -89,6 +97,64 @@ const DSW_MSG: [&str; 0x1c] = [
+     "KEYBOARD_SPOOF",
+ ];
+ 
++const DYT_MSG: [&str; 0x37] = [
++    "KEEPALIVE",
++    "LAUNCHED_OK",
++    "ASSETS_LOADED",
++    "ATTRACT_START",
++    "ATTRACT_LOGO",
++    "ATTRACT_VIDEO",
++    "START_PRESSED",
++    "MODE_ENTERED",
++    "MODE_SELECTED",
++    "WAITING_FOR_CHALLENGERS",
++    "ENTRY_CLOSED",
++    "PLAYERS_IN_GAME",
++    "TRACK_SELECT_ENTERED",
++    "TRACK_SELECT_CHANGED",
++    "TRACK_SELECT_CHOSEN",
++    "CAR_SELECT_ENTERED",
++    "CAR_SELECT_CHANGED",
++    "CAR_SELECT_CHOSEN",
++    "?",
++    "?",
++    "TRANSMISSION_SELECT_CHOSEN",
++    "TRACK_LOADING",
++    "ROLLING_START",
++    "COUNTDOWN",
++    "CURRENT_POSITIONS",
++    "WALL_IMPACT",
++    "PLAYER_IMPACT",
++    "OVERTAKE_STATUS",
++    "PIT_STATUS",
++    "TIME_EXTENDED",
++    "TIME_OUT",
++    "GEAR_SHIFT",
++    "LAP_COMPLETED",
++    "RACE_LEADER",
++    "RACE_OVER",
++    "FINAL_RESULTS",
++    "GAME_OVER",
++    "HIGHSCORE_ACHIEVED",
++    "HIGHSCORE_ENTRY",
++    "HIGHSCORE_VALUE",
++    "INITIAL_CURRENT",
++    "INITIAL_CONFIRMED",
++    "SECURITY_CHALLENGE",
++    "SHUTDOWN",
++    "SET_SKU",
++    "SETCREDIT",
++    "SECURITY_AUTHENTICATE",
++    "RESET",
++    "EXIT",
++    "PARTY_MODE_REQUEST",
++    "PARTY_MODE_START",
++    "PARTY_MODE_END",
++    "PARTY_MODE_ACKNOWLEDGE",
++    "CONTINUE_OFFERED",
++    "CONTINUE_CHOSEN",
++];
++
+ /// The Shell's protocol version: its packets' magic, its message names, `SETCREDIT`.
+ struct Protocol {
+     magic: &'static [u8; 3],
+@@ -98,24 +164,36 @@ struct Protocol {
+     quiet: &'static [u16],
+     /// The game's launched message, answered with its cabinet configuration (`SET_SKU`).
+     launched: Option<u16>,
++    /// `SET_SKU`'s id.
++    set_sku: u16,
++    /// `SET_SKU`'s data when `WAL_SEGASHELL_SKU` is not set (hex).
++    sku: &'static str,
+ }
+ 
+-const TFM: Protocol = Protocol { magic: b"TFM", names: &GAME_MSG, set_credit: 0x41, quiet: &[0x00, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x1d], launched: None };
+-const DSW: Protocol = Protocol { magic: b"DSW", names: &DSW_MSG, set_credit: 0x0d, quiet: &[0x00], launched: Some(0x03) };
++const TFM: Protocol = Protocol { magic: b"TFM", names: &GAME_MSG, set_credit: 0x41, quiet: &[0x00, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x1d], launched: None, set_sku: 0x40, sku: "" };
++const DSW: Protocol =
++    Protocol { magic: b"DSW", names: &DSW_MSG, set_credit: 0x0d, quiet: &[0x00], launched: Some(0x03), set_sku: 0x10, sku: "00000000000000000100000001000000" };
++// Daytona: the race's positions several times a second not logged
++const DYT: Protocol =
++    Protocol { magic: b"DYT", names: &DYT_MSG, set_credit: 0x2d, quiet: &[0x00, 0x18], launched: Some(0x01), set_sku: 0x2c, sku: "0000000000000000" };
+ 
+ /// DSW `SET_SKU` data (`WAL_SEGASHELL_SKU`, hex): 0 ?, 1 surround audio, 2 motion base,
+ /// 3 seat belt, 4 age rating shown, 5 external screen, 6 Blue Ripple logo shown, 7 -, 8-11
+ /// screen preset (u32: 0 legacy, 1 standard, 2 super deluxe), 12-15 default view (u32: 0
+-/// bonnet, 1 chase).
++/// bonnet, 1 chase). DYT: only byte 1 is read.
+ fn sku() -> Vec<u8> {
+-    let hex = std::env::var("WAL_SEGASHELL_SKU").unwrap_or_else(|_| "00000000000000000100000001000000".into());
++    let hex = std::env::var("WAL_SEGASHELL_SKU").unwrap_or_else(|_| protocol().sku.into());
+     let hex: String = hex.chars().filter(|c| c.is_ascii_hexdigit()).collect();
+     (0..hex.len() / 2).filter_map(|i| u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16).ok()).collect()
+ }
+ 
+ fn protocol() -> &'static Protocol {
+-    static P: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+-    if *P.get_or_init(|| std::env::var("WAL_SEGASHELL_PROTOCOL").is_ok_and(|v| v.trim().eq_ignore_ascii_case("dsw"))) { &DSW } else { &TFM }
++    static P: std::sync::OnceLock<&'static Protocol> = std::sync::OnceLock::new();
++    P.get_or_init(|| match std::env::var("WAL_SEGASHELL_PROTOCOL").unwrap_or_default().trim().to_ascii_lowercase().as_str() {
++        "dsw" => &DSW,
++        "dyt" => &DYT,
++        _ => &TFM,
++    })
+ }
+ 
+ /// The game's connection, for the coin thread's credit updates.
+@@ -178,12 +256,12 @@ fn serve(mut stream: TcpStream) {
+         if !protocol().quiet.contains(&id) {
+             log!("shell: game {id:#04x} {name} {:02X?} {data:02X?}", &header[7..]);
+         }
+-        // DSW: the game launched, the cabinet's configuration (SET_SKU, without it the game
+-        // quits after 5 seconds), then the credits
++        // DSW, DYT: the game launched, the cabinet's configuration (SET_SKU, without it
++        // Showdown quits after 5 seconds), then the credits
+         if protocol().launched == Some(id) {
+             let sku = sku();
+             log!("shell: cabinet configuration {sku:02X?}");
+-            let _ = stream.write_all(&packet(0x10, [0; 4], &sku));
++            let _ = stream.write_all(&packet(protocol().set_sku, [0; 4], &sku));
+             let _ = stream.write_all(&packet(protocol().set_credit, [0; 4], &[*CREDITS.lock().unwrap()]));
+         }
+     }
+diff --git a/docs/IMPLEMENTATION.md b/docs/IMPLEMENTATION.md
+index 527884e..47c4c4e 100644
+--- a/docs/IMPLEMENTATION.md
++++ b/docs/IMPLEMENTATION.md
+@@ -2301,6 +2301,37 @@ Ego engine of DiRT Showdown; no symbols). An earlier Shell protocol and a PC gam
+   mouse hooks not installed, XInput without pads.
+ - The game's own log: `OutputDebugString` (Wine `+debugstr`).
+ 
++**Daytona Championship USA** (Sega Amusements, 2017; New Season Edition 2019,
++`Sega/Daytona/Daytona.exe` v190306, 32-bit, Direct3D 11, fixed base, no symbols):
++
++- **Shell protocol (`WAL_SEGASHELL_PROTOCOL=dyt`).** Magic `DYT`, one numbering both ways (names
++  at `0x1543be0`, `0x584970`): game 0x00-0x2b (keepalive, launched, assets loaded, attract,
++  start pressed, mode / track / car / transmission select, race events, game over, high
++  scores, 0x2a security challenge, 0x2b shutdown), Shell 0x2c `SET_SKU` (data byte 1), 0x2d
++  `SETCREDIT`, 0x2e `SECURITY_AUTHENTICATE`, 0x2f `RESET`, 0x30 `EXIT`, 0x31-0x33 party mode
++  (handlers: the jump table at `0x5845c8`). The payload answers `LAUNCHED_OK` with `SET_SKU`
++  and the credits. The game sends a 4-byte challenge every 10 seconds and quits after 5
++  unanswered (`0x584d09`): patched to never quit (`0x584d0f` `jle` -> `jmp`).
++- **I/O board.** A DirectInput game controller "SEGA IO Controller" (the first `DIJOYSTATE`, axes
++  -1000..1000, `0x47cdf0`): X the wheel (calibrated by `ShellData.ini` `[CalibrationData]`), Z
++  the brake, Rx the gas; its buttons map to game functions through the table of known
++  controllers at `0x116d490` (0xe0 per device: name, then 12 (button, function) pairs): 0 start
++  (function 2), 1 / 2 / 6 / 7 functions 7-10, 3 / 4 functions 14 / 13, 8-11 functions 3-6
++  (likely the view buttons, shift and gears 1-4; not verified: no camera change seen). Menus: the wheel chooses, the
++  gas pedal or start selects. Credits come from the Shell (`SETCREDIT`), free play from
++  `ShellData.ini` `[Credit] Freeplay`. Its Shell and data paths are already relative
++  (`../shell/Game.ini`, `../ShellData`, `../GameData`).
++- **Force feedback (`inpwrapper.rs`, `WAL_SEGASHELL_INPWRAPPER=1`).** The game starts the Shell's
++  64-bit `c:\sega\shell\InpWrapper.exe -h=<game window> -p=<port>` (`0x5283e0`, `Game.ini`
++  `ParallelPort`=888), which registers its window (`WM_COPYDATA` `dwData` 3) and then gets each
++  force byte (`SendMessageTimeoutA` `WM_COPYDATA` `dwData` 0x20, `0x528de0`) for
++  `inpoutx64.dll`'s `Out32`. The payload answers the `CreateProcessA`, registers a made-up window
++  and takes the game's sends to it: the byte (`0x528ef0`: low nibble 1 strongest .. 15 weakest,
++  0 none, bit 0x10 a force to the right) goes to `port_ffb` (`WAL_SEGASHELL_FFB_FORMAT=daytona`,
++  SEGA Rally 3's decoding on port 0x378): `output::FFB_CONSTANT`.
++- Boot: about 2 minutes to attract on a new prefix ("Data Loading ... %" while its shaders
++  compile), about 30 seconds once the shader caches are warm.
++
+ ### 6.3f Wahlap (`crates/payload-wahlap`)
+ 
+ Wahlap Technology's Windows PC cabinets (Storm Racer G, 2013, with Sega; Storm Rider below): the game
+diff --git a/systemprofiles/segashell/daytona-championship-usa.yaml b/systemprofiles/segashell/daytona-championship-usa.yaml
+new file mode 100644
+index 0000000..77ec235
+--- /dev/null
++++ b/systemprofiles/segashell/daytona-championship-usa.yaml
+@@ -0,0 +1,82 @@
++# Daytona Championship USA (Sega Amusements, 2017; New Season Edition, 2019), racing game with a
++# wheel, pedals, a 4-speed H shifter and four view buttons on a Windows PC run by Sega's Shell:
++# Sega/Daytona/Daytona.exe (Direct3D 11); the payload plays the Shell and the I/O board.
++# Override values in userprofiles/segashell/daytona-championship-usa.yaml.
++system: segashell
++name: Daytona Championship USA
++
++input:
++  stick_as_dpad: false
++  gamepad:
++    r1: b1
++    l1: b2
++    dpup: up
++    dpdown: down
++    dpleft: left
++    dpright: right
++    r2: accel
++    l2: brake
++  keyboard_ramp_ms: 500
++  keyboard:
++    p1:
++      KEY_LEFT: -lx
++      KEY_RIGHT: lx
++      KEY_UP: accel
++      KEY_DOWN: brake
++
++env:
++  # the Shell's protocol of this game (DYT packets, the cabinet's configuration on launch)
++  WAL_SEGASHELL_PROTOCOL: dyt
++  # no Shell security challenges: unanswered, the game quits after 5 (the counter's check
++  # at 0x584d0f always passes)
++  WAL_PATCHES: "0x184d0f:EB"
++  # free play (over ShellData.ini): off, a coin per game
++  WAL_SEGASHELL_FREEPLAY: "0"
++  # the cabinet's board, a DirectInput game controller "SEGA IO Controller" (its buttons'
++  # functions from the game's table at 0x116d810): X the wheel, Z the brake, Rx the gas, axes
++  # -1000..1000; buttons 0 start (function 2), 1 / 2 / 6 / 7 functions 7-10, 3 / 4 functions
++  # 14 / 13, 8-11 functions 3-6 (read as the view buttons, shift and gears 1-4: start, wheel
++  # and pedals verified in races, the others not yet: no camera change seen, races in AT)
++  WAL_DINPUT_WHEEL: SEGA IO Controller
++  WAL_DINPUT_WHEEL_Z_AXIS: brake
++  WAL_DINPUT_WHEEL_RX_AXIS: accel
++  WAL_DINPUT_WHEEL_BUTTONS: "start,up,down,b1,b2,none,left,right,b3,b4,b5,b6"
++  WAL_DINPUT_WHEEL_FFB: "0"
++  # force feedback: the Shell's InpWrapper.exe (the parallel port board) emulated
++  WAL_SEGASHELL_INPWRAPPER: "1"
++  WAL_SEGASHELL_FFB_FORMAT: daytona
++  WAL_SEGASHELL_FFB: "100"
++
++options:
++  - title: Game
++    options:
++      - key: WAL_SEGASHELL_FREEPLAY
++        label: Free play
++        kind: bool
++        description: >-
++          Games start without coins. Off: a coin per game.
++  - title: Force feedback
++    options:
++      - key: WAL_SEGASHELL_FFB
++        label: Strength (%)
++        kind: number
++        min: 0
++        max: 200
++        description: The wheel motor's force, in percent of the game's.
++
++controls:
++  service: none
++  test: none
++  lx: Wheel
++  accel: Gas
++  brake: Brake
++  up: View 1
++  down: View 2
++  left: View 3
++  right: View 4
++  b1: Shift (button 3)
++  b2: Shift (button 4)
++  b3: Gear 1
++  b4: Gear 2
++  b5: Gear 3
++  b6: Gear 4

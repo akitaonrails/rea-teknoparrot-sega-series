@@ -18,7 +18,7 @@ main file (`crates/sega-core/src/catalog.rs`).
 | Crazy Taxi High Roller (2003) | Sega Chihiro | `ctx_ac[r].xbe` | Cxbx-Reloaded (in progress) |
 | SEGA Rally 3 (2008) | Sega Europa-R (Windows XP PC) | `Rally/Rally.exe` (32-bit) | windowsarcadeloader under Wine |
 | SEGA Racing Classic (2009) | Sega RingWide (Windows Embedded) | `d1a.exe` (32-bit) | windowsarcadeloader under Wine |
-| Daytona Championship USA NSE (2019) | Sega PC with the Sega Shell | `Sega/Daytona/Daytona.exe` (32-bit) | a windowsarcadeloader profile of our own (in progress) |
+| Daytona Championship USA NSE (2019) | Sega PC with the Sega Shell | `Sega/Daytona/Daytona.exe` (32-bit) | windowsarcadeloader with a `segashell` profile of our own (Our own: C3) |
 
 ## 2. Community projects
 
@@ -81,7 +81,8 @@ partitions and the Xbox BIOS, but not the three EEPROMs.
 |---|---|---|
 | SEGA Rally 3, SEGA Racing Classic | the launcher (SDL), fed to windowsarcadeloader's `--input-pipe` (`patches/wal/0001`) | windowsarcadeloader's `out` lines (constant, centring, rumble), played by the launcher on the wheel through SDL, scaled by the player's strength |
 | OutRun 2 SP SDX | lindbergh-loader itself (SDL: `controls.ini`) | lindbergh-loader's drive board emulation (SDL haptics) |
-| Daytona, Chihiro | to be decided with their routes | |
+| Daytona Championship USA | the launcher, through windowsarcadeloader's input pipe (the board is a DirectInput "SEGA IO Controller") | the Shell's InpWrapper helper, emulated by the payload: parallel-port bytes (strength and direction, SEGA Rally 3's encoding) become `out` lines |
+| Chihiro | to be decided with its route | |
 
 Steering lock defaults to 270°, the cabinets' (SDK `SteeringLock::DEFAULT`).
 

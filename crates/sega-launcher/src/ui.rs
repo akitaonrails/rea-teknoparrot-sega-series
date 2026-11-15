@@ -251,6 +251,7 @@ impl App {
             let mut form = Form::new(crate::load_settings(&self.paths, g.slug), g.native);
             // lindbergh-loader reads the wheel itself (no lock or strength from us)
             form.feeds_input = !matches!(g.route, Route::Lindbergh);
+            form.render_fixed = g.id == sega_core::catalog::GameId::Daytona;
             form.screen = self.screen;
             self.form = Some((i, form));
             self.note = None;

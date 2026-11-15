@@ -338,11 +338,77 @@ env:
   WAL_RINGEDGE_GL_SCALE: "1280x720"
 
 == Linux dcusa original
-not yet: Daytona Championship USA can't be started yet.
+size 1920x1080
+run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
+cwd /d/wal
+gamescope -w 1920 -h 1080 -W 2560 -H 1440 -r 60 -F linear -f
+input Some(Shell)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/dcusa/daytona-championship-usa.windowsloader
+Sega\Daytona\Daytona.exe
+
+file /d/wal/layer-dcusa.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_SEGASHELL_FFB: "100"
+
 == Linux dcusa recommended
-not yet: Daytona Championship USA can't be started yet.
+size 1920x1080
+run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
+cwd /d/wal
+gamescope -w 1920 -h 1080 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
+input Some(Shell)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/dcusa/daytona-championship-usa.windowsloader
+Sega\Daytona\Daytona.exe
+
+file /d/wal/layer-dcusa.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_SEGASHELL_FFB: "100"
+
 == Linux dcusa steam_deck
-not yet: Daytona Championship USA can't be started yet.
+size 1920x1080
+run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
+cwd /d/wal
+gamescope -w 1920 -h 1080 -W 1280 -H 800 -r 60 -F linear -f
+input Some(Shell)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/dcusa/daytona-championship-usa.windowsloader
+Sega\Daytona\Daytona.exe
+
+file /d/wal/layer-dcusa.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_SEGASHELL_FFB: "100"
+
 == Windows or2sdx original
 size 800x480
 run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
@@ -671,8 +737,68 @@ env:
   WAL_RINGEDGE_GL_SCALE: "1280x720"
 
 == Windows dcusa original
-not yet: Daytona Championship USA can't be started yet.
+size 1920x1080
+run /c/wal/arcade-launcher.exe run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
+cwd /d/wal
+gamescope 
+input Some(Shell)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/dcusa/daytona-championship-usa.windowsloader
+Sega\Daytona\Daytona.exe
+
+file /d/wal/layer-dcusa.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_SEGASHELL_FFB: "100"
+
 == Windows dcusa recommended
-not yet: Daytona Championship USA can't be started yet.
+size 1920x1080
+run /c/wal/arcade-launcher.exe run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
+cwd /d/wal
+gamescope 
+input Some(Shell)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/dcusa/daytona-championship-usa.windowsloader
+Sega\Daytona\Daytona.exe
+
+file /d/wal/layer-dcusa.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_SEGASHELL_FFB: "100"
+
 == Windows dcusa steam_deck
-not yet: Daytona Championship USA can't be started yet.
+size 1920x1080
+run /c/wal/arcade-launcher.exe run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
+cwd /d/wal
+gamescope 
+input Some(Shell)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/dcusa/daytona-championship-usa.windowsloader
+Sega\Daytona\Daytona.exe
+
+file /d/wal/layer-dcusa.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_SEGASHELL_FFB: "100"
+

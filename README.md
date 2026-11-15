@@ -10,10 +10,10 @@ from the launcher's own private copy.
 
 This project contains no game files: you need your own dumps.
 
-> **Work in progress.** OutRun 2 SP SDX, SEGA Rally 3 and SEGA Racing Classic
-> play full races through the launcher on Linux. OutRun 2 SP Special Tours and Crazy Taxi High
-> Roller need three Chihiro BIOS files and are still being brought up;
-> Daytona Championship USA's loader is still being written. Wheels, the
+> **Work in progress.** OutRun 2 SP SDX, SEGA Rally 3, SEGA Racing Classic and
+> Daytona Championship USA play full races through the launcher on Linux.
+> OutRun 2 SP Special Tours and Crazy Taxi High Roller need three Chihiro
+> BIOS files and are still being brought up. Wheels, the
 > Windows build and the Steam Deck are not tested on hardware yet
 > ([docs/RUNTIME_NOTES.md](docs/RUNTIME_NOTES.md)). Reports are welcome at
 > <https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues>.
@@ -25,8 +25,8 @@ repository, with its poster image. -->
 
 | Problem | What the launcher does |
 | --- | --- |
-| Each cabinet needs its own loader, Wine setup and tweaks. | One window finds every game in your folders and starts each with the right loader: lindbergh-loader for OutRun 2 SP SDX, windowsarcadeloader for SEGA Rally 3 and SEGA Racing Classic. |
-| TeknoParrot doesn't run on Linux. | Open loaders made for Linux run the games natively or under a bundled Wine (GE-Proton). |
+| Each cabinet needs its own loader, Wine setup and tweaks. | One window finds every game in your folders and starts each with the right loader: lindbergh-loader for OutRun 2 SP SDX, windowsarcadeloader for SEGA Rally 3, SEGA Racing Classic and Daytona Championship USA. |
+| TeknoParrot doesn't run on Linux, and its loader refuses Wine. | Open loaders made for Linux run the games natively or under a bundled Wine (GE-Proton); Daytona Championship USA gets a windowsarcadeloader profile written for this launcher. |
 | SEGA Racing Classic's sound crashes under plain Wine. | The prefix gets native XAudio2 the first time, automatically. |
 | OutRun 2 SP SDX stops at its cabinet check on a PC. | The launcher turns on lindbergh-loader's cabinet-check skip. |
 | The cabinets had a 4-speed H lever, a handbrake and four view buttons. | Paddles or shoulder buttons shift up and down; the launcher turns that into the H lever's gears, and one view button walks through the four cameras. |
@@ -139,8 +139,9 @@ start, without starting), `--library <folder>`, `--chihiro-bios <folder>`,
 - OutRun 2 SP Special Tours and Crazy Taxi High Roller can't start yet:
   Cxbx-Reloaded runs under the bundled Wine, but the games need MAME's three
   Chihiro base-board files and are not verified.
-- Daytona Championship USA can't start yet: TeknoParrot's own loader refuses
-  to run under Wine, so a windowsarcadeloader profile is being written.
+- Daytona Championship USA: the view and gear buttons are mapped from the
+  game's own table but not yet seen working in a race (races so far used the
+  automatic transmission). Coins are needed (free play off).
 - OutRun 2 SP SDX runs only in the Linux version (it's a Linux game).
 - No wheel has been tried on hardware yet.
 
@@ -167,7 +168,8 @@ SEGA_COMPONENTS=dist/components cargo run -p sega-launcher
 
 Each game runs from a private runtime folder: links to the dump, real
 copies of what the game writes. SEGA Rally 3 and SEGA Racing Classic run in
-windowsarcadeloader under GE-Proton's Wine, with the launcher feeding the
+windowsarcadeloader under GE-Proton's Wine (Daytona through a profile of
+our own that plays the Sega Shell and its force feedback helper), with the launcher feeding the
 cabinet's controls through its input pipe and playing the force feedback
 it sends back. OutRun 2 SP SDX runs natively in lindbergh-loader, which
 reads the controls itself. Every game runs in gamescope (scaling) inside
@@ -199,7 +201,7 @@ this launcher's own.
 ## Credits
 
 - [lindbergh-loader](https://github.com/lindbergh-loader/lindbergh-loader) (the Lindbergh Development Team): runs OutRun 2 SP SDX.
-- [windowsarcadeloader](https://github.com/aderumier/windowsarcadeloader) (Alexandre Derumier): runs SEGA Rally 3 and SEGA Racing Classic.
+- [windowsarcadeloader](https://github.com/aderumier/windowsarcadeloader) (Alexandre Derumier): runs SEGA Rally 3, SEGA Racing Classic and, with our profile, Daytona Championship USA.
 - [Cxbx-Reloaded](https://github.com/Cxbx-Reloaded/Cxbx-Reloaded): the Chihiro route being brought up.
 - [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom) (GloriousEggroll) and [Wine](https://www.winehq.org/): the Windows games on Linux.
 - [winetricks](https://github.com/Winetricks/winetricks): native XAudio2 in the prefix.

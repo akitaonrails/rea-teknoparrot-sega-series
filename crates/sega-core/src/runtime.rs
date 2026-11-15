@@ -94,8 +94,8 @@ fn skip(route: Route, name: &str) -> bool {
             name.ends_with(".windowsloader")
                 || matches!(name, "AMFS" | "amfs" | "AppData" | "Y" | "WindowsLoader")
         }
-        // TeknoParrot's own settings file, which the launcher writes
-        Route::TeknoParrot | Route::Cxbx => name.eq_ignore_ascii_case("teknoparrot.ini"),
+        // TeknoParrot's own settings file, of no use to Cxbx
+        Route::Cxbx => name.eq_ignore_ascii_case("teknoparrot.ini"),
     }
 }
 

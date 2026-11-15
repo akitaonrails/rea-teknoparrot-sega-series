@@ -93,6 +93,8 @@ pub const RENDERS: [Option<Size>; 4] = [
 const FFB_STEP: i32 = 10;
 
 const SHARPNESS_OFF: &str = "Only FSR 1 and NVIDIA Image Scaling use sharpness.";
+pub const RENDER_FIXED: &str =
+    "This game always draws at its own size; the upscaler still fits it to your screen.";
 pub const WHEEL_OWN: &str =
     "This game reads your wheel itself: set the lock and strength in your wheel's software.";
 
@@ -105,6 +107,8 @@ pub struct Form {
     pub feeds_input: bool,
     /// The player's screen, for the looks.
     pub screen: Option<(u32, u32)>,
+    /// The game draws at one size only (the render row does nothing).
+    pub render_fixed: bool,
 }
 
 pub fn size_name(s: Size) -> String {
@@ -164,6 +168,7 @@ impl Form {
             native,
             feeds_input: true,
             screen: None,
+            render_fixed: false,
         }
     }
 
@@ -174,6 +179,7 @@ impl Form {
                 Some(SHARPNESS_OFF)
             }
             Row::SteeringLock | Row::ForceFeedback if !self.feeds_input => Some(WHEEL_OWN),
+            Row::Render if self.render_fixed => Some(RENDER_FIXED),
             _ => None,
         }
     }
@@ -355,6 +361,15 @@ mod tests {
         assert_eq!(f.disabled(Row::SteeringLock), Some(WHEEL_OWN));
         assert!(!f.adjust(Row::ForceFeedback, 1, false));
         assert!(f.disabled(Row::Deadzone).is_none());
+    }
+
+    #[test]
+    fn a_game_with_one_size_says_why_its_resolution_row_is_off() {
+        let mut f = form();
+        f.render_fixed = true;
+        assert_eq!(f.disabled(Row::Render), Some(RENDER_FIXED));
+        assert!(!f.adjust(Row::Render, 1, false));
+        assert!(RENDER_FIXED.ends_with('.'));
     }
 
     #[test]
