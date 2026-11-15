@@ -328,7 +328,7 @@ mod tests {
     fn linked(ops: &[Op]) -> Vec<String> {
         ops.iter()
             .filter_map(|o| match o {
-                Op::Link { at, .. } => Some(at.to_string_lossy().into_owned()),
+                Op::Link { at, .. } => Some(at.to_string_lossy().replace('\\', "/")),
                 _ => None,
             })
             .collect()
@@ -337,7 +337,7 @@ mod tests {
     fn copied_to(ops: &[Op]) -> Vec<String> {
         ops.iter()
             .filter_map(|o| match o {
-                Op::CopyOnce { to, .. } => Some(to.to_string_lossy().into_owned()),
+                Op::CopyOnce { to, .. } => Some(to.to_string_lossy().replace('\\', "/")),
                 _ => None,
             })
             .collect()

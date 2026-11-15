@@ -13,6 +13,11 @@ use sega_core::catalog::{GAMES, Host};
 use sega_core::launch::{self, Components, Places};
 use sega_core::settings::{self, Look, Settings};
 
+/// A path as the snapshot spells it on every system (Windows joins with `\`).
+fn p(path: &std::path::Path) -> String {
+    path.display().to_string().replace('\\', "/")
+}
+
 #[test]
 fn help() {
     let out = Command::new(env!("CARGO_BIN_EXE_sega-launcher"))
@@ -52,25 +57,25 @@ fn every_look_of_every_game() {
                 look.apply(&mut s, g.native, Some((2560, 1440)));
                 let _ = writeln!(out, "== {host:?} {} {}", g.slug, look.key());
                 match launch::plan(g, &places, &c, &s, "eth0", false, host) {
-                    Ok(p) => {
-                        let _ = writeln!(out, "size {}", p.game_size);
+                    Ok(plan) => {
+                        let _ = writeln!(out, "size {}", plan.game_size);
                         let _ = writeln!(
                             out,
                             "run {} {}",
-                            p.game.program.display(),
-                            p.game.args.join(" ")
+                            p(&plan.game.program),
+                            plan.game.args.join(" ").replace('\\', "/")
                         );
-                        let _ = writeln!(out, "cwd {}", p.game.cwd.display());
-                        for (k, v) in &p.game.env {
-                            let _ = writeln!(out, "env {k}={v}");
+                        let _ = writeln!(out, "cwd {}", p(&plan.game.cwd));
+                        for (k, v) in &plan.game.env {
+                            let _ = writeln!(out, "env {k}={}", v.replace('\\', "/"));
                         }
-                        let _ = writeln!(out, "gamescope {}", p.gamescope.join(" "));
-                        let _ = writeln!(out, "input {:?}", p.input_pipe);
-                        for (at, target) in &p.links {
-                            let _ = writeln!(out, "link {} -> {}", at.display(), target.display());
+                        let _ = writeln!(out, "gamescope {}", plan.gamescope.join(" "));
+                        let _ = writeln!(out, "input {:?}", plan.input_pipe);
+                        for (at, target) in &plan.links {
+                            let _ = writeln!(out, "link {} -> {}", p(at), p(target));
                         }
-                        for (f, text) in &p.files {
-                            let _ = writeln!(out, "file {}\n{text}", f.display());
+                        for (f, text) in &plan.files {
+                            let _ = writeln!(out, "file {}\n{text}", p(f));
                         }
                     }
                     Err(e) => {
