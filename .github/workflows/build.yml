@@ -1,0 +1,118 @@
+name: build
+
+# Checks every push (the SDK's launcher-ci: fmt, tests, clippy, deny, the
+# family rules, the Windows-target tests under Wine), builds both packages
+# (Linux and Windows, every component bundled except lindbergh-loader, whose
+# licence lets only the player build it) and, on a vX.Y.Z tag, publishes them
+# (the SDK's launcher-release).
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: akitaonrails/rea-launcher-sdk/.github/workflows/launcher-ci.yml@v0.9.0
+    with:
+      concurrency-key: linux
+      rust-target: ""
+      apt-packages: libsdl2-dev
+      shell-syntax: scripts/*.sh sdk/packaging/*.sh sdk/rea-play.sh
+      shell-tests: ""
+      imports-check: false
+
+  windows-tests:
+    uses: akitaonrails/rea-launcher-sdk/.github/workflows/launcher-ci.yml@v0.9.0
+    with:
+      concurrency-key: windows-tests
+      rust-target: x86_64-pc-windows-gnu
+      apt-packages: gcc-mingw-w64-x86-64 lld zip unzip curl
+      extra-build: scripts/build-launcher.sh sdl2
+      wine-tests: true
+      audit: false
+      sdk-check: false
+      conformance: false
+      secret-scan: false
+      shell-syntax: ""
+      shell-tests: ""
+
+  # Both packages from one build of windowsarcadeloader (its Linux and
+  # Windows launchers, the Windows payloads), on Debian bookworm (glibc
+  # 2.36) so the Linux programs run on older distributions too. The Windows
+  # programs link with LLD (.cargo/config.toml).
+  packages:
+    runs-on: ubuntu-24.04
+    container: debian:bookworm
+    timeout-minutes: 120
+    steps:
+      - name: System packages
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends build-essential pkg-config cmake git curl \
+            ca-certificates xz-utils zip unzip lld libsdl2-dev gcc-mingw-w64 mono-mcs mono-devel \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
+            libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl-dev libegl-dev libgles-dev \
+            libdbus-1-dev libibus-1.0-dev libudev-dev libwayland-dev wayland-protocols libdecor-0-dev \
+            libasound2-dev libpulse-dev libpipewire-0.3-dev libjack-jackd2-dev libsndio-dev \
+            libusb-1.0-0-dev
+      - uses: actions/checkout@v5
+      - name: Rust
+        run: |
+          curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          "$HOME/.cargo/bin/rustup" target add i686-pc-windows-gnu x86_64-pc-windows-gnu
+      - name: Launcher
+        run: |
+          # libSDL2 ships in lib/ beside the program, found through its RUNPATH
+          RUSTFLAGS='-C link-arg=-Wl,-rpath,$ORIGIN/lib' cargo build --release --locked -p sega-launcher
+          mkdir -p dist/linux/lib
+          cp target/release/sega-launcher dist/linux/
+          cp -L "$(ldconfig -p | awk '$1 == "libSDL2-2.0.so.0" && /x86-64/ { print $NF; exit }')" dist/linux/lib/
+          cp /usr/share/doc/libsdl2-2.0-0/copyright dist/linux/SDL2-copyright.txt
+      - name: Linux package
+        env:
+          # windowsarcadeloader's launcher with SDL3 inside it
+          LAUNCHER_FEATURES: sdl3/build-from-source-static
+        run: |
+          git config --global --add safe.directory '*'
+          scripts/package.sh linux
+      - name: Windows package
+        run: |
+          scripts/build-launcher.sh windows
+          scripts/package.sh windows
+      - name: Contents
+        run: |
+          cd dist/pkg
+          ls -l *.tar.gz *.zip
+          unzip -l SegaRacingLauncher-*-windows-x86_64.zip | grep -v -e "/systemprofiles/" -e "/payloads/"
+          tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -v "/components/runner/" | sort
+          ! tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -q "components/lindbergh/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SegaRacingLauncher-packages
+          path: |
+            dist/pkg/SegaRacingLauncher-*-linux-x86_64.tar.gz
+            dist/pkg/SegaRacingLauncher-*-windows-x86_64.zip
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [ci, windows-tests, packages]
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    uses: akitaonrails/rea-launcher-sdk/.github/workflows/launcher-release.yml@v0.9.0
+    with:
+      package: sega-launcher
+      artifact-pattern: SegaRacingLauncher-*

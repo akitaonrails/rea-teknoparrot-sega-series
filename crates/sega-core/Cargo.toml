@@ -1,0 +1,19 @@
+[package]
+name = "sega-core"
+description = "The Sega racing launcher's logic: games, editions, runtime folders, settings and launch plans"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+sha2 = "0.10"
+rea-launcher.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
+
+[target.'cfg(windows)'.dependencies]
+# Directory junctions for the runtime folder (no administrator rights needed)
+junction = "2"

@@ -1,0 +1,731 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index d2450e4..fa82ec9 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -1837,6 +1837,16 @@ dependencies = [
+  "wasm-bindgen",
+ ]
+ 
++[[package]]
++name = "junction"
++version = "2.1.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "cde48f36530cbd91b65f050101e6c056d6eb743cea2a8f0f19beef69c6742ff8"
++dependencies = [
++ "scopeguard",
++ "windows-sys 0.61.2",
++]
++
+ [[package]]
+ name = "khronos-egl"
+ version = "6.0.0"
+@@ -4012,6 +4022,18 @@ dependencies = [
+ name = "wal-protocol"
+ version = "0.1.0"
+ 
++[[package]]
++name = "wal-winhost"
++version = "0.1.0"
++dependencies = [
++ "anyhow",
++ "junction",
++ "serde",
++ "serde_yaml_ng",
++ "wal-protocol",
++ "windows-sys 0.61.2",
++]
++
+ [[package]]
+ name = "walkdir"
+ version = "2.5.0"
+diff --git a/Cargo.toml b/Cargo.toml
+index 2973162..dc98941 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -3,6 +3,7 @@ resolver = "3"
+ members = [
+     "crates/protocol",
+     "crates/launcher",
++    "crates/winhost",
+     "crates/payload-common",
+     "crates/payload-nesica",
+     "crates/payload-typex",
+diff --git a/crates/launcher/src/rundir.rs b/crates/launcher/src/rundir.rs
+index fdbd1f2..1f789db 100644
+--- a/crates/launcher/src/rundir.rs
++++ b/crates/launcher/src/rundir.rs
+@@ -66,12 +66,62 @@ fn merge(from: &Path, to: &Path) -> Result<()> {
+     Ok(())
+ }
+ 
++/// A link `dst` to the game's `src`.
++#[cfg(unix)]
++fn link(src: &Path, dst: &Path) -> std::io::Result<()> {
++    std::os::unix::fs::symlink(src, dst)
++}
++
++/// Windows (no symlinks without administrator rights or developer mode): a folder is a
++/// directory junction (a directory symlink for a folder on a network share, which a junction
++/// cannot reach), a file a copy ([`mirrored`] keeps it up to date).
++#[cfg(windows)]
++fn link(src: &Path, dst: &Path) -> std::io::Result<()> {
++    if src.is_dir() {
++        junction::create(src, dst).or_else(|e| std::os::windows::fs::symlink_dir(src, dst).map_err(|_| e))
++    } else {
++        copy_mirror(src, dst)
++    }
++}
++
++/// Removes a link (Windows: a junction is a directory).
++fn remove_link(path: &Path) -> std::io::Result<()> {
++    fs::remove_file(path).or_else(|e| fs::remove_dir(path).map_err(|_| e))
++}
++
++/// `dst` is the copy of the game file `src` (Windows), refreshed when `src` changed; false when
++/// `dst` is not such a copy (a file the game made).
++#[cfg(windows)]
++fn mirrored(src: &Path, dst: &Path) -> std::io::Result<bool> {
++    let (Ok(s), Ok(d)) = (fs::metadata(src), fs::symlink_metadata(dst)) else { return Ok(false) };
++    if !s.is_file() || !d.is_file() {
++        return Ok(false);
++    }
++    if s.len() != d.len() || s.modified().ok() != d.modified().ok() {
++        copy_mirror(src, dst)?;
++    }
++    Ok(true)
++}
++
++#[cfg(unix)]
++fn mirrored(_src: &Path, _dst: &Path) -> std::io::Result<bool> {
++    Ok(false)
++}
++
++/// A copy of `src` with its modification time (what [`mirrored`] compares).
++#[cfg(windows)]
++fn copy_mirror(src: &Path, dst: &Path) -> std::io::Result<()> {
++    fs::copy(src, dst)?;
++    let modified = fs::metadata(src)?.modified()?;
++    fs::File::options().write(true).open(dst)?.set_modified(modified)
++}
++
+ pub fn build(run_dir: &Path, game_dir: &Path, hide: &[String], payloads: &[(&Path, &str)]) -> Result<()> {
+     fs::create_dir_all(run_dir).with_context(|| format!("creating {}", run_dir.display()))?;
+     // previous links, the game files may have changed
+     for entry in fs::read_dir(run_dir)?.flatten() {
+         if entry.file_type()?.is_symlink() {
+-            fs::remove_file(entry.path())?;
++            remove_link(&entry.path())?;
+         }
+     }
+     let excluded = |name: &str| {
+@@ -87,10 +137,13 @@ pub fn build(run_dir: &Path, game_dir: &Path, hide: &[String], payloads: &[(&Pat
+         }
+         let dst = run_dir.join(&name);
+         if fs::symlink_metadata(&dst).is_ok() {
+-            eprintln!("rundir: keeping {} created by the game", dst.display());
++            // Windows: a game file is a copy, refreshed when the game's changed
++            if !mirrored(&entry.path(), &dst)? {
++                eprintln!("rundir: keeping {} created by the game", dst.display());
++            }
+             continue;
+         }
+-        std::os::unix::fs::symlink(entry.path(), &dst).with_context(|| format!("linking {}", dst.display()))?;
++        link(&entry.path(), &dst).with_context(|| format!("linking {}", dst.display()))?;
+     }
+     for (src, name) in payloads {
+         let dst = run_dir.join(name);
+@@ -172,7 +225,7 @@ fn level(run_dir: &Path, game_dir: &Path, rel: &Path, hide: &[String], dirs: &BT
+     let dst = run_dir.join(rel);
+     // a real directory replaces a link left by a previous layout
+     if fs::symlink_metadata(&dst).is_ok_and(|m| m.file_type().is_symlink()) {
+-        fs::remove_file(&dst)?;
++        remove_link(&dst)?;
+     }
+     build(&dst, &game_dir.join(rel), &level_hide, &here)?;
+     for child in children {
+diff --git a/crates/winhost/Cargo.toml b/crates/winhost/Cargo.toml
+new file mode 100644
+index 0000000..5b6bdbc
+--- /dev/null
++++ b/crates/winhost/Cargo.toml
+@@ -0,0 +1,27 @@
++[package]
++name = "wal-winhost"
++description = "Windows host launcher: the Linux launcher's run (profiles, run directory, payloads, input server) on Windows itself, without Wine"
++edition.workspace = true
++license.workspace = true
++version.workspace = true
++
++[[bin]]
++name = "arcade-launcher"
++path = "src/main.rs"
++
++[dependencies]
++wal-protocol = { path = "../protocol" }
++anyhow = "1"
++serde = { version = "1", features = ["derive"] }
++serde_yaml_ng = "0.10"
++
++[target.'cfg(windows)'.dependencies]
++junction = "2"
++windows-sys = { version = "0.61", features = [
++    "Win32_Foundation",
++    "Win32_Security",
++    "Win32_Storage_FileSystem",
++    "Win32_System_JobObjects",
++    "Win32_System_Threading",
++    "Win32_UI_WindowsAndMessaging",
++] }
+diff --git a/crates/winhost/src/main.rs b/crates/winhost/src/main.rs
+new file mode 100644
+index 0000000..4826513
+--- /dev/null
++++ b/crates/winhost/src/main.rs
+@@ -0,0 +1,346 @@
++//! The launcher's `run` on Windows itself: the same profiles (system profiles, user layers,
++//! `--profile`), the same run directory (links: directory junctions and file copies), the same
++//! payloads through `wal-loader`, the same input server; what Wine's prefix did (the cabinet's
++//! drives, the folders of C:) is done with Windows' own calls ([`native`]).
++//!
++//! Input comes from a frontend that reads the devices itself (`--input-pipe`) or an input
++//! script; this build has no device reading of its own.
++
++#![cfg_attr(not(windows), allow(dead_code, unused_imports))]
++
++#[allow(dead_code)]
++#[path = "../../launcher/src/config.rs"]
++mod config;
++#[cfg(windows)]
++mod native;
++#[allow(dead_code)]
++#[path = "../../launcher/src/pipe.rs"]
++mod pipe;
++#[allow(dead_code)]
++#[path = "../../launcher/src/rundir.rs"]
++mod rundir;
++#[allow(dead_code)]
++#[path = "../../launcher/src/script.rs"]
++mod script;
++#[allow(dead_code)]
++#[path = "../../launcher/src/server.rs"]
++mod server;
++#[allow(dead_code)]
++#[path = "../../launcher/src/systems/mod.rs"]
++mod systems;
++
++use std::path::{Path, PathBuf};
++use std::process::Command;
++use std::time::{Duration, Instant};
++
++use anyhow::{Context, Result, bail};
++
++use config::Profile;
++use wal_protocol::{InputFrame, env};
++
++const USAGE: &str = "\
++usage: arcade-launcher [run] <dump> [--root DIR] [--profile FILE]... [--input-pipe]
++                       [--input-script FILE] [--dry-run]
++    Windows build: runs a game of a dump (a folder with a <gameid>.windowsloader file) with
++    its profile, fed by a frontend on standard input (--input-pipe) or a timed script.";
++
++struct Args {
++    dump: Option<String>,
++    root: Option<PathBuf>,
++    layers: Vec<PathBuf>,
++    dry_run: bool,
++    script: Option<PathBuf>,
++    input_pipe: bool,
++}
++
++fn parse_args() -> Result<Args> {
++    let mut args = Args { dump: None, root: None, layers: Vec::new(), dry_run: false, script: None, input_pipe: false };
++    let mut it = std::env::args().skip(1);
++    while let Some(a) = it.next() {
++        match a.as_str() {
++            "run" if args.dump.is_none() => {}
++            "--root" => args.root = Some(it.next().context("--root needs a directory")?.into()),
++            "--profile" => args.layers.push(it.next().context("--profile needs a file")?.into()),
++            "--dry-run" => args.dry_run = true,
++            "--input-pipe" => args.input_pipe = true,
++            "--no-input" | "--headless" => {}
++            "--input-script" => args.script = Some(it.next().context("--input-script needs a file")?.into()),
++            "-h" | "--help" => {
++                println!("{USAGE}");
++                std::process::exit(0);
++            }
++            _ if a.starts_with("--") => bail!("unknown option {a}\n{USAGE}"),
++            _ => args.dump = Some(a),
++        }
++    }
++    Ok(args)
++}
++
++fn main() {
++    if let Err(e) = real_main() {
++        eprintln!("error: {e:#}");
++        std::process::exit(1);
++    }
++}
++
++#[cfg(not(windows))]
++fn real_main() -> Result<()> {
++    bail!("this is the Windows build of the launcher")
++}
++
++#[cfg(windows)]
++fn real_main() -> Result<()> {
++    let args = parse_args()?;
++    let dump = args.dump.as_deref().with_context(|| format!("missing <dump>\n{USAGE}"))?;
++    let mut profile = Profile::load(dump, args.root.as_deref(), &args.layers)?;
++    // the Linux launcher's Wine path (`Z:` + the dump's path) as a Windows path
++    profile.exe = profile.exe.strip_prefix("Z:").unwrap_or(&profile.exe).to_string();
++    let script = args.script.as_deref().map(script::Script::load).transpose()?;
++    let job = native::Job::new()?;
++    let code = match run(&profile, &args, script) {
++        Ok(()) => 0,
++        Err(e) => {
++            eprintln!("error: {e:#}");
++            1
++        }
++    };
++    // the game's leftovers (amdaemon, the store server) end with the launcher
++    job.end(code)
++}
++
++/// The screen size placeholders of a profile value (`{screen_width}`...), as the Linux
++/// launcher fills them.
++fn screen_placeholders(arg: &str, (sw, sh): (u32, u32)) -> String {
++    arg.replace("{screen_width}", &sw.to_string()).replace("{screen_height}", &sh.to_string())
++}
++
++#[cfg(windows)]
++fn run(profile: &Profile, args: &Args, script: Option<script::Script>) -> Result<()> {
++    use std::os::windows::process::CommandExt;
++
++    if profile.exe.is_empty() {
++        bail!("{}: launch a game from its dump (directory or <gameid>.windowsloader file)", profile.id);
++    }
++    let system = systems::by_name(&profile.system)?;
++    let exe = PathBuf::from(&profile.exe);
++    if !exe.is_file() {
++        bail!("game executable not found: {}", exe.display());
++    }
++    let game_dir = exe.parent().context("executable without directory")?;
++    let exe_name = exe.file_name().context("executable without name")?;
++    let mut game_root = game_dir;
++    for _ in 0..profile.exe_depth {
++        game_root = game_root.parent().context("exe_depth goes above the filesystem root")?;
++    }
++    let exe_subdir = game_dir.strip_prefix(game_root)?.to_path_buf();
++    let game64 = rundir::is_pe64(&exe);
++
++    // the payloads, as the Linux launcher picks them
++    let payload_dir = profile.path(&profile.payloads_dir);
++    let system_payloads = match system.payloads64() {
++        Some(p) if game64 => p,
++        _ => system.payloads(),
++    };
++    let mut payloads: Vec<(PathBuf, String)> = match system_payloads.first() {
++        Some(p) if !profile.payload_install.is_empty() => {
++            profile.payload_install.iter().map(|path| (payload_dir.join(p.file), path.clone())).collect()
++        }
++        _ => system_payloads.iter().map(|p| (payload_dir.join(p.file), p.install_as.to_string())).collect(),
++    };
++    let loader = if system_payloads.is_empty() {
++        None
++    } else if profile.payload_loader {
++        payloads.first().map(|(_, at)| at.clone())
++    } else if game64 || !profile.payload_install.is_empty() {
++        None
++    } else {
++        system.loader().map(str::to_string)
++    };
++    if loader.is_some() {
++        let file = if game64 { "wal-loader64.exe" } else { "wal-loader.exe" };
++        payloads.push((payload_dir.join(file), "wal-loader.exe".into()));
++    }
++    for (src, _) in &payloads {
++        if !src.exists() {
++            bail!("payload {} missing", src.display());
++        }
++    }
++    for (name, src) in &profile.files {
++        let src = match src.strip_prefix("{dump}") {
++            Ok(rel) => game_root.join(rel),
++            Err(_) => match src.strip_prefix("{payloads}") {
++                Ok(file) => payload_dir.join(file),
++                Err(_) => profile.path(src),
++            },
++        };
++        if !src.is_file() {
++            bail!("profile file {} missing", src.display());
++        }
++        payloads.push((src, name.clone()));
++    }
++    native::check_tricks(&profile.prefix_tricks, game64);
++    native::check_tricks(&profile.tricks, game64);
++
++    let mut hide: Vec<String> = profile.hide.clone();
++    hide.extend(profile.reshade_files.iter().cloned());
++    hide.extend(system.hidden().iter().map(|s| s.to_string()));
++    let run_dir = profile.root.join("run").join(system.name()).join(profile.slug());
++    let payload_refs: Vec<(&Path, PathBuf)> = payloads
++        .iter()
++        .map(|(p, n)| {
++            let at = if n.contains(['/', '\\']) { n.split(['/', '\\']).filter(|c| !c.is_empty()).collect() } else { exe_subdir.join(n) };
++            (p.as_path(), at)
++        })
++        .collect();
++    for dir in system.data_dirs() {
++        std::fs::create_dir_all(game_dir.join(dir)).with_context(|| format!("creating {}", game_dir.join(dir).display()))?;
++    }
++    for (name, src) in &profile.initial_files {
++        let dst = game_root.join(name);
++        if !dst.exists() {
++            if let Some(dir) = dst.parent() {
++                std::fs::create_dir_all(dir)?;
++            }
++            let src = match src.strip_prefix("{dump}") {
++                Ok(rel) => game_root.join(rel),
++                Err(_) => profile.path(src),
++            };
++            std::fs::copy(&src, &dst).with_context(|| format!("initial file {} -> {}", src.display(), dst.display()))?;
++        }
++    }
++    if !args.dry_run {
++        rundir::build_tree(&run_dir, game_root, &hide, std::slice::from_ref(&exe_subdir), &payload_refs)?;
++        if profile.exe_fixed_base {
++            rundir::copy_fixed_base(&exe, &run_dir.join(&exe_subdir).join(exe_name))?;
++        } else if profile.large_address_aware {
++            rundir::copy_large_address_aware(&exe, &run_dir.join(&exe_subdir).join(exe_name))?;
++        }
++        for (file, sections) in &profile.readonly_sections {
++            rundir::readonly_sections(&game_root.join(file), &run_dir.join(file), sections)?;
++        }
++    }
++    let run_exe_dir = run_dir.join(&exe_subdir);
++    let (_drives, _c_folders) = if args.dry_run {
++        (None, None)
++    } else {
++        (
++            Some(native::Drives::map(&profile.drives, game_root)?),
++            Some(native::CFolders::map(&profile.c_folders, &run_dir, game_root)),
++        )
++    };
++    if !profile.run_drives.is_empty() || !profile.registry.is_empty() || !profile.fonts.is_empty() {
++        eprintln!("winhost: run_drives, registry and fonts of the profile are not applied on Windows");
++    }
++
++    let screen = native::screen_size().unwrap_or((1920, 1080));
++    let mut vars: Vec<(String, String)> = vec![
++        (env::PORT.into(), profile.port.to_string()),
++        (env::LOG.into(), run_dir.join(format!("wal-{}.log", system.name())).display().to_string()),
++        ("WAL_SINDEN_BORDER".into(), "0".into()),
++    ];
++    if !profile.native_map.is_empty() {
++        let map: Vec<String> = profile.native_map.iter().map(|(k, v)| format!("{k}={v}")).collect();
++        vars.push((env::MAP.into(), map.join(",")));
++    }
++    for (k, v) in &profile.env {
++        vars.push((k.clone(), screen_placeholders(v, screen)));
++    }
++    let screen_args = |a: &[String]| -> Vec<String> { a.iter().map(|x| screen_placeholders(x, screen)).collect() };
++    let command = |program: &Path, payload: Option<&str>, target: &Path, rest: &[String]| -> Command {
++        let mut cmd = match payload {
++            Some(p) => {
++                let mut c = Command::new(run_exe_dir.join("wal-loader.exe"));
++                let at = if p.contains(['/', '\\']) { run_dir.join(p) } else { run_exe_dir.join(p) };
++                c.arg(at).arg(target);
++                c
++            }
++            None => Command::new(program),
++        };
++        cmd.args(rest).current_dir(&run_exe_dir).envs(vars.iter().map(|(k, v)| (k, v))).creation_flags(native::CREATE_NO_WINDOW);
++        cmd
++    };
++    let game_exe = run_exe_dir.join(exe_name);
++    let game_command = |rest: &[String], relaunched: bool, other_exe: Option<&str>| -> Command {
++        let target = other_exe.map_or_else(|| game_exe.clone(), |e| run_exe_dir.join(e));
++        let mut cmd = command(&target, loader.as_deref(), &target, &screen_args(rest));
++        if relaunched {
++            cmd.env(env::RELAUNCH, "1");
++        }
++        cmd
++    };
++    eprintln!("game: {} ({})", profile.name.as_deref().unwrap_or(&profile.id), profile.id);
++    eprintln!("profile layers: {:?}", profile.sources);
++    eprintln!("run directory: {}", run_dir.display());
++    if args.dry_run {
++        for (k, v) in &vars {
++            println!("{k}={v}");
++        }
++        let cmd = game_command(&profile.args, false, None);
++        let argv: Vec<_> = std::iter::once(cmd.get_program()).chain(cmd.get_args()).collect();
++        println!("cd {:?} && {:?}", run_exe_dir, argv);
++        return Ok(());
++    }
++
++    let server = server::Server::start(profile.port)?;
++    // programs left running beside the game (amdaemon), through wal-loader with the payload
++    for program in &profile.background {
++        let words: Vec<String> = screen_args(&program.split(' ').filter(|w| !w.is_empty()).map(String::from).collect::<Vec<_>>());
++        let Some((first, rest)) = words.split_first() else { continue };
++        let target = run_exe_dir.join(first);
++        if loader.is_some() && rundir::is_pe64(&target) != game64 {
++            bail!("background program {first}: another architecture than the game's, not supported on Windows yet");
++        }
++        let mut cmd = command(&target, loader.as_deref(), &target, rest);
++        eprintln!("winhost: starting background program {first}");
++        cmd.stdin(std::process::Stdio::null()).spawn().with_context(|| format!("starting background program {first}"))?;
++    }
++    let mut cmd = game_command(&profile.args, false, None);
++    if !profile.background.is_empty() {
++        std::thread::sleep(Duration::from_millis(profile.background_wait_ms));
++        cmd.env("WAL_LOG_APPEND", "1");
++    }
++    let mut child = cmd.stdin(std::process::Stdio::null()).spawn().context("starting the game")?;
++
++    let pipe = args.input_pipe.then(pipe::Pipe::start);
++    let mut last = InputFrame::default();
++    let mut last_sent = Instant::now();
++    let status = loop {
++        std::thread::sleep(Duration::from_millis(4));
++        let mut frame = pipe.as_ref().map(pipe::Pipe::frame).unwrap_or_default();
++        if let Some(s) = &script {
++            for (p, stick) in frame.players.iter_mut().enumerate() {
++                s.apply(p, stick);
++            }
++        }
++        for o in server.outputs() {
++            if pipe.is_some() {
++                pipe::Pipe::output(&o);
++            }
++        }
++        if frame != last || last_sent.elapsed() > Duration::from_millis(100) {
++            server.broadcast(&frame);
++            last = frame;
++            last_sent = Instant::now();
++        }
++        if pipe.as_ref().is_some_and(pipe::Pipe::quit_requested) {
++            eprintln!("winhost: stopping the game");
++            let _ = child.kill();
++            break child.wait()?;
++        }
++        if let Some(status) = child.try_wait()? {
++            if let Some(again) = server.take_relaunch() {
++                eprintln!("winhost: game exited ({status}), started again: {again}");
++                let words: Vec<&str> = again.split(' ').filter(|a| !a.is_empty()).collect();
++                let (other, rest): (Option<&str>, Vec<String>) = match words.first().and_then(|w| w.strip_prefix("exe=")) {
++                    Some(e) => (Some(e), words[1..].iter().map(|a| a.to_string()).collect()),
++                    None => (None, profile.args.iter().cloned().chain(words.iter().map(|a| a.to_string())).collect()),
++                };
++                child = game_command(&rest, true, other).stdin(std::process::Stdio::null()).spawn().context("starting the game again")?;
++                continue;
++            }
++            break status;
++        }
++    };
++    eprintln!("winhost: game exited ({status})");
++    Ok(())
++}
+diff --git a/crates/winhost/src/native.rs b/crates/winhost/src/native.rs
+new file mode 100644
+index 0000000..bff428e
+--- /dev/null
++++ b/crates/winhost/src/native.rs
+@@ -0,0 +1,195 @@
++//! What Wine's prefix does for the Linux launcher, done on Windows itself: the cabinet's drive
++//! letters, the folders of C: a game reaches by absolute paths, and ending every process of the
++//! game.
++
++use std::collections::BTreeMap;
++use std::path::{Component, Path, PathBuf};
++
++use anyhow::{Context, Result, bail};
++
++fn wide(s: &str) -> Vec<u16> {
++    s.encode_utf16().chain([0]).collect()
++}
++
++/// A plain Windows path for the system calls (no `\\?\` prefix).
++fn plain(p: &Path) -> String {
++    let s = p.display().to_string();
++    s.strip_prefix(r"\\?\").map(str::to_string).unwrap_or(s)
++}
++
++/// The cabinet's drive letters (profile `drives`: `e: amfs`), each a folder of the dump, defined
++/// for this logon session with `DefineDosDevice` (as `subst` does) for the time of the game. A
++/// letter the computer already uses is shadowed meanwhile (the session's definition goes
++/// first), and given back when the game ends.
++pub struct Drives {
++    defined: Vec<(String, String)>,
++}
++
++impl Drives {
++    pub fn map(drives: &BTreeMap<String, PathBuf>, root: &Path) -> Result<Drives> {
++        let mut defined = Vec::new();
++        for (letter, directory) in drives {
++            let letter = letter.trim_end_matches(':').to_ascii_uppercase();
++            if letter.len() != 1 || !letter.as_bytes()[0].is_ascii_alphabetic() || matches!(letter.as_str(), "C" | "Z") {
++                bail!("invalid cabinet drive {letter:?}: use a letter other than C or Z");
++            }
++            if directory.as_os_str().is_empty() || directory.components().any(|c| !matches!(c, Component::Normal(_))) {
++                bail!("drive {letter}: directory must be relative to the dump root: {}", directory.display());
++            }
++            let target = root.join(directory);
++            std::fs::create_dir_all(&target).with_context(|| format!("creating drive {letter}: directory {}", target.display()))?;
++            let target = plain(&std::path::absolute(&target)?);
++            let device = format!("{letter}:");
++            // a definition a previous run left (the launcher ended without its cleanup)
++            while remove(&device, &target) {}
++            if unsafe { windows_sys::Win32::Storage::FileSystem::DefineDosDeviceW(0, wide(&device).as_ptr(), wide(&target).as_ptr()) } == 0 {
++                bail!("mapping drive {device} to {target}: {}", std::io::Error::last_os_error());
++            }
++            eprintln!("winhost: drive {device} -> {target}");
++            defined.push((device, target));
++        }
++        Ok(Drives { defined })
++    }
++}
++
++fn remove(device: &str, target: &str) -> bool {
++    use windows_sys::Win32::Storage::FileSystem::{DDD_EXACT_MATCH_ON_REMOVE, DDD_REMOVE_DEFINITION, DefineDosDeviceW};
++    unsafe { DefineDosDeviceW(DDD_REMOVE_DEFINITION | DDD_EXACT_MATCH_ON_REMOVE, wide(device).as_ptr(), wide(target).as_ptr()) != 0 }
++}
++
++impl Drop for Drives {
++    fn drop(&mut self) {
++        for (device, target) in self.defined.drain(..).rev() {
++            if remove(&device, &target) {
++                eprintln!("winhost: drive {device} given back");
++            } else {
++                eprintln!("winhost: drive {device} could not be given back: {}", std::io::Error::last_os_error());
++            }
++        }
++    }
++}
++
++/// Folders of drive C: a game reaches by absolute paths (profile `c_folders`:
++/// `Mount/Option: Option`), junctions to folders of its run directory for the time of the game.
++/// A folder the dump does not have is made in the dump (`root`), as on Linux.
++pub struct CFolders {
++    made: Vec<PathBuf>,
++}
++
++impl CFolders {
++    pub fn map(folders: &BTreeMap<String, PathBuf>, run_dir: &Path, root: &Path) -> CFolders {
++        let mut made = Vec::new();
++        for (name, directory) in folders {
++            let target = run_dir.join(directory);
++            if !target.exists() {
++                let dump = root.join(directory);
++                if let Err(e) = std::fs::create_dir_all(&dump) {
++                    eprintln!("winhost: C:\\{name}: creating {}: {e}", dump.display());
++                    continue;
++                }
++                if std::fs::symlink_metadata(&target).is_err() {
++                    let _ = junction::create(&dump, &target);
++                }
++            }
++            let at = Path::new(r"C:\").join(name);
++            match std::fs::symlink_metadata(&at) {
++                // a folder of the computer itself: never touched
++                Ok(m) if !m.file_type().is_symlink() => {
++                    eprintln!("winhost: C:\\{name} exists on this computer: left as it is");
++                    continue;
++                }
++                Ok(_) => {
++                    let _ = std::fs::remove_dir(&at);
++                }
++                Err(_) => {}
++            }
++            let made_parent = at.parent().is_some_and(|p| std::fs::create_dir_all(p).is_ok());
++            match junction::create(&target, &at) {
++                Ok(()) => {
++                    eprintln!("winhost: C:\\{name} -> {}", target.display());
++                    made.push(at);
++                }
++                // optional data (the attract's information movie): the game runs without it
++                Err(e) => eprintln!("winhost: C:\\{name} not linked ({e}{})", if made_parent { "" } else { ", its parent folder could not be made" }),
++            }
++        }
++        CFolders { made }
++    }
++}
++
++impl Drop for CFolders {
++    fn drop(&mut self) {
++        for at in self.made.drain(..) {
++            let _ = std::fs::remove_dir(&at);
++        }
++    }
++}
++
++/// Every process the launcher starts is in this job, the launcher too (children inherit it):
++/// [`Job::end`] ends them all, the game's own children included (amdaemon, the store server).
++pub struct Job(windows_sys::Win32::Foundation::HANDLE);
++
++impl Job {
++    pub fn new() -> Result<Job> {
++        use windows_sys::Win32::System::JobObjects::*;
++        use windows_sys::Win32::System::Threading::GetCurrentProcess;
++        unsafe {
++            let job = CreateJobObjectW(std::ptr::null(), std::ptr::null());
++            if job.is_null() {
++                bail!("creating the job object: {}", std::io::Error::last_os_error());
++            }
++            let mut info: JOBOBJECT_EXTENDED_LIMIT_INFORMATION = std::mem::zeroed();
++            // the launcher killed: its game goes with it
++            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
++            SetInformationJobObject(
++                job,
++                JobObjectExtendedLimitInformation,
++                &info as *const _ as *const std::ffi::c_void,
++                std::mem::size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
++            );
++            if AssignProcessToJobObject(job, GetCurrentProcess()) == 0 {
++                bail!("joining the job object: {}", std::io::Error::last_os_error());
++            }
++            Ok(Job(job))
++        }
++    }
++
++    /// Ends every process of the job, the launcher included: its last call.
++    pub fn end(&self, code: u32) -> ! {
++        unsafe { windows_sys::Win32::System::JobObjects::TerminateJobObject(self.0, code) };
++        std::process::exit(code as i32)
++    }
++}
++
++/// The primary screen's size.
++pub fn screen_size() -> Option<(u32, u32)> {
++    use windows_sys::Win32::UI::WindowsAndMessaging::{GetSystemMetrics, SM_CXSCREEN, SM_CYSCREEN};
++    let (w, h) = unsafe { (GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)) };
++    (w > 0 && h > 0).then_some((w as u32, h as u32))
++}
++
++/// Programs start without a console window of their own (amdaemon is a console program).
++pub const CREATE_NO_WINDOW: u32 = 0x0800_0000;
++
++/// The DLLs of a winetricks verb the game needs from Windows itself (`xact`: the DirectX
++/// End-User Runtime's XAudio2 and XACT), checked in the system folder of the game's
++/// architecture; what is missing is reported.
++pub fn check_tricks(tricks: &[String], game64: bool) {
++    let windir = std::env::var("SystemRoot").unwrap_or_else(|_| r"C:\Windows".into());
++    let system = Path::new(&windir).join(if game64 || !cfg!(target_pointer_width = "64") { "System32" } else { "SysWOW64" });
++    for verb in tricks {
++        let dlls: &[&str] = match verb.as_str() {
++            "xact" => &["xactengine3_7.dll", "xaudio2_7.dll", "x3daudio1_7.dll"],
++            "d3dx9" => &["d3dx9_43.dll"],
++            _ => continue,
++        };
++        let missing: Vec<&str> = dlls.iter().copied().filter(|d| !system.join(d).is_file()).collect();
++        if !missing.is_empty() {
++            eprintln!(
++                "winhost: {} missing from {} ({verb}): install Microsoft's DirectX End-User Runtime (June 2010)",
++                missing.join(", "),
++                system.display()
++            );
++        }
++    }
++}

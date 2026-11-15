@@ -1,0 +1,222 @@
+# Sega Racing Arcade Series Launcher
+
+Play **your own dumps** of six Sega arcade racers on Linux, with your wheel
+or pad: OutRun 2 SP SDX, OutRun 2 SP Special Tours, Crazy Taxi High Roller,
+SEGA Rally 3, SEGA Racing Classic and Daytona Championship USA. Point the
+launcher at the folder with your TeknoParrot game folders and press **Play**.
+The loaders, Wine and the settings each game needs come with it or are set up
+for you. Your game folders are only read, never changed: every game plays
+from the launcher's own private copy.
+
+This project contains no game files: you need your own dumps.
+
+> **Work in progress.** SEGA Rally 3 and SEGA Racing Classic play full races
+> through the launcher on Linux. OutRun 2 SP SDX starts and runs its attract
+> mode; a race is not tried yet. OutRun 2 SP Special Tours and Crazy Taxi High
+> Roller need three Chihiro BIOS files and are still being brought up;
+> Daytona Championship USA's loader is still being written. Wheels, the
+> Windows build and the Steam Deck are not tested on hardware yet
+> ([docs/RUNTIME_NOTES.md](docs/RUNTIME_NOTES.md)). Reports are welcome at
+> <https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues>.
+
+<!-- Showcase video: the owner records it and hosts it outside the
+repository, with its poster image. -->
+
+## Problems this launcher solves
+
+| Problem | What the launcher does |
+| --- | --- |
+| Each cabinet needs its own loader, Wine setup and tweaks. | One window finds every game in your folders and starts each with the right loader: lindbergh-loader for OutRun 2 SP SDX, windowsarcadeloader for SEGA Rally 3 and SEGA Racing Classic. |
+| TeknoParrot doesn't run on Linux. | Open loaders made for Linux run the games natively or under a bundled Wine (GE-Proton). |
+| SEGA Racing Classic's sound crashes under plain Wine. | The prefix gets native XAudio2 the first time, automatically. |
+| OutRun 2 SP SDX stops at its cabinet check on a PC. | The launcher turns on lindbergh-loader's cabinet-check skip. |
+| The cabinets had a 4-speed H lever, a handbrake and four view buttons. | Paddles or shoulder buttons shift up and down; the launcher turns that into the H lever's gears, and one view button walks through the four cameras. |
+| A wheel turns 900° or more; the cabinets turned 270°. | The launcher reads your wheel and sets the steering lock you pick (270° by default), with force feedback from the game at the strength you choose. |
+| Games write logs, settings and rankings next to their files. | Those folders are real copies in the launcher's runtime, so your dumps stay untouched (they're mounted read-only while a game runs). |
+| Cabinet resolutions are small (800×480, 1280×720). | Each game draws at a larger size where it can, and the picture is scaled to your screen with FSR. |
+
+## Screenshots
+
+<!-- The window's pages, JPEG under ~1 MB each in docs/images/, taken
+headless once the window's art is final. -->
+
+## What you need
+
+- Your own TeknoParrot dumps of the games, one folder each, as the community
+  shares them (the launcher knows each game by the SHA-256 of its main
+  file, and lists any build it doesn't know).
+- Linux on x86-64 with a Vulkan driver, gamescope and bubblewrap (most
+  gaming setups have them). The release package brings Wine, the loaders
+  and everything else.
+- For OutRun 2 SP SDX: docker or podman and git, once. lindbergh-loader's
+  licence doesn't let us ship it, so the launcher builds it on your
+  computer the first time you press Play (a few minutes).
+- For the two Chihiro games: your Chihiro BIOS folder with MAME's
+  `chihiro` files (media board ROM and the three base-board EEPROMs).
+- A wheel or a gamepad. The keyboard works for menus only.
+
+The launcher runs the dumps as the arcade community distributes them. Their
+loaders answer the cabinets' security and I/O boards; the launcher itself
+doesn't remove or patch any protection, and can't help you get the games.
+
+## Download and install
+
+1. Download `SegaRacingLauncher-<version>-linux-x86_64.tar.gz` from the
+   [latest release](https://github.com/akitaonrails/rea-teknoparrot-sega-series/releases/latest).
+2. Unpack it anywhere you like (it stays in its folder).
+3. Run `sega-launcher` from that folder.
+
+A Windows package (`…-windows-x86_64.zip`) is built too; it runs the
+windowsarcadeloader games without Wine. It is not tested on Windows yet.
+
+## First run
+
+The first window asks for the folder that holds your game folders. Type its
+path and press **Add folder**; add more folders if your games are spread out.
+The launcher looks inside, lists what it found, and opens the hub. For the
+Chihiro games, add your BIOS folder under **Settings → Folders and BIOS**.
+
+## The settings window
+
+- **Games**: a tile per game, its picture, edition, folder and state, and
+  **Play**. A game that can't start yet says why.
+- **Controls**: the wheels and pads the launcher sees, which one drives the
+  car, the pad layout, and a live check of steering, pedals and buttons.
+- **Settings**: the selected game's picture and wheel options, saved as you
+  change them, plus your game folders and BIOS folder.
+
+Everything works with a mouse, the keyboard or a pad.
+
+## Gamepad
+
+Triggers are the pedals, the left stick steers, the shoulder buttons shift,
+Y changes the view, B is SEGA Rally 3's handbrake, Start (or A) starts, Back
+inserts a coin. On a wheel, the paddles shift.
+
+## Options
+
+Each game keeps its own options. Every option is a line in that game's
+settings file and a flag for `--play <game>` or `--set <game>`:
+
+| Option | Flag | What it changes |
+| --- | --- | --- |
+| Look | `--look original\|recommended\|steam_deck` | The picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck |
+| Game resolution | `--render <WxH>\|native` | The size the game draws at |
+| Screen size | `--output <WxH>` | The size it is shown at on your screen |
+| Upscaler | `--upscaler fsr\|nis\|linear\|nearest` | How the picture is enlarged |
+| Sharpness | `--sharpness 0-20` | FSR and NVIDIA Image Scaling sharpness (0 is sharpest) |
+| Full screen | `--fullscreen on\|off` | Full screen or a window |
+| Steering lock | `--steering-lock 180\|270\|360\|540\|900\|full` | How far your wheel turns lock to lock in the game |
+| Force feedback | `--force-feedback 0-200` | The wheel's force, in percent of the game's |
+| Stick dead zone | `--deadzone 0-30` | How far a stick moves before the car steers |
+
+Other commands: `--list` (what was found), `--check [<game>]` (what could
+start, without starting), `--library <folder>`, `--chihiro-bios <folder>`,
+`--help`.
+
+## Where things live
+
+- Settings, runtimes and logs: `~/.local/share/rea-sega/` (`launcher.cfg`,
+  `settings/<game>.cfg`, `runtimes/<game>/` with each game's saves, rankings
+  and `session.log`, `wal/` with the Wine prefix).
+- lindbergh-loader, once built: `~/.local/share/rea-sega/components/lindbergh/`.
+- On Windows: `%LOCALAPPDATA%\rea-sega\`.
+
+## Troubleshooting
+
+- **A game says it is not in your folders**: run `sega-launcher --list`. An
+  unknown build is listed with its SHA-256; please
+  [report it](https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new?template=unknown-edition.yml).
+- **A game stops right away**: its log is `runtimes/<game>/session.log`.
+- **OutRun 2 SP SDX's first start fails**: the build log is
+  `~/.local/share/rea-sega/lindbergh-build.log`; it needs docker or podman.
+- **The wheel turns the wrong way or too far**: set the steering lock in
+  Settings, and turn off your wheel software's own lock.
+- Anything else: [open a bug report](https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new?template=bug-report.yml)
+  with the game's `session.log`.
+
+## Known limitations
+
+- OutRun 2 SP Special Tours and Crazy Taxi High Roller can't start yet:
+  Cxbx-Reloaded runs under the bundled Wine, but the games need MAME's three
+  Chihiro base-board files and are not verified.
+- Daytona Championship USA can't start yet: TeknoParrot's own loader refuses
+  to run under Wine, so a windowsarcadeloader profile is being written.
+- OutRun 2 SP SDX runs only in the Linux version (it's a Linux game).
+- No wheel has been tried on hardware yet.
+
+## Uninstall
+
+Delete the launcher's folder, then `~/.local/share/rea-sega/` (on Windows
+`%LOCALAPPDATA%\rea-sega\`). That folder holds the games' rankings and
+operator settings: copy `runtimes/` first if you want to keep them.
+
+## For developers
+
+Rust workspace: `crates/sega-core` (catalog, library, runtime folder,
+option table, launch plans; host-tested) and `crates/sega-launcher` (the
+window, the command line, sessions, SDL input). `AGENTS.md` has the checks
+and the layout.
+
+```sh
+cargo test --workspace
+scripts/build-components.sh dist/components    # windowsarcadeloader, GE-Proton, winetricks, lindbergh-loader
+SEGA_COMPONENTS=dist/components cargo run -p sega-launcher
+```
+
+## How it works
+
+Each game runs from a private runtime folder: links to the dump, real
+copies of what the game writes. SEGA Rally 3 and SEGA Racing Classic run in
+windowsarcadeloader under GE-Proton's Wine, with the launcher feeding the
+cabinet's controls through its input pipe and playing the force feedback
+it sends back. OutRun 2 SP SDX runs natively in lindbergh-loader, which
+reads the controls itself. Every game runs in gamescope (scaling) inside
+bubblewrap (the dumps read-only).
+
+## Built on rea-launcher-sdk
+
+The option table, settings parsing, wheel and pad logic, force feedback,
+SDL devices, messages, single instance and CI come from
+[rea-launcher-sdk](https://github.com/akitaonrails/rea-launcher-sdk), pinned
+by tag in `Cargo.toml` and vendored in `sdk/`. The game catalog, the routes,
+the runtime folders, the hub window and the windowsarcadeloader patches are
+this launcher's own.
+
+## Contributing
+
+- **About these games** (their editions, routes, settings, this README):
+  issues and pull requests here.
+- **Shared code** (settings-window widgets, the option table, wheel and pad
+  logic, packaging helpers, CI workflows, anything under `sdk/`): issues and
+  pull requests at [rea-launcher-sdk](https://github.com/akitaonrails/rea-launcher-sdk/issues).
+- **How to tell:** code under `sdk/` or from a `rea_launcher*` crate is the
+  SDK's. If the same problem would happen with another rea launcher, it's
+  the SDK's. Not sure? Open it here and it will be moved.
+- Never patch `sdk/` or copy SDK code here: fix the SDK and bump the tag.
+- Never attach game files (executables, saves, BIOS, data) to an issue.
+- Test reports are welcome: [bug report](https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new?template=bug-report.yml).
+
+## Credits
+
+- [lindbergh-loader](https://github.com/lindbergh-loader/lindbergh-loader) (the Lindbergh Development Team): runs OutRun 2 SP SDX.
+- [windowsarcadeloader](https://github.com/aderumier/windowsarcadeloader) (Alexandre Derumier): runs SEGA Rally 3 and SEGA Racing Classic.
+- [Cxbx-Reloaded](https://github.com/Cxbx-Reloaded/Cxbx-Reloaded): the Chihiro route being brought up.
+- [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom) (GloriousEggroll) and [Wine](https://www.winehq.org/): the Windows games on Linux.
+- [winetricks](https://github.com/Winetricks/winetricks): native XAudio2 in the prefix.
+- [SDL](https://www.libsdl.org/): wheels, pads and force feedback.
+- TeknoParrot (Teknogods): its GPL-era UI documented each cabinet's controls.
+- Barlow fonts (Jeremy Tribby, SIL OFL).
+- [rea-launcher-sdk](https://github.com/akitaonrails/rea-launcher-sdk).
+
+Full list with licences: [THIRD_PARTY.md](THIRD_PARTY.md).
+
+## Legal
+
+OutRun 2 SP, Crazy Taxi, SEGA Rally 3, SEGA Racing Classic and Daytona are
+trademarks of SEGA or their owners. This project is not affiliated with or
+endorsed by SEGA, TeknoParrot or any of the projects above. It contains no
+game files and only runs dumps you own. Our code is GPL-3.0-or-later
+([LICENSE](LICENSE)), because the bundled windowsarcadeloader is GPL-3.0;
+bundled parts keep their licences ([THIRD_PARTY.md](THIRD_PARTY.md)), and
+their sources are listed in the packages' `licenses/SOURCES.txt`.

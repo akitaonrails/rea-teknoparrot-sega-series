@@ -1,0 +1,241 @@
+diff --git a/crates/launcher/src/main.rs b/crates/launcher/src/main.rs
+index 9c4135e..3e33dfb 100644
+--- a/crates/launcher/src/main.rs
++++ b/crates/launcher/src/main.rs
+@@ -15,6 +15,7 @@ mod input;
+ mod mapping;
+ mod eamuse_card;
+ mod nesica_card;
++mod pipe;
+ mod players;
+ mod rundir;
+ mod script;
+@@ -43,7 +44,7 @@ usage:
+       Without a game: the frontend window (every game, its controls mapped per device into
+       its user profile, its dump folder, launch).
+   arcade-launcher [run] <dump> [--root DIR] [--profile FILE]... [--dry-run] [--input-script FILE]
+-                  [--no-input] [--headless]
++                  [--no-input] [--input-pipe] [--headless]
+       Launch a game. <dump> is a game dump directory holding a <gameid>.windowsloader
+       file (the executable path relative to the dump root), that file, or the dump packed
+       as a SquashFS image (<name>.squashfs, mounted with an overlay for its writes in
+@@ -54,6 +55,9 @@ usage:
+       false), repeatable. --input-script replays timed virtual stick inputs
+       (`<seconds> p<N> <inputs...>` per line, `-` releases), for tests. --no-input: no
+       physical device drives the game (keyboards, pads, guns, exit keys), only the script.
++      --input-pipe: a frontend reading the devices itself drives the game from standard input
++      (`p<N> <buttons hex> <lx> <ly> <rx> <ry> <accel> <brake>` lines, `quit`); the game's
++      outputs are written to standard output (`out <player> <id> <value>`). Implies --no-input.
+       --headless: the game in gamescope's headless backend, no window on the desktop (its
+       gamescope screen size, else 1920x1080). Both for background test runs.
+   arcade-launcher input-test [<dump> | <gameid>] [--root DIR]
+@@ -72,11 +76,12 @@ struct Args {
+     dry_run: bool,
+     script: Option<PathBuf>,
+     no_input: bool,
++    input_pipe: bool,
+     headless: bool,
+ }
+ 
+ fn parse_args() -> Result<Args> {
+-    let mut args = Args { command: "run".into(), profile: None, root: None, layers: Vec::new(), dry_run: false, script: None, no_input: false, headless: false };
++    let mut args = Args { command: "run".into(), profile: None, root: None, layers: Vec::new(), dry_run: false, script: None, no_input: false, input_pipe: false, headless: false };
+     let mut positional = Vec::new();
+     let mut it = std::env::args().skip(1);
+     while let Some(a) = it.next() {
+@@ -85,6 +90,10 @@ fn parse_args() -> Result<Args> {
+             "--profile" => args.layers.push(it.next().context("--profile needs a file")?.into()),
+             "--dry-run" => args.dry_run = true,
+             "--no-input" => args.no_input = true,
++            "--input-pipe" => {
++                args.input_pipe = true;
++                args.no_input = true;
++            }
+             "--headless" => args.headless = true,
+             "--input-script" => args.script = Some(it.next().context("--input-script needs a file")?.into()),
+             "-h" | "--help" => {
+@@ -151,7 +160,7 @@ fn real_main() -> Result<()> {
+         }
+         _ => {
+             let script = args.script.as_deref().map(script::Script::load).transpose()?;
+-            let opts = RunOptions { dry_run: args.dry_run, no_input: args.no_input, headless: args.headless };
++            let opts = RunOptions { dry_run: args.dry_run, no_input: args.no_input, input_pipe: args.input_pipe, headless: args.headless };
+             let image = Path::new(dump()?);
+             if !squashfs::is_image(image) {
+                 return run(&load()?, &opts, script);
+@@ -365,6 +374,8 @@ struct RunOptions {
+     dry_run: bool,
+     /// Only the input script drives the game.
+     no_input: bool,
++    /// A frontend drives the game from standard input (`pipe.rs`).
++    input_pipe: bool,
+     /// The game in a headless gamescope.
+     headless: bool,
+ }
+@@ -735,7 +746,7 @@ fn run(profile: &Profile, opts: &RunOptions, script: Option<script::Script>) ->
+         for mut cmd in profile.background.iter().filter_map(|p| background_command(p)) {
+             std::os::unix::process::CommandExt::process_group(&mut cmd, 0);
+             eprintln!("launcher: starting background program {:?}", cmd.get_program());
+-            cmd.spawn().with_context(|| format!("starting background program {:?}", cmd.get_program()))?;
++            cmd.stdin(std::process::Stdio::null()).spawn().with_context(|| format!("starting background program {:?}", cmd.get_program()))?;
+         }
+     }
+     if !profile.background.is_empty() && !opts.headless && !use_gamescope {
+@@ -743,7 +754,7 @@ fn run(profile: &Profile, opts: &RunOptions, script: Option<script::Script>) ->
+         // the payload log the background program created: the game's lines appended to it
+         cmd.env("WAL_LOG_APPEND", "1");
+     }
+-    let mut child = cmd.spawn().context("starting wine")?;
++    let mut child = cmd.stdin(std::process::Stdio::null()).spawn().context("starting wine")?;
+     // its window to the front (a frontend keeping the focus hid it)
+     let mut focus = if opts.headless { None } else { focus::Focus::new(child.id()) };
+ 
+@@ -756,14 +767,19 @@ fn run(profile: &Profile, opts: &RunOptions, script: Option<script::Script>) ->
+     // when the exit was asked, until the game's process group is killed itself
+     let mut kill_asked: Option<Instant> = None;
+     let mut last_check = Instant::now();
++    let pipe = opts.input_pipe.then(pipe::Pipe::start);
+     let status = loop {
+         hub.poll(Duration::from_millis(4));
+         if let Some(f) = &mut focus {
+             f.poll();
+         }
+-        let mut frame = if opts.no_input { InputFrame::default() } else { hub.frame() };
++        let mut frame = match &pipe {
++            Some(p) => p.frame(),
++            None if opts.no_input => InputFrame::default(),
++            None => hub.frame(),
++        };
+         if opts.no_input {
+-            hub.exit_requested = false;
++            hub.exit_requested = pipe.as_ref().is_some_and(|p| p.quit_requested());
+         }
+         if let Some(script) = &script {
+             for (p, stick) in frame.players.iter_mut().enumerate() {
+@@ -772,7 +788,11 @@ fn run(profile: &Profile, opts: &RunOptions, script: Option<script::Script>) ->
+         }
+         // force feedback outputs of the game, to the players' devices
+         for o in server.outputs() {
+-            hub.output(o);
++            if pipe.is_some() {
++                pipe::Pipe::output(&o);
++            } else {
++                hub.output(o);
++            }
+         }
+         // on change, plus a periodic refresh
+         if frame != last || last_sent.elapsed() > Duration::from_millis(100) {
+@@ -826,7 +846,7 @@ fn run(profile: &Profile, opts: &RunOptions, script: Option<script::Script>) ->
+                 if let Some(cwd) = cwd {
+                     cmd.current_dir(run_exe_dir.join(cwd));
+                 }
+-                child = cmd.spawn().context("starting wine")?;
++                child = cmd.stdin(std::process::Stdio::null()).spawn().context("starting wine")?;
+                 focus = if opts.headless { None } else { focus::Focus::new(child.id()) };
+                 continue;
+             }
+diff --git a/crates/launcher/src/pipe.rs b/crates/launcher/src/pipe.rs
+new file mode 100644
+index 0000000..b522e5d
+--- /dev/null
++++ b/crates/launcher/src/pipe.rs
+@@ -0,0 +1,99 @@
++//! Input from a frontend that reads the devices itself (`--input-pipe`).
++//!
++//! The frontend writes one line per change on standard input:
++//!
++//! ```text
++//! p<player> <buttons hex> <lx> <ly> <rx> <ry> <accel> <brake>
++//! quit
++//! ```
++//!
++//! buttons are the virtual stick's bits ([`wal_protocol::button`]), axes -32768..=32767
++//! (pedals 0..=32767). The latest line of each player is its whole state. `quit` (or the end of
++//! standard input) asks the launcher to stop the game. The game's outputs (force feedback,
++//! lamps) are written to standard output as `out <player> <id> <value>` lines.
++
++use std::io::{BufRead, Write};
++use std::sync::atomic::{AtomicBool, Ordering};
++use std::sync::{Arc, Mutex};
++
++use wal_protocol::{InputFrame, MAX_PLAYERS, Output, StickState};
++
++pub struct Pipe {
++    frame: Arc<Mutex<InputFrame>>,
++    quit: Arc<AtomicBool>,
++}
++
++/// One input line: the player index (0-based) and its state, or `None` for `quit`.
++pub fn parse(line: &str) -> Result<Option<(usize, StickState)>, String> {
++    let mut words = line.split_whitespace();
++    let first = words.next().ok_or("empty line")?;
++    if first == "quit" {
++        return Ok(None);
++    }
++    let player: usize = first
++        .strip_prefix('p')
++        .and_then(|p| p.parse().ok())
++        .filter(|p| (1..=MAX_PLAYERS).contains(p))
++        .ok_or_else(|| format!("bad player {first:?}"))?;
++    let buttons = words
++        .next()
++        .and_then(|b| u32::from_str_radix(b.trim_start_matches("0x"), 16).ok())
++        .ok_or("bad buttons")?;
++    let mut stick = StickState { buttons, ..StickState::default() };
++    for axis in stick.axes.iter_mut() {
++        *axis = words.next().and_then(|v| v.parse().ok()).ok_or("missing axis")?;
++    }
++    Ok(Some((player - 1, stick)))
++}
++
++impl Pipe {
++    /// Reads standard input on its own thread.
++    pub fn start() -> Pipe {
++        let frame = Arc::new(Mutex::new(InputFrame::default()));
++        let quit = Arc::new(AtomicBool::new(false));
++        let (f, q) = (frame.clone(), quit.clone());
++        std::thread::spawn(move || {
++            for line in std::io::stdin().lock().lines() {
++                let Ok(line) = line else { break };
++                match parse(&line) {
++                    Ok(Some((p, stick))) => f.lock().unwrap().players[p] = stick,
++                    Ok(None) => break,
++                    Err(e) => eprintln!("pipe: {e}: {line:?}"),
++                }
++            }
++            q.store(true, Ordering::SeqCst);
++        });
++        Pipe { frame, quit }
++    }
++
++    pub fn frame(&self) -> InputFrame {
++        self.frame.lock().unwrap().clone()
++    }
++
++    pub fn quit_requested(&self) -> bool {
++        self.quit.load(Ordering::SeqCst)
++    }
++
++    pub fn output(o: &Output) {
++        let mut out = std::io::stdout().lock();
++        let _ = writeln!(out, "out {} {} {}", o.player, o.id, o.value);
++        let _ = out.flush();
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn parses_a_state_line_and_quit() {
++        let (p, s) = parse("p2 1010 -32768 0 5 -5 32767 0").unwrap().unwrap();
++        assert_eq!(p, 1);
++        assert_eq!(s.buttons, 0x1010);
++        assert_eq!(s.axes, [-32768, 0, 5, -5, 32767, 0]);
++        assert_eq!(parse("quit").unwrap(), None);
++        assert!(parse("p9 0 0 0 0 0 0 0").is_err());
++        assert!(parse("p1 zz 0 0 0 0 0 0").is_err());
++        assert!(parse("p1 0 0 0").is_err());
++    }
++}

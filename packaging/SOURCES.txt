@@ -1,0 +1,28 @@
+Where the source code of every program in this package comes from
+==================================================================
+
+The launcher (GPL-3.0-or-later)
+  https://github.com/akitaonrails/rea-teknoparrot-sega-series
+  (the source archive of each release is on its GitHub release page)
+
+windowsarcadeloader (GPL-3.0-or-later): components/wal
+  https://github.com/aderumier/windowsarcadeloader at commit
+  4f42c6d86ddaaa9d2e4e8c21e0046bb3027b111d, with the launcher's patches/wal
+  applied (in the launcher's source: patches/wal/*.patch).
+
+GE-Proton (Wine and its components; LGPL-2.1 and others), Linux package only:
+components/runner
+  https://github.com/GloriousEggroll/proton-ge-custom/tree/GE-Proton11-12
+  (release GE-Proton11-12, unmodified)
+
+winetricks (LGPL-2.1), Linux package only: components/winetricks
+  https://github.com/Winetricks/winetricks/tree/20260125 (unmodified)
+
+SDL 2 (zlib)
+  https://github.com/libsdl-org/SDL (release 2.32.10 on Windows; Debian
+  bookworm's libsdl2 on Linux)
+
+lindbergh-loader (CC BY-NC-SA 4.0) is not in this package: the Linux
+launcher builds it on your computer from
+https://github.com/lindbergh-loader/lindbergh-loader at commit
+0af606d845b70339c335785c0eba68b47b78df3c.

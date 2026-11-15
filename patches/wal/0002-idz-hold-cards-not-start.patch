@@ -1,0 +1,87 @@
+diff --git a/crates/payload-alls/src/aime.rs b/crates/payload-alls/src/aime.rs
+index 8f33c69..59f0edc 100644
+--- a/crates/payload-alls/src/aime.rs
++++ b/crates/payload-alls/src/aime.rs
+@@ -32,7 +32,11 @@ pub(crate) fn init() {
+         loop {
+             let card = wal_payload_common::input(0).pressed(button::CARD);
+             if card && !held {
+-                sgreader::insert(&code, Duration::from_secs(3));
++                if crate::idz::cards_wait() {
++                    log!("aime: card not read yet (Initial D Zero has no configuration from its game server)");
++                } else {
++                    sgreader::insert(&code, Duration::from_secs(3));
++                }
+             }
+             held = card;
+             std::thread::sleep(Duration::from_millis(50));
+diff --git a/crates/payload-alls/src/idz.rs b/crates/payload-alls/src/idz.rs
+index f1c5a75..3b95dd7 100644
+--- a/crates/payload-alls/src/idz.rs
++++ b/crates/payload-alls/src/idz.rs
+@@ -41,7 +41,7 @@ fn base_port() -> u16 {
+ 
+ /// The userdb's local port (the game's connections to the router's port 10000).
+ /// The named event set once the game's configuration is answered (loadConfigB, 1.30's
+-/// loadConfig2): amdaemon's JVS board keeps the start button off until then ([`hold_start`]).
++/// loadConfig2): amdaemon's card reader waits for it ([`cards_wait`]).
+ const READY_EVENT: &str = "WAL_IDZ_SERVER_READY";
+ 
+ /// The game has its game server's configuration: cards can be read.
+@@ -69,26 +69,22 @@ pub(crate) fn is_ready() -> bool {
+     true
+ }
+ 
+-/// In amdaemon: the start button held off until the game has its game server's configuration.
+-/// It asks for it in steps 30 s apart from its attract (about 90 s after it shows), pauses them
+-/// once a player is in its entry screens, and a card read before it fails (error 6503,
+-/// "[accessStep] FAILED" in the game's log, the player plays without data).
+-pub(crate) fn hold_start() {
+-    fn hold(players: &mut [wal_payload_common::jvs_board::Switches]) {
+-        static READY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+-        if READY.load(std::sync::atomic::Ordering::Relaxed) {
+-            return;
+-        }
+-        if is_ready() {
+-            READY.store(true, std::sync::atomic::Ordering::Relaxed);
+-            log!("idz: start button on (the game's configuration loaded)");
+-            return;
+-        }
+-        for p in players.iter_mut() {
+-            p.0 &= !0x80;
+-        }
++/// In amdaemon: the card held off until the game has its game server's configuration.
++/// It asks for it in steps 30 s apart from its attract (about 90 s after it shows), and a card
++/// read before fails (error 6503, "[accessStep] FAILED" in the game's log). The start button is
++/// not held: the game's first boot asks for the steering adjustment (centre, Start) before its
++/// attract, so it would never come.
++pub(crate) fn cards_wait() -> bool {
++    static READY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
++    if !std::env::var("WAL_ALLS_BOARD").is_ok_and(|v| v.trim() == "idz") || READY.load(std::sync::atomic::Ordering::Relaxed) {
++        return false;
+     }
+-    wal_payload_common::jvs_board::set_switches_hook(hold);
++    if is_ready() {
++        READY.store(true, std::sync::atomic::Ordering::Relaxed);
++        log!("idz: cards accepted (the game's configuration loaded)");
++        return false;
++    }
++    true
+ }
+ 
+ pub(crate) fn port() -> u16 {
+diff --git a/crates/payload-alls/src/lib.rs b/crates/payload-alls/src/lib.rs
+index c784fdb..3ee789c 100644
+--- a/crates/payload-alls/src/lib.rs
++++ b/crates/payload-alls/src/lib.rs
+@@ -147,10 +147,6 @@ fn start() {
+             if std::env::var("WAL_ALLS_BILLING").is_ok_and(|v| v.trim() == "1") {
+                 allnet::serve_billing();
+             }
+-            // Initial D ARCADE STAGE Zero: its start button waits for the game's configuration
+-            if std::env::var("WAL_ALLS_BOARD").is_ok_and(|v| v.trim() == "idz") {
+-                idz::hold_start();
+-            }
+         } else if child::is_child() {
+             // a program the game started (Initial D ARCADE STAGE Zero's store server): the
+             // cabinet's network only, its windows hidden

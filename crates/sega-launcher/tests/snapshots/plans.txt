@@ -1,0 +1,678 @@
+== Linux or2sdx original
+size 800x480
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+cwd /c/lindbergh
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope -w 800 -h 480 -W 2560 -H 1440 -r 60 -F linear -f
+input None
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 800
+HEIGHT = 480
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "eth0"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER
+CardInsert = KEY_F7, GC0_BUTTON_X
+P1_Steer = GC0_AXIS_LEFTX
+P1_Gas = GC0_AXIS_RIGHTTRIGGER
+P1_Brake = GC0_AXIS_LEFTTRIGGER
+
+== Linux or2sdx recommended
+size 2400x1440
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+cwd /c/lindbergh
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope -w 2400 -h 1440 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
+input None
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 2400
+HEIGHT = 1440
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "eth0"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER
+CardInsert = KEY_F7, GC0_BUTTON_X
+P1_Steer = GC0_AXIS_LEFTX
+P1_Gas = GC0_AXIS_RIGHTTRIGGER
+P1_Brake = GC0_AXIS_LEFTTRIGGER
+
+== Linux or2sdx steam_deck
+size 1280x768
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+cwd /c/lindbergh
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope -w 1280 -h 768 -W 1280 -H 800 -r 60 -F linear -f
+input None
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 1280
+HEIGHT = 768
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "eth0"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER
+CardInsert = KEY_F7, GC0_BUTTON_X
+P1_Steer = GC0_AXIS_LEFTX
+P1_Gas = GC0_AXIS_RIGHTTRIGGER
+P1_Brake = GC0_AXIS_LEFTTRIGGER
+
+== Linux or2sp original
+not yet: OutRun 2 SP Special Tours can't be started yet.
+== Linux or2sp recommended
+not yet: OutRun 2 SP Special Tours can't be started yet.
+== Linux or2sp steam_deck
+not yet: OutRun 2 SP Special Tours can't be started yet.
+== Linux cthr original
+not yet: Crazy Taxi High Roller can't be started yet.
+== Linux cthr recommended
+not yet: Crazy Taxi High Roller can't be started yet.
+== Linux cthr steam_deck
+not yet: Crazy Taxi High Roller can't be started yet.
+== Linux sr3 original
+size 1280x720
+run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
+cwd /d/wal
+gamescope -w 1280 -h 720 -W 2560 -H 1440 -r 60 -F linear -f
+input Some(Sequential)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/sr3/sega-rally-3.windowsloader
+Rally\Rally.exe
+
+file /d/wal/layer-sr3.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_EUROPAR_RESOLUTION: "1280x720"
+  WAL_EUROPAR_FREEPLAY: "1"
+  WAL_EUROPAR_FFB: "100"
+
+== Linux sr3 recommended
+size 1920x1080
+run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
+cwd /d/wal
+gamescope -w 1920 -h 1080 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
+input Some(Sequential)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/sr3/sega-rally-3.windowsloader
+Rally\Rally.exe
+
+file /d/wal/layer-sr3.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_EUROPAR_RESOLUTION: "1920x1080"
+  WAL_EUROPAR_FREEPLAY: "1"
+  WAL_EUROPAR_FFB: "100"
+
+== Linux sr3 steam_deck
+size 1280x720
+run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
+cwd /d/wal
+gamescope -w 1280 -h 720 -W 1280 -H 800 -r 60 -F linear -f
+input Some(Sequential)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/sr3/sega-rally-3.windowsloader
+Rally\Rally.exe
+
+file /d/wal/layer-sr3.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_EUROPAR_RESOLUTION: "1280x720"
+  WAL_EUROPAR_FREEPLAY: "1"
+  WAL_EUROPAR_FFB: "100"
+
+== Linux src original
+size 1280x720
+run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
+cwd /d/wal
+gamescope -w 1280 -h 720 -W 2560 -H 1440 -r 60 -F linear -f
+input Some(HPattern4)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/src/sega-racing-classic.windowsloader
+d1a.exe
+
+file /d/wal/layer-src.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_RINGEDGE_GL_SCALE: "1280x720"
+
+== Linux src recommended
+size 2560x1440
+run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
+cwd /d/wal
+gamescope -w 2560 -h 1440 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
+input Some(HPattern4)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/src/sega-racing-classic.windowsloader
+d1a.exe
+
+file /d/wal/layer-src.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_RINGEDGE_GL_SCALE: "2560x1440"
+
+== Linux src steam_deck
+size 1280x720
+run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
+cwd /d/wal
+gamescope -w 1280 -h 720 -W 1280 -H 800 -r 60 -F linear -f
+input Some(HPattern4)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/src/sega-racing-classic.windowsloader
+d1a.exe
+
+file /d/wal/layer-src.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_RINGEDGE_GL_SCALE: "1280x720"
+
+== Linux dcusa original
+not yet: Daytona Championship USA can't be started yet.
+== Linux dcusa recommended
+not yet: Daytona Championship USA can't be started yet.
+== Linux dcusa steam_deck
+not yet: Daytona Championship USA can't be started yet.
+== Windows or2sdx original
+size 800x480
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+cwd /c/lindbergh
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope 
+input None
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 800
+HEIGHT = 480
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "eth0"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER
+CardInsert = KEY_F7, GC0_BUTTON_X
+P1_Steer = GC0_AXIS_LEFTX
+P1_Gas = GC0_AXIS_RIGHTTRIGGER
+P1_Brake = GC0_AXIS_LEFTTRIGGER
+
+== Windows or2sdx recommended
+size 2400x1440
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+cwd /c/lindbergh
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope 
+input None
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 2400
+HEIGHT = 1440
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "eth0"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER
+CardInsert = KEY_F7, GC0_BUTTON_X
+P1_Steer = GC0_AXIS_LEFTX
+P1_Gas = GC0_AXIS_RIGHTTRIGGER
+P1_Brake = GC0_AXIS_LEFTTRIGGER
+
+== Windows or2sdx steam_deck
+size 1280x768
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+cwd /c/lindbergh
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope 
+input None
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 1280
+HEIGHT = 768
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "eth0"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER
+CardInsert = KEY_F7, GC0_BUTTON_X
+P1_Steer = GC0_AXIS_LEFTX
+P1_Gas = GC0_AXIS_RIGHTTRIGGER
+P1_Brake = GC0_AXIS_LEFTTRIGGER
+
+== Windows or2sp original
+not yet: OutRun 2 SP Special Tours can't be started yet.
+== Windows or2sp recommended
+not yet: OutRun 2 SP Special Tours can't be started yet.
+== Windows or2sp steam_deck
+not yet: OutRun 2 SP Special Tours can't be started yet.
+== Windows cthr original
+not yet: Crazy Taxi High Roller can't be started yet.
+== Windows cthr recommended
+not yet: Crazy Taxi High Roller can't be started yet.
+== Windows cthr steam_deck
+not yet: Crazy Taxi High Roller can't be started yet.
+== Windows sr3 original
+size 1280x720
+run /c/wal/arcade-launcher.exe run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
+cwd /d/wal
+gamescope 
+input Some(Sequential)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/sr3/sega-rally-3.windowsloader
+Rally\Rally.exe
+
+file /d/wal/layer-sr3.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_EUROPAR_RESOLUTION: "1280x720"
+  WAL_EUROPAR_FREEPLAY: "1"
+  WAL_EUROPAR_FFB: "100"
+
+== Windows sr3 recommended
+size 1920x1080
+run /c/wal/arcade-launcher.exe run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
+cwd /d/wal
+gamescope 
+input Some(Sequential)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/sr3/sega-rally-3.windowsloader
+Rally\Rally.exe
+
+file /d/wal/layer-sr3.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_EUROPAR_RESOLUTION: "1920x1080"
+  WAL_EUROPAR_FREEPLAY: "1"
+  WAL_EUROPAR_FFB: "100"
+
+== Windows sr3 steam_deck
+size 1280x720
+run /c/wal/arcade-launcher.exe run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
+cwd /d/wal
+gamescope 
+input Some(Sequential)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/sr3/sega-rally-3.windowsloader
+Rally\Rally.exe
+
+file /d/wal/layer-sr3.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_EUROPAR_RESOLUTION: "1280x720"
+  WAL_EUROPAR_FREEPLAY: "1"
+  WAL_EUROPAR_FFB: "100"
+
+== Windows src original
+size 1280x720
+run /c/wal/arcade-launcher.exe run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
+cwd /d/wal
+gamescope 
+input Some(HPattern4)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/src/sega-racing-classic.windowsloader
+d1a.exe
+
+file /d/wal/layer-src.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_RINGEDGE_GL_SCALE: "1280x720"
+
+== Windows src recommended
+size 2560x1440
+run /c/wal/arcade-launcher.exe run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
+cwd /d/wal
+gamescope 
+input Some(HPattern4)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/src/sega-racing-classic.windowsloader
+d1a.exe
+
+file /d/wal/layer-src.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_RINGEDGE_GL_SCALE: "2560x1440"
+
+== Windows src steam_deck
+size 1280x720
+run /c/wal/arcade-launcher.exe run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
+cwd /d/wal
+gamescope 
+input Some(HPattern4)
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/src/sega-racing-classic.windowsloader
+d1a.exe
+
+file /d/wal/layer-src.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_RINGEDGE_GL_SCALE: "1280x720"
+
+== Windows dcusa original
+not yet: Daytona Championship USA can't be started yet.
+== Windows dcusa recommended
+not yet: Daytona Championship USA can't be started yet.
+== Windows dcusa steam_deck
+not yet: Daytona Championship USA can't be started yet.

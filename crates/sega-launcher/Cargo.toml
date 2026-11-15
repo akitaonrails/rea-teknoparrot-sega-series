@@ -1,0 +1,34 @@
+[package]
+name = "sega-launcher"
+description = "One launcher for the Sega arcade racers on TeknoParrot dumps"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "sega-launcher"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+eframe = { version = "0.37.0", default-features = false, features = ["glow", "default_fonts", "x11", "wayland"] }
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
+rea-launcher.workspace = true
+rea-launcher-native.workspace = true
+rea-launcher-ui.workspace = true
+# the family's run/audience rules (`report::Run`, `Audience`) build on every system
+rea-launcher-win32.workspace = true
+sega-core = { path = "../sega-core" }
+signal-hook = "0.3"
+
+[build-dependencies]
+rea-launcher-build.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_System_JobObjects", "Win32_System_Threading"] }
+
+[dev-dependencies]
+rea-launcher-ui = { workspace = true, features = ["testing"] }
+tempfile = "3"

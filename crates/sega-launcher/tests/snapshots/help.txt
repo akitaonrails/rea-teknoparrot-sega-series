@@ -1,0 +1,28 @@
+sega-launcher — the Sega arcade racers on TeknoParrot dumps
+
+  sega-launcher                       open the window (games, settings, controls)
+  sega-launcher --library <folder>    add a folder with your games (repeatable)
+  sega-launcher --chihiro-bios <folder>  your Chihiro BIOS folder
+  sega-launcher --list                list the games found and their state
+  sega-launcher --check [<game>]      check a game (or all) can start, without starting
+  sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa)
+  sega-launcher --set <game> <options>   save options for a game without starting it
+
+Options (saved in that game's settings):
+  --look original|recommended|steam_deck    Look
+  --render <WxH>                            Game resolution
+  --output <WxH>                            Screen size (Linux helper)
+  --upscaler fsr|nis|linear|nearest         Upscaler (Linux helper)
+  --sharpness <0-20>                        Sharpness (Linux helper)
+  --fullscreen on|off                       Full screen (Linux helper)
+  --steering-lock 180|270|360|540|900|full  Steering lock
+  --force-feedback <0-200>                  Force feedback
+  --deadzone <0-30>                         Stick dead zone
+
+Test options for --play:
+  --headless               run in an invisible display
+  --no-input               no controller input
+  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --seconds <n>            stop the game after n seconds
+
+  sega-launcher --help                this text
