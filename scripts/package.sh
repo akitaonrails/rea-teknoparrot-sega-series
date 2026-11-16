@@ -14,8 +14,8 @@
 #
 # The Linux package also carries lindbergh-loader (CC BY-NC-SA 4.0, by
 # owner decision 2026-11-16; built in a container with docker or podman, or
-# taken as built from dist/components/lindbergh, which the release workflow
-# fills from its own job) and Microsoft's DirectX June 2010 redistributable
+# taken as built from dist/components/lindbergh while its .stamp matches the
+# pinned commit and recipe; the release workflow fills it from its own job) and Microsoft's DirectX June 2010 redistributable
 # for winetricks' xact verb. No game file is ever packaged.
 set -eu
 
@@ -46,8 +46,7 @@ if [ "$os" = linux ]; then
 	bin=$root/dist/linux
 	[ -f "$bin/sega-launcher" ] || die "missing $bin/sega-launcher - build it first"
 	[ -f "$bin/lib/libSDL2-2.0.so.0" ] || die "missing $bin/lib/libSDL2-2.0.so.0"
-	[ -f "$comps/lindbergh/lindbergh.so" ] || "$root/scripts/build-components.sh" "$comps" lindbergh
-	"$root/scripts/build-components.sh" "$comps" wal runner winetricks directx assets
+	"$root/scripts/build-components.sh" "$comps" lindbergh wal runner winetricks directx assets
 	install -m 755 "$bin/sega-launcher" "$out/sega-launcher"
 	mkdir -p "$out/lib"
 	cp "$bin"/lib/* "$out/lib/"
@@ -57,6 +56,8 @@ if [ "$os" = linux ]; then
 	install -m 755 "$comps/winetricks" "$out/components/winetricks"
 	cp -r "$comps/lindbergh" "$out/components/lindbergh"
 	mv "$out/components/lindbergh/LICENSE.md" "$out/licenses/lindbergh-loader-LICENSE.md"
+	mv "$out/components/lindbergh/notices" "$out/licenses/lindbergh-libraries"
+	rm -f "$out/components/lindbergh/.stamp"
 	cp -r "$comps/directx" "$out/components/directx"
 else
 	exe=${CARGO_TARGET_DIR:-$root/target}/x86_64-pc-windows-gnu/release/sega-launcher.exe

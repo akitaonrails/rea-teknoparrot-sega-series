@@ -79,7 +79,7 @@ pub fn check_components(game: &Game, p: &Paths) -> Result<()> {
         .collect();
     if !missing.is_empty() {
         bail!(
-            "{} needs launcher components that are missing:\n  {}\n(see README, \"Components\")",
+            "{} needs launcher components that are missing:\n  {}\n(the package is incomplete: unpack it again)",
             game.title,
             missing.join("\n  ")
         );

@@ -22,6 +22,9 @@ work="$out/.build"; mkdir -p "$work"
 
 LINDBERGH_REPO=https://github.com/lindbergh-loader/lindbergh-loader
 LINDBERGH_COMMIT=0af606d845b70339c335785c0eba68b47b78df3c
+# the licence of the libssl/libcrypto 0.9.7 that lindbergh-loader's libs/ carries
+OPENSSL_LICENSE_URL=https://raw.githubusercontent.com/openssl/openssl/OpenSSL_0_9_7m/LICENSE
+OPENSSL_LICENSE_SHA256=81d5872403d0f080f0e2ba0ff305023eab07245691704e93b6bd1b144a20d9e1
 WAL_REPO=https://github.com/aderumier/windowsarcadeloader
 WAL_COMMIT=4f42c6d86ddaaa9d2e4e8c21e0046bb3027b111d
 RUNNER=GE-Proton11-12-x86_64
@@ -43,6 +46,11 @@ checkout() { # repo commit dir
 
 for part in $parts; do case $part in
 lindbergh)
+  stamp="$LINDBERGH_COMMIT $(cat "$here"/scripts/lindbergh-in-container.sh "$here"/patches/lindbergh/*.patch 2>/dev/null | sha256sum | cut -c1-16)"
+  if [ -f "$out/lindbergh/.stamp" ] && [ "$(cat "$out/lindbergh/.stamp")" = "$stamp" ]; then
+    echo "lindbergh: up to date ($stamp)"
+    continue
+  fi
   checkout "$LINDBERGH_REPO" "$LINDBERGH_COMMIT" "$work/lindbergh-loader"
   for p in "$here"/patches/lindbergh/*.patch; do [ -f "$p" ] && git -C "$work/lindbergh-loader" apply "$p"; done
   engine=$(command -v docker || command -v podman) || { echo "lindbergh: needs docker or podman" >&2; exit 1; }
@@ -53,6 +61,11 @@ lindbergh)
   cp "$work/lindbergh-loader/libs/libssl.so.0.9.7" "$work/lindbergh-loader/libs/libcrypto.so.0.9.7" \
      "$work/lindbergh-loader/libs/libopenal.so.0" "$out/lindbergh/"
   cp "$work/lindbergh-loader/LICENSE.md" "$out/lindbergh/LICENSE.md"
+  f="$work/openssl-0.9.7-LICENSE"
+  curl -fsSL -o "$f" "$OPENSSL_LICENSE_URL"
+  echo "$OPENSSL_LICENSE_SHA256  $f" | sha256sum -c -
+  cp "$f" "$out/lindbergh/notices/OpenSSL-0.9.7-LICENSE.txt"
+  echo "$stamp" > "$out/lindbergh/.stamp"
   ;;
 wal)
   stamp="$WAL_COMMIT $(cat "$here"/patches/wal/*.patch | sha256sum | cut -c1-16)"

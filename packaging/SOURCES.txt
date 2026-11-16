@@ -28,7 +28,14 @@ lindbergh-loader (CC BY-NC-SA 4.0), Linux package only: components/lindbergh
   SDL 3.2.26, SDL_ttf 3.2.2, SDL_image 3.2.4 and FAudio 25.11 from their
   release tags, and Ubuntu 22.04's i386 libraries (source: the Ubuntu
   archive's source packages freeglut, gcc-3.3 (libstdc++5), libxmu, libxi,
-  libglu, libxt, libsm, libice, libbsd, libmd).
+  libglu, libxt, libsm, libice, libbsd, libmd, at the versions listed in
+  licenses/lindbergh-libraries/VERSIONS.txt).
+  libssl/libcrypto 0.9.7 (OpenSSL licence) and libopenal.so.0 (LGPL-2) come
+  as binaries from lindbergh-loader's libs/ folder at the same commit; their
+  sources: https://github.com/openssl/openssl (OpenSSL_0_9_7 branch) and
+  the OpenAL library lindbergh-loader took them from; for a copy of either,
+  open an issue at
+  https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues
 
 Microsoft DirectX June 2010 redistributable, Linux package only:
   components/directx (Microsoft's licence, redistributable)

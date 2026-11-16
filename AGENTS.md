@@ -58,7 +58,7 @@ Then `docs/RESEARCH.md` (what runs each game and why) and
 | `crates/sega-launcher/src/session.rs`, `proc.rs` | One game run: gamescope, bubblewrap, process group, cleanup |
 | `crates/sega-launcher/src/input.rs` | The SDL thread: wheels, pads, force feedback |
 | `crates/sega-launcher/src/ui.rs`, `ui/` | The hub window and its headless tests |
-| `scripts/build-components.sh` | windowsarcadeloader (patched), GE-Proton, winetricks, lindbergh-loader |
+| `scripts/build-components.sh` | lindbergh-loader, windowsarcadeloader (patched), GE-Proton, winetricks, the DirectX redistributable |
 | `patches/wal/` | Our changes to windowsarcadeloader (input pipe, Windows host, profiles) |
 | `docs/RESEARCH.md`, `docs/RUNTIME_NOTES.md`, `docs/CONTRIBUTIONS.md` | Findings, verification, drafts to share |
 

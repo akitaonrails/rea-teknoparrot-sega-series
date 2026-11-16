@@ -30,5 +30,16 @@ apt-get install -y -qq --no-install-recommends freeglut3:i386 libstdc++5:i386 li
 for l in libglut.so.3 libstdc++.so.5 libXmu.so.6 libXi.so.6 libGLU.so.1 libXt.so.6 libSM.so.6 libICE.so.6 libbsd.so.0 libmd.so.0; do
   cp -L /usr/lib/i386-linux-gnu/$l /out/
 done
+# their notices and exact versions (THIRD_PARTY.md, licenses/ in the package), plus the
+# notices of what was built from source here and of lindbergh-loader's own libs/
+mkdir -p /out/notices
+pkgs="freeglut3 libstdc++5 libxmu6 libxi6 libglu1-mesa libxt6 libsm6 libice6 libbsd0 libmd0"
+for p in $pkgs; do cp /usr/share/doc/$p/copyright /out/notices/$p.copyright; done
+{ echo "Ubuntu 22.04 i386 packages (source: the Ubuntu archive's source packages of these versions):"
+  for p in $pkgs; do dpkg-query -W -f='  ${Package} ${Version} (source ${source:Package} ${source:Version})\n' "$p:i386"; done
+  echo "Built from source (release tags): SDL 3.2.26, SDL_ttf 3.2.2, SDL_image 3.2.4, FAudio 25.11"
+} > /out/notices/VERSIONS.txt
+for n in SDL SDL_ttf SDL_image FAudio; do cp "$(ls /work/build-deps/$n/LICENSE* | head -1)" /out/notices/$n-LICENSE.txt; done
+cp /usr/share/common-licenses/LGPL-2 /out/notices/libopenal-LGPL-2.txt
 chown -R "${OWNER:-0:0}" /out
 echo DONE
