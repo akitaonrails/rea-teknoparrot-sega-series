@@ -228,10 +228,6 @@ fn check(paths: &Paths, config: &paths::Config, only: Option<&str>) -> Result<u8
             None => Err("not in your game folders".to_string()),
             Some(_) => match game.support_on(Host::current()) {
                 Support::Blocked(why) => Err(format!("not yet: {why}")),
-                _ if session::needs_lindbergh_build(paths, game) => Ok(format!(
-                    "{}; lindbergh-loader is built on its first Play (needs git and docker or podman)",
-                    state(game)
-                )),
                 _ => session::check_components(game, paths)
                     .map(|()| state(game))
                     .map_err(|e| format!("{e:#}")),
@@ -270,10 +266,6 @@ fn play(paths: &Paths, game: &'static Game, inv: &Invocation) -> Result<u8, Stri
     } else {
         Display::Screen
     };
-    if session::needs_lindbergh_build(paths, game) {
-        eprintln!("building lindbergh-loader (OutRun 2 SP SDX's first start; a few minutes)…");
-        session::build_lindbergh(paths).map_err(|e| format!("{e:#}"))?;
-    }
     let prepared =
         session::prepare(paths, game, &entry, &settings, display).map_err(|e| format!("{e:#}"))?;
     let stop = Arc::new(AtomicBool::new(false));

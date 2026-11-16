@@ -20,9 +20,7 @@ What works today
 ----------------
 
 - SEGA Rally 3 and SEGA Racing Classic: full races (Linux).
-- OutRun 2 SP SDX: full races (Linux only). Its loader
-  is built on your computer the first time you press Play: that needs git
-  and docker or podman, and takes a few minutes.
+- OutRun 2 SP SDX: full races (Linux only).
 - Daytona Championship USA: full races (Linux).
 - OutRun 2 SP Special Tours, Crazy Taxi High Roller: not yet; the window
   says why.

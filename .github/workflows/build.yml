@@ -2,8 +2,7 @@ name: build
 
 # Checks every push (the SDK's launcher-ci: fmt, tests, clippy, deny, the
 # family rules, the Windows-target tests under Wine), builds both packages
-# (Linux and Windows, every component bundled except lindbergh-loader, whose
-# licence lets only the player build it) and, on a vX.Y.Z tag, publishes them
+# (Linux and Windows, every component bundled) and, on a vX.Y.Z tag, publishes them
 # (the SDK's launcher-release).
 on:
   push:
@@ -71,11 +70,31 @@ jobs:
           wine --version
           cargo test --workspace --locked --target x86_64-pc-windows-gnu
 
+  # lindbergh-loader (OutRun 2 SP SDX, Linux package) in its ubuntu:22.04
+  # build container, which needs the runner's docker; tarred so its library
+  # symlinks survive the artifact.
+  lindbergh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build
+        run: |
+          scripts/build-components.sh dist/components lindbergh
+          tar -C dist/components -czf lindbergh.tar.gz lindbergh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lindbergh
+          path: lindbergh.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
   # Both packages from one build of windowsarcadeloader (its Linux and
   # Windows launchers, the Windows payloads), on Debian bookworm (glibc
   # 2.36) so the Linux programs run on older distributions too. The Windows
   # programs link with LLD (.cargo/config.toml).
   packages:
+    needs: lindbergh
     runs-on: ubuntu-24.04
     container: debian:bookworm
     timeout-minutes: 120
@@ -91,6 +110,15 @@ jobs:
             libasound2-dev libpulse-dev libpipewire-0.3-dev libjack-jackd2-dev libsndio-dev \
             libusb-1.0-0-dev
       - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: lindbergh
+      - name: lindbergh-loader (from its job)
+        run: |
+          mkdir -p dist/components
+          tar -C dist/components -xzf lindbergh.tar.gz
+          rm lindbergh.tar.gz
+          test -f dist/components/lindbergh/lindbergh.so
       - name: Rust
         run: |
           curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
@@ -121,7 +149,8 @@ jobs:
           ls -l *.tar.gz *.zip
           unzip -l SegaRacingLauncher-*-windows-x86_64.zip | grep -v -e "/systemprofiles/" -e "/payloads/"
           tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -v "/components/runner/" | sort
-          ! tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -q "components/lindbergh/"
+          tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -q "components/lindbergh/lindbergh.so"
+          tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -q "components/directx/directx9/directx_Jun2010_redist.exe"
       - uses: actions/upload-artifact@v4
         with:
           name: SegaRacingLauncher-packages

@@ -12,10 +12,11 @@
 # patches/wal, both its launchers; GE-Proton and winetricks by SHA-256;
 # the art and fonts), then copied into each package.
 #
-# lindbergh-loader (CC BY-NC-SA) is never packaged: the Linux package
-# carries the script and its container recipe, and the
-# launcher builds it on the player's machine on first use. No game file is
-# ever packaged.
+# The Linux package also carries lindbergh-loader (CC BY-NC-SA 4.0, by
+# owner decision 2026-11-16; built in a container with docker or podman, or
+# taken as built from dist/components/lindbergh, which the release workflow
+# fills from its own job) and Microsoft's DirectX June 2010 redistributable
+# for winetricks' xact verb. No game file is ever packaged.
 set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd -P)
@@ -45,7 +46,8 @@ if [ "$os" = linux ]; then
 	bin=$root/dist/linux
 	[ -f "$bin/sega-launcher" ] || die "missing $bin/sega-launcher - build it first"
 	[ -f "$bin/lib/libSDL2-2.0.so.0" ] || die "missing $bin/lib/libSDL2-2.0.so.0"
-	"$root/scripts/build-components.sh" "$comps" wal runner winetricks assets
+	[ -f "$comps/lindbergh/lindbergh.so" ] || "$root/scripts/build-components.sh" "$comps" lindbergh
+	"$root/scripts/build-components.sh" "$comps" wal runner winetricks directx assets
 	install -m 755 "$bin/sega-launcher" "$out/sega-launcher"
 	mkdir -p "$out/lib"
 	cp "$bin"/lib/* "$out/lib/"
@@ -53,9 +55,9 @@ if [ "$os" = linux ]; then
 	copy_wal arcade-launcher
 	cp -r "$comps/runner" "$out/components/runner"
 	install -m 755 "$comps/winetricks" "$out/components/winetricks"
-	# the first-use build of lindbergh-loader (OutRun 2 SP SDX)
-	mkdir -p "$out/scripts"
-	install -m 755 "$root/scripts/build-components.sh" "$root/scripts/lindbergh-in-container.sh" "$out/scripts/"
+	cp -r "$comps/lindbergh" "$out/components/lindbergh"
+	mv "$out/components/lindbergh/LICENSE.md" "$out/licenses/lindbergh-loader-LICENSE.md"
+	cp -r "$comps/directx" "$out/components/directx"
 else
 	exe=${CARGO_TARGET_DIR:-$root/target}/x86_64-pc-windows-gnu/release/sega-launcher.exe
 	[ -f "$exe" ] || die "missing $exe - run scripts/build-launcher.sh windows"

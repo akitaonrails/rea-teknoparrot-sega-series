@@ -6,10 +6,8 @@
 //!   `runtimes/` (one per game, saves included), `wal/` (windowsarcadeloader's
 //!   root: its Wine prefix and profile layers), `launcher.log`;
 //! - components (`$SEGA_COMPONENTS`, else `components/` beside the
-//!   program): `wal/`, `runner/`, `shaders/`, `art/`, `fonts/`, and
-//!   `lindbergh/` from a developer's build; the player's lindbergh-loader is
-//!   built on first use into the data folder's `components/lindbergh/`
-//!   (CC BY-NC-SA: never inside a package).
+//!   program): `lindbergh/` (Linux), `wal/`, `runner/`, `winetricks`,
+//!   `directx/` (Linux), `art/`, `fonts/`.
 
 use std::path::{Path, PathBuf};
 
@@ -117,40 +115,13 @@ impl Paths {
         }
         packaged
     }
-    /// Where lindbergh-loader is: the components' `lindbergh/` when it is
-    /// there, else the one built on first use in the data folder.
-    pub fn lindbergh(&self) -> PathBuf {
-        let packaged = self.components.join("lindbergh");
-        if packaged.join("lindbergh.so").is_file() {
-            packaged
-        } else {
-            self.lindbergh_build_target().join("lindbergh")
-        }
-    }
-
-    /// The components folder lindbergh-loader is built into on first use.
-    pub fn lindbergh_build_target(&self) -> PathBuf {
-        self.data.join("components")
-    }
-
-    /// `scripts/build-components.sh`: beside the program in a package, the
-    /// repository's own from a development build.
-    pub fn build_script(&self) -> PathBuf {
-        let beside = std::env::current_exe()
-            .ok()
-            .and_then(|e| e.parent().map(|p| p.join("scripts/build-components.sh")));
-        match beside {
-            Some(s) if s.is_file() => s,
-            _ => Path::new(env!("CARGO_MANIFEST_DIR")).join("../../scripts/build-components.sh"),
-        }
-    }
-
     pub fn components(&self) -> Components {
         Components {
-            lindbergh: self.lindbergh(),
+            lindbergh: self.components.join("lindbergh"),
             wal: self.components.join("wal"),
             runner: self.components.join("runner"),
             winetricks: self.components.join("winetricks"),
+            directx: self.components.join("directx"),
         }
     }
 
@@ -200,18 +171,13 @@ mod tests {
     }
 
     #[test]
-    fn lindbergh_is_the_packaged_one_else_the_one_built_in_the_data_folder() {
-        let t = tempfile::tempdir().unwrap();
+    fn components_sit_in_the_components_folder() {
         let p = Paths {
-            data: t.path().join("data"),
-            components: t.path().join("pkg/components"),
+            data: "/d".into(),
+            components: "/pkg/components".into(),
         };
-        // a package never carries it: the first start builds it in the data folder
-        assert_eq!(p.lindbergh(), t.path().join("data/components/lindbergh"));
-        assert_eq!(p.components().lindbergh, p.lindbergh());
-        let dev = t.path().join("pkg/components/lindbergh");
-        std::fs::create_dir_all(&dev).unwrap();
-        std::fs::write(dev.join("lindbergh.so"), b"").unwrap();
-        assert_eq!(p.lindbergh(), dev);
+        let c = p.components();
+        assert_eq!(c.lindbergh, Path::new("/pkg/components/lindbergh"));
+        assert_eq!(c.directx, Path::new("/pkg/components/directx"));
     }
 }

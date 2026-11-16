@@ -67,8 +67,6 @@ pub fn run(paths: Paths) -> anyhow::Result<()> {
 
 /// What the game thread reports.
 enum Progress {
-    /// lindbergh-loader is being built (OutRun 2 SP SDX's first start).
-    Building,
     /// The runtime folder is built; the game is starting.
     Playing,
     Ended(Result<(), String>),
@@ -76,7 +74,6 @@ enum Progress {
 
 struct Running {
     game: &'static Game,
-    building: bool,
     playing: bool,
     progress: Receiver<Progress>,
     /// Asks the session to stop the game.
@@ -470,13 +467,6 @@ impl App {
         std::thread::Builder::new()
             .name("session".into())
             .spawn(move || {
-                if session::needs_lindbergh_build(&paths, game) {
-                    let _ = tx.send(Progress::Building);
-                    if let Err(e) = session::build_lindbergh(&paths) {
-                        let _ = tx.send(Progress::Ended(Err(format!("{e:#}"))));
-                        return;
-                    }
-                }
                 let prepared =
                     match session::prepare(&paths, game, &entry, &settings, Display::Screen) {
                         Ok(p) => p,
@@ -501,7 +491,6 @@ impl App {
             .expect("spawn session thread");
         self.running = Some(Running {
             game,
-            building: false,
             playing: false,
             progress: rx,
             stop,
@@ -521,7 +510,6 @@ impl App {
         let log_hint = format!("Details are in {}.", self.paths.log().display());
         let ended = loop {
             match run.progress.try_recv() {
-                Ok(Progress::Building) => run.building = true,
                 Ok(Progress::Playing) => run.playing = true,
                 Ok(Progress::Ended(r)) => break Some(r),
                 Err(TryRecvError::Empty) => break None,
@@ -2335,12 +2323,6 @@ impl App {
                 format!("{} is running", run.game.title),
                 "Close the game window or press Stop to come back.",
             )
-        } else if run.building {
-            (
-                "Building lindbergh-loader…".to_string(),
-                "OutRun 2 SP SDX runs in lindbergh-loader, built once on your computer \
-                 (its licence forbids shipping it). This takes a few minutes.",
-            )
         } else {
             (
                 format!("Getting {} ready…", run.game.title),
@@ -2894,19 +2876,12 @@ mod tests {
         let stop = Arc::new(AtomicBool::new(false));
         h.state_mut().running = Some(Running {
             game: ready(),
-            building: false,
             playing: false,
             progress: rx,
             stop: Arc::clone(&stop),
         });
         h.run_steps(3);
         assert!(says(&h, &format!("Getting {} ready", ready().title)));
-        assert!(h.query_by_role_and_label(Role::Button, "Stop").is_none());
-        // OutRun 2 SP SDX's first start builds lindbergh-loader first
-        tx.send(Progress::Building).unwrap();
-        h.run_steps(3);
-        assert!(says(&h, "Building lindbergh-loader"));
-        assert!(says(&h, "This takes a few minutes"));
         assert!(h.query_by_role_and_label(Role::Button, "Stop").is_none());
         tx.send(Progress::Playing).unwrap();
         h.run_steps(3);

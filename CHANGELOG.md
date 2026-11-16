@@ -8,6 +8,12 @@ All notable changes to this launcher. The format follows
 
 ### Added
 
+- The Linux package carries lindbergh-loader, built from its pinned commit,
+  so OutRun 2 SP SDX's first Play no longer needs docker, podman or git.
+- The Linux package carries Microsoft's DirectX June 2010 runtime for
+  winetricks' `xact`, so SEGA Rally 3 and SEGA Racing Classic start the first
+  time without a download.
+
 - One launcher for six Sega arcade racers on TeknoParrot dumps: OutRun 2 SP
   SDX, OutRun 2 SP Special Tours, Crazy Taxi High Roller, SEGA Rally 3,
   SEGA Racing Classic and Daytona Championship USA, each known by the
@@ -15,7 +21,7 @@ All notable changes to this launcher. The format follows
 - SEGA Rally 3 and SEGA Racing Classic in windowsarcadeloader under the
   bundled GE-Proton, with the launcher feeding the cabinet's controls and
   playing the force feedback: full races verified.
-- OutRun 2 SP SDX in lindbergh-loader (built on first use), with the
+- OutRun 2 SP SDX in lindbergh-loader (shipped in the Linux package), with the
   cabinet check skipped so it gets past "Initializing the drive board": full
   race verified. A wheel found before the start is written into
   lindbergh-loader's controls (steering and pedal axes, player 1).

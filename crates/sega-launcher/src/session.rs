@@ -14,6 +14,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result, bail};
 use sega_core::catalog::{Game, Host, Route, Support};
 use sega_core::input::Cabinet;
+use sega_core::launch::DIRECTX_REDIST;
 use sega_core::launch::{self, Places, Plan};
 use sega_core::library::Entry;
 use sega_core::runtime;
@@ -67,6 +68,7 @@ pub fn check_components(game: &Game, p: &Paths) -> Result<()> {
             c.wal.join("payloads"),
             c.wal.join("systemprofiles"),
             c.runner.join("bin/wine"),
+            c.directx.join(DIRECTX_REDIST),
         ],
         Route::Cxbx | Route::Flycast { .. } => vec![],
     };
@@ -80,49 +82,6 @@ pub fn check_components(game: &Game, p: &Paths) -> Result<()> {
             "{} needs launcher components that are missing:\n  {}\n(see README, \"Components\")",
             game.title,
             missing.join("\n  ")
-        );
-    }
-    Ok(())
-}
-
-/// Whether `game` needs lindbergh-loader built first (its first start on
-/// this computer).
-pub fn needs_lindbergh_build(paths: &Paths, game: &Game) -> bool {
-    game.route == Route::Lindbergh && !paths.lindbergh().join("lindbergh.so").is_file()
-}
-
-/// Builds lindbergh-loader into the data folder with
-/// `scripts/build-components.sh` (git and docker or podman, a few minutes);
-/// its output goes to `lindbergh-build.log` there.
-pub fn build_lindbergh(paths: &Paths) -> Result<()> {
-    let script = paths.build_script();
-    if !script.is_file() {
-        bail!("the build script is missing ({})", script.display());
-    }
-    if which("git").is_none() {
-        bail!("building lindbergh-loader needs git, which is not installed");
-    }
-    if which("docker").is_none() && which("podman").is_none() {
-        bail!("building lindbergh-loader needs docker or podman, and neither is installed");
-    }
-    let target = paths.lindbergh_build_target();
-    fs::create_dir_all(&target).with_context(|| format!("creating {}", target.display()))?;
-    let log_path = paths.data.join("lindbergh-build.log");
-    let log =
-        fs::File::create(&log_path).with_context(|| format!("creating {}", log_path.display()))?;
-    let status = Command::new("sh")
-        .arg(&script)
-        .arg(&target)
-        .arg("lindbergh")
-        .stdin(Stdio::null())
-        .stdout(log.try_clone()?)
-        .stderr(log)
-        .status()
-        .context("starting the build script")?;
-    if !status.success() || !paths.lindbergh().join("lindbergh.so").is_file() {
-        bail!(
-            "building lindbergh-loader failed ({status}); its output is in {}",
-            log_path.display()
         );
     }
     Ok(())
@@ -359,6 +318,7 @@ mod tests {
             wal: "/c/wal".into(),
             runner: "/c/r".into(),
             winetricks: "/c/w".into(),
+            directx: "/c/dx".into(),
         };
         let g = game(GameId::RacingClassic);
         let plan_with =

@@ -22,6 +22,13 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 | OutRun 2 SP SDX, keys sent to the session's Xwayland (XTest) | **race played**: Start through driver, F50, automatic, OutRun mode (Special Tours), music select, then the coast at 111 km/h, score counting, steering both ways. Drive board emulation sends rumble to the SDL device. |
 | OutRun 2 SP SDX, output | lindbergh-loader buffers its stdout when it goes to a pipe: a crash loses its last lines, so a game that seems to stop "after loading the ranking" may have gone much further. Read the game's own state, not only the log. |
 
+## From the Linux package with everything bundled (2026-11-16)
+
+| Game | Result |
+|---|---|
+| SEGA Racing Classic, fresh data folder and Wine prefix | winetricks' `xact` took `components/directx/directx9/directx_Jun2010_redist.exe` from the package (`W_CACHE`, no download line in `session.log`); full race, lap 1 at 0'26"84 |
+| OutRun 2 SP SDX | the package's `components/lindbergh` (no docker, no build); race at 120 km/h |
+
 ## Chihiro (Cxbx-Reloaded `CI-585c49a`, by hand, 2026-11-15)
 
 | Step | Result |
@@ -29,7 +36,9 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 | `cxbxr-ldr.exe /load <xbe> /chihiro` under GE-Proton's Wine | "Error loading cxbxr-emu.dll": needs the VC++ 2015–2022 runtime (`MSVCP140_ATOMIC_WAIT.dll`), installed with winetricks `vcrun2022` (it fails without a display; it works inside a headless gamescope) |
 | then | `d3d9.dll`/`D3DCOMPILER_47.dll` fail to load: GE-Proton's 32-bit `wined3d` needs vkd3d's DLLs, which Proton's own launch script provides. DXVK's 32-bit `d3d9.dll` and vkd3d's three DLLs beside Cxbx (`d3d9=n`) fix it |
 | then | Cxbx starts, patches the XBE (HLE), needs `boot.id` beside the XBE (keep it in the runtime), extracts SEGABOOT from the media board ROM and boots it |
-| with zero-filled stand-ins for the three base-board EEPROMs (a probe only) | the screen stays black for two minutes. Needs the real `ic10_g24lc64.bin`, `pc20_g24lc64.bin`, `ic11_24lc024.bin` (MAME `chihiro`), which the owner's BIOS folder doesn't have yet. **Blocked.** |
+| with zero-filled stand-ins for the three base-board EEPROMs (a probe only) | the screen stays black for two minutes. |
+| 2026-11-16, the owner's real `ic10_g24lc64` (sha1 `3ababd43…`), `pc20_g24lc64.bin`, `ic11_24lc024.bin` and `EEPROM.bin`, through `cxbxr-ldr.exe` | no window at all: SEGABOOT's reboot starts a second `cxbxr-ldr.exe … Partition3.bin /chihiro /sid …` and the first exits, so the session's shared memory goes with it and the second runs silent |
+| the same through `cxbx.exe <xbe>` (its GUI keeps the session) | Chihiro mode is detected, SEGABOOT reboots into `OUTRUN2.XBE`, the emulator runs (about one CPU core busy), and its window stays black after 75 s, windowed and full screen, in gamescope's capture and in a direct X capture. **Still blocked**: next is a visible run, and Cxbx's own Chihiro compatibility for these two titles |
 
 ## Daytona Championship USA (2026-11-15)
 

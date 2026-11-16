@@ -39,8 +39,10 @@ Then `docs/RESEARCH.md` (what runs each game and why) and
   (2026-11-14), but its core refuses Wine with a VMProtect "virtual machine"
   check, which we never bypass (2026-11-15). Daytona Championship USA gets a
   windowsarcadeloader `segashell` profile of our own instead.
-- **lindbergh-loader** (CC BY-NC-SA) is built on the player's machine on
-  first use, never packaged (as in the Initial D launcher).
+- **lindbergh-loader** (CC BY-NC-SA) ships prebuilt in the Linux package,
+  unmodified, free of charge and with its licence (2026-11-16, D4).
+- **XAudio2**: Microsoft's DirectX June 2010 redistributable is bundled in
+  the Linux package for winetricks' `xact` (2026-11-16, D5).
 
 ## Layout
 

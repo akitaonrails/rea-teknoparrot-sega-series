@@ -29,7 +29,7 @@ repository, with its poster image. -->
 | --- | --- |
 | Each cabinet needs its own loader, Wine setup and tweaks. | One window finds every game in your folders and starts each with the right loader: lindbergh-loader for OutRun 2 SP SDX, windowsarcadeloader for SEGA Rally 3, SEGA Racing Classic and Daytona Championship USA. |
 | TeknoParrot doesn't run on Linux, and its loader refuses Wine. | Open loaders made for Linux run the games natively or under a bundled Wine (GE-Proton); Daytona Championship USA gets a windowsarcadeloader profile written for this launcher. |
-| SEGA Racing Classic's sound crashes under plain Wine. | The prefix gets native XAudio2 the first time, automatically. |
+| SEGA Racing Classic's sound crashes under plain Wine. | The prefix gets native XAudio2 the first time, from Microsoft's runtime inside the package (no download). |
 | OutRun 2 SP SDX stops at its cabinet check on a PC. | The launcher turns on lindbergh-loader's cabinet-check skip. |
 | The cabinets had a 4-speed H lever, a handbrake and four view buttons. | Paddles or shoulder buttons shift up and down; the launcher turns that into the H lever's gears, and one view button walks through the four cameras. |
 | A wheel turns 900° or more; the cabinets turned 270°. | The launcher reads your wheel and sets the steering lock you pick (270° by default), with force feedback from the game at the strength you choose. |
@@ -50,9 +50,6 @@ repository, with its poster image. -->
 - Linux on x86-64 with a Vulkan driver, gamescope and bubblewrap (most
   gaming setups have them). The release package brings Wine, the loaders
   and everything else.
-- For OutRun 2 SP SDX: docker or podman and git, once. lindbergh-loader's
-  licence doesn't let us ship it, so the launcher builds it on your
-  computer the first time you press Play (a few minutes).
 - For the two Chihiro games: your Chihiro BIOS folder with MAME's
   `chihiro` files (media board ROM and the three base-board EEPROMs).
 - A wheel or a gamepad. The keyboard works for menus only.
@@ -121,7 +118,6 @@ start, without starting), `--library <folder>`, `--chihiro-bios <folder>`,
 - Settings, runtimes and logs: `~/.local/share/rea-sega/` (`launcher.cfg`,
   `settings/<game>.cfg`, `runtimes/<game>/` with each game's saves, rankings
   and `session.log`, `wal/` with the Wine prefix).
-- lindbergh-loader, once built: `~/.local/share/rea-sega/components/lindbergh/`.
 - On Windows: `%LOCALAPPDATA%\rea-sega\`.
 
 ## Troubleshooting
@@ -130,8 +126,6 @@ start, without starting), `--library <folder>`, `--chihiro-bios <folder>`,
   unknown build is listed with its SHA-256; please
   [report it](https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new?template=unknown-edition.yml).
 - **A game stops right away**: its log is `runtimes/<game>/session.log`.
-- **OutRun 2 SP SDX's first start fails**: the build log is
-  `~/.local/share/rea-sega/lindbergh-build.log`; it needs docker or podman.
 - **The wheel turns the wrong way or too far**: set the steering lock in
   Settings, and turn off your wheel software's own lock.
 - Anything else: [open a bug report](https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new?template=bug-report.yml)
@@ -139,9 +133,9 @@ start, without starting), `--library <folder>`, `--chihiro-bios <folder>`,
 
 ## Known limitations
 
-- OutRun 2 SP Special Tours and Crazy Taxi High Roller can't start yet:
-  Cxbx-Reloaded runs under the bundled Wine, but the games need MAME's three
-  Chihiro base-board files and are not verified.
+- OutRun 2 SP Special Tours and Crazy Taxi High Roller can't start yet.
+  Cxbx-Reloaded boots SEGABOOT and then OutRun 2 SP under Wine with MAME's
+  Chihiro files, but the screen stays black.
 - Daytona Championship USA: the view and gear buttons are mapped from the
   game's own table but not yet seen working in a race (races so far used the
   automatic transmission). Coins are needed (free play off).
@@ -166,7 +160,7 @@ and the layout.
 
 ```sh
 cargo test --workspace
-scripts/build-components.sh dist/components    # windowsarcadeloader, GE-Proton, winetricks, lindbergh-loader
+scripts/build-components.sh dist/components    # lindbergh-loader, windowsarcadeloader, GE-Proton, winetricks, DirectX redist
 SEGA_COMPONENTS=dist/components cargo run -p sega-launcher
 ```
 

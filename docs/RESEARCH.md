@@ -25,7 +25,7 @@ main file (`crates/sega-core/src/catalog.rs`).
 
 | Project | What it does for these games | Licence | Maintained | Decision |
 |---|---|---|---|---|
-| [lindbergh-loader](https://github.com/lindbergh-loader/lindbergh-loader) | Runs Lindbergh ELFs on Linux: JVS, drive board (force feedback through SDL), EEPROM, SRAM, OutRun's ranking paths, `SKIP_OUTRUN_CABINET_CHECK` | CC BY-NC-SA 4.0 | yes (2026) | **built on the player's machine on first use** (as the Initial D launcher does; the owner decided there it is never packaged) |
+| [lindbergh-loader](https://github.com/lindbergh-loader/lindbergh-loader) | Runs Lindbergh ELFs on Linux: JVS, drive board (force feedback through SDL), EEPROM, SRAM, OutRun's ranking paths, `SKIP_OUTRUN_CABINET_CHECK` | CC BY-NC-SA 4.0 | yes (2026) | **bundled** in the Linux package, built from the pinned commit (owner decision D4) |
 | [windowsarcadeloader](https://github.com/aderumier/windowsarcadeloader) | Payload DLLs that play each cabinet's I/O board, dongle and network under Wine; profiles `europar/sega-rally-3` and `ringedge/sega-racing-classic` rated "works (user: 100%)"; the `segashell` system (Showdown, Transformers) | GPL-3.0 | yes, daily (2026-11) | **bundled**, built from a pinned commit with `patches/wal` |
 | [Cxbx-Reloaded](https://github.com/Cxbx-Reloaded/Cxbx-Reloaded) | Xbox/Chihiro HLE emulator, Windows only; Chihiro support needs the media board ROM and three base-board EEPROMs from MAME's `chihiro` set | GPL-2.0 | yes (CI 2026-04) | **candidate** for the Chihiro pair: runs under GE-Proton's Wine with DXVK's `d3d9` and vkd3d beside it, reaches SEGABOOT; blocked on the board files (section 4) |
 | TeknoParrot's `cxbxr` build | A patched Cxbx-Reloaded fork (`/fs`, `/win`, `beta.ini`) | none published | yes | not used yet: the same board files, no licence to bundle |
@@ -94,6 +94,8 @@ Steering lock defaults to 270°, the cabinets' (SDK `SteeringLock::DEFAULT`).
 | D1 | **DRM exception**, as for the Initial D launcher: maintained community loaders that answer the cabinets' keychips, security boards and I/O boards (lindbergh-loader, windowsarcadeloader, Cxbx-Reloaded) are approved. The launcher writes no crack, never ships or points to game files. | 2026-11-14 |
 | D2 | Open loaders where they make sense, TeknoParrot's binaries allowed where needed; every game tested properly. | 2026-11-14 |
 | D3 | TeknoParrot's core refuses Wine (VMProtect VM check); we don't bypass it. Daytona gets a windowsarcadeloader `segashell` profile of our own, offered upstream. | 2026-11-15 |
+| D4 | lindbergh-loader ships prebuilt in the Linux package (unmodified, free of charge, with its CC BY-NC-SA 4.0 licence) instead of being built on the player's machine. | 2026-11-16 |
+| D5 | Microsoft's DirectX June 2010 redistributable (about 95 MB) is bundled for winetricks' `xact`, so the first start of SEGA Rally 3 and Racing Classic works offline. | 2026-11-16 |
 
 Defaults taken without a separate decision (as in the Initial D launcher;
 the owner can change them): GPL-3.0-or-later, since windowsarcadeloader,

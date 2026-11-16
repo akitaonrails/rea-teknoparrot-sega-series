@@ -43,6 +43,7 @@ fn every_look_of_every_game() {
         wal: "/c/wal".into(),
         runner: "/c/runner".into(),
         winetricks: "/c/winetricks".into(),
+        directx: "/c/directx".into(),
     };
     let mut out = String::new();
     for host in [Host::Linux, Host::Windows] {

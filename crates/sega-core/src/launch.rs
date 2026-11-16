@@ -47,7 +47,15 @@ pub struct Components {
     /// The winetricks script windowsarcadeloader installs native XAudio with
     /// (looked for beside the runner, else on PATH).
     pub winetricks: PathBuf,
+    /// winetricks' download cache with Microsoft's DirectX June 2010
+    /// redistributable in it ([`DIRECTX_REDIST`]), so the XACT install
+    /// needs no network (Linux).
+    pub directx: PathBuf,
 }
+
+/// The DirectX redistributable inside [`Components::directx`], where
+/// winetricks' `xact` verb looks for it (`<W_CACHE>/directx9/`).
+pub const DIRECTX_REDIST: &str = "directx9/directx_Jun2010_redist.exe";
 
 /// Where the launcher keeps per-game state.
 #[derive(Debug, Clone)]
@@ -315,7 +323,14 @@ pub fn plan(
                     layer.to_string_lossy().into_owned(),
                     "--input-pipe".into(),
                 ],
-                env: vec![],
+                // winetricks (run by windowsarcadeloader) takes the DirectX
+                // redistributable for `xact` from the package, not the network
+                env: match host {
+                    Host::Linux => {
+                        vec![("W_CACHE".into(), c.directx.to_string_lossy().into_owned())]
+                    }
+                    Host::Windows => vec![],
+                },
                 cwd: root.clone(),
             }
         }
@@ -347,6 +362,7 @@ mod tests {
             wal: "/c/wal".into(),
             runner: "/c/runner".into(),
             winetricks: "/c/winetricks".into(),
+            directx: "/c/directx".into(),
         }
     }
 
@@ -415,6 +431,19 @@ mod tests {
             p.links
                 .contains(&(runners.join("winetricks"), "/c/winetricks".into()))
         );
+        // winetricks finds the bundled DirectX redistributable, offline
+        assert!(
+            p.game
+                .env
+                .contains(&("W_CACHE".into(), "/c/directx".into()))
+        );
+        let w = plan_for(
+            GameId::SegaRally3,
+            &Settings::default(),
+            false,
+            Host::Windows,
+        );
+        assert!(w.game.env.iter().all(|(k, _)| k != "W_CACHE"));
     }
 
     #[test]
