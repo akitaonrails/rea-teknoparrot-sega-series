@@ -6,6 +6,8 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+## 0.1.0 - 2026-11-16
+
 ### Added
 
 - The Linux package carries lindbergh-loader, built from its pinned commit,
