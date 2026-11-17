@@ -96,11 +96,6 @@ impl Game {
             (Host::Windows, Route::Lindbergh) => Support::Blocked(
                 "A Sega Lindbergh game: its Linux build runs in the Linux version of the launcher.",
             ),
-            // the one-window setup re-runs Flycast's boards through the
-            // launcher, which Flycast's Windows build doesn't allow
-            (Host::Windows, Route::Flycast { .. }) => {
-                Support::Blocked("Runs in the Linux version of the launcher for now.")
-            }
             _ => self.support,
         }
     }
@@ -346,11 +341,11 @@ mod tests {
     }
 
     #[test]
-    fn the_lindbergh_games_and_f355_are_linux_only() {
+    fn the_lindbergh_games_are_linux_only() {
         for g in GAMES {
             let windows = g.support_on(Host::Windows);
             assert_eq!(g.support_on(Host::Linux), g.support, "{}", g.slug);
-            if matches!(g.route, Route::Lindbergh | Route::Flycast { .. }) {
+            if matches!(g.route, Route::Lindbergh) {
                 assert!(matches!(windows, Support::Blocked(_)), "{}", g.slug);
             } else {
                 assert_eq!(windows, g.support, "{}", g.slug);

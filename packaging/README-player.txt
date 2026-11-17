@@ -23,8 +23,9 @@ What works today
 - SEGA Rally 3 and SEGA Racing Classic: full races (Linux).
 - OutRun 2 SP SDX: full races (Linux only).
 - Daytona Championship USA: full races (Linux).
-- F355 Challenge 2: starts and reaches its attract mode (Linux only; not
-  played with controls yet). The first start can take a minute or two.
+- F355 Challenge 2: starts and reaches its attract mode (not played with
+  controls yet; the Windows version tried under Wine only). The first start
+  can take a minute or two.
 - OutRun 2 SP Special Tours, Crazy Taxi High Roller: not yet; the window
   says why.
 

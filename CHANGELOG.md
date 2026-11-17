@@ -19,6 +19,12 @@ All notable changes to this launcher. The format follows
   problem), the launcher notices and starts the game again by itself. It
   also runs both boards on one group of matching CPU cores, which makes that
   failure rarer on CPUs with two kinds of cores.
+- F355 Challenge 2 also starts in the Windows version, which now carries
+  Flycast 2.7's Windows build. Only the second board's window shows (full
+  screen by default, as the Full screen setting says); the main board's
+  window is hidden. Closing the game's window ends both boards, and the
+  records are saved first. The Windows version also restarts a hung boot
+  and keeps both boards on one group of matching cores.
 
 ### Changed
 
@@ -26,6 +32,8 @@ All notable changes to this launcher. The format follows
   `--bios <folder>`): the Chihiro files and F355's `f355bios.zip`, also found
   in a `chihiro`, `dc` or `naomi` folder inside it, as EmuDeck keeps them.
   The `chihiro_bios` key and `--chihiro-bios` flag from 0.1.0 still work.
+- A stopping game gets 10 seconds, up from 8, to save and quit before the
+  launcher ends it.
 
 ## 0.1.0 - 2026-11-16
 

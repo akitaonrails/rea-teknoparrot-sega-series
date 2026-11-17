@@ -18,7 +18,7 @@ main file (`crates/sega-core/src/catalog.rs`).
 | Crazy Taxi High Roller (2003) | Sega Chihiro | `ctx_ac[r].xbe` | Cxbx-Reloaded (in progress) |
 | SEGA Rally 3 (2008) | Sega Europa-R (Windows XP PC) | `Rally/Rally.exe` (32-bit) | windowsarcadeloader under Wine |
 | SEGA Racing Classic (2009) | Sega RingWide (Windows Embedded) | `d1a.exe` (32-bit) | windowsarcadeloader under Wine |
-| F355 Challenge 2, twin (2001) | Sega NAOMI (cartridge, MAME set `f355twn2`, unzipped) | `epr-23399.ic22` | Flycast, Linux only: the set packed into a stored zip by the launcher, `f355bios.zip` from the player's BIOS folder |
+| F355 Challenge 2, twin (2001) | Sega NAOMI (cartridge, MAME set `f355twn2`, unzipped) | `epr-23399.ic22` | Flycast: the set packed into a stored zip by the launcher, `f355bios.zip` from the player's BIOS folder |
 | Daytona Championship USA NSE (2019) | Sega PC with the Sega Shell | `Sega/Daytona/Daytona.exe` (32-bit) | windowsarcadeloader with a `segashell` profile of our own (Our own: C3) |
 
 ## 2. Community projects
@@ -33,7 +33,7 @@ main file (`crates/sega-core/src/catalog.rs`).
 | [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom) | The Wine windowsarcadeloader runs games with (its DXVK and vkd3d too) | mixed free licences (Wine LGPL-2.1+) | yes | **bundled** in the Linux package, pinned by SHA-256 |
 | [winetricks](https://github.com/Winetricks/winetricks) | windowsarcadeloader installs native XACT/XAudio2 with it (the RingWide sound thread crashes on Wine's own) | LGPL-2.1+ | yes | **bundled**, pinned |
 | [FFBArcadePlugin](https://github.com/Boomslangnz/FFBArcadePlugin) (Boomslangnz) | Force feedback for many TeknoParrot games through a DLL in the game folder | GPL-3.0 | moved to the closed FFBlaster | not used: windowsarcadeloader plays the games' force feedback itself (`out` lines), and lindbergh-loader the drive board |
-| [Flycast](https://github.com/flyinghead/flycast) | Dreamcast/NAOMI emulator; runs multiboard NAOMI games (F355 Twin and Deluxe) as one process per board, linked by shared memory; boot sometimes hangs at "being named..." (flycast#1909, #1630, open) | GPL-2.0 | yes (2.7, 2026) | **bundled** (its Linux AppImage, pinned) for F355; the launcher shows only the slave board, restarts a hung boot and pins the boards to alike cores (RUNTIME_NOTES). Its Windows build starts slaves by its own path, so F355 is Linux only for now |
+| [Flycast](https://github.com/flyinghead/flycast) | Dreamcast/NAOMI emulator; runs multiboard NAOMI games (F355 Twin and Deluxe) as one process per board, linked by shared memory; boot sometimes hangs at "being named..." (flycast#1909, #1630, open) | GPL-2.0 | yes (2.7, 2026) | **bundled** (its Linux AppImage, pinned) for F355; the launcher shows only the slave board, restarts a hung boot and pins the boards to alike cores (RUNTIME_NOTES). Its Windows build starts slaves by its own path (`GetModuleFileNameW`), so there the launcher hides the master's window instead, and reads the boards' log from Flycast's `LogServer` (UDP) |
 | xemu Chihiro forks | Low-level Chihiro emulation (needs disc images, not extracted dumps) | GPL-2.0 | yes | not used: our dumps are TeknoParrot's extracted XBE folders |
 
 ## 3. What the games' own files say

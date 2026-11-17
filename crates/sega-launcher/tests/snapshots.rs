@@ -58,6 +58,8 @@ fn every_look_of_every_game() {
                     .iter()
                     .map(|n| PathBuf::from("/bios").join(n))
                     .collect(),
+                // the port the Windows session opens for Flycast's log
+                log_port: Some(50123),
             };
             for look in Look::ALL {
                 let mut s = Settings::default();
@@ -83,6 +85,12 @@ fn every_look_of_every_game() {
                         }
                         if plan.one_cache {
                             let _ = writeln!(out, "one cache domain");
+                        }
+                        if let Some(m) = plan.stopped {
+                            let _ = writeln!(out, "saved on {m:?}");
+                        }
+                        if plan.one_window {
+                            let _ = writeln!(out, "one window (the started program's hidden)");
                         }
                         for (at, target) in &plan.links {
                             let _ = writeln!(out, "link {} -> {}", p(at), p(target));

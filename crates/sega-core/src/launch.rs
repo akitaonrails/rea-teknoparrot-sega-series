@@ -41,6 +41,10 @@ pub struct Plan {
     /// A line in the game's output that means, once a stop was asked for,
     /// that the game has saved and what's left can be ended.
     pub stopped: Option<&'static str>,
+    /// Windows: the program the session starts opens a window that isn't
+    /// the game's (F355's master board). The session hides it, gives the
+    /// other window the focus, and ends the game when that window closes.
+    pub one_window: bool,
 }
 
 /// The launcher's own components (built or downloaded on request).
@@ -59,8 +63,8 @@ pub struct Components {
     /// redistributable in it ([`DIRECTX_REDIST`]), so the XACT install
     /// needs no network (Linux).
     pub directx: PathBuf,
-    /// Flycast's Linux build (its AppImage unpacked: [`FLYCAST_PROGRAM`]
-    /// and the libraries beside it).
+    /// Flycast: on Linux its AppImage unpacked ([`FLYCAST_PROGRAM`] and the
+    /// libraries beside it), on Windows its one program ([`FLYCAST_EXE`]).
     pub flycast: PathBuf,
     /// This launcher's own program: Flycast starts each NAOMI board through
     /// it ([`flycast_board`]).
@@ -69,6 +73,11 @@ pub struct Components {
 
 /// Flycast's program inside [`Components::flycast`].
 pub const FLYCAST_PROGRAM: &str = "usr/bin/flycast";
+
+/// Flycast's Windows program inside [`Components::flycast`]. It keeps its
+/// settings beside itself (`emu.cfg`, `data/`), so each game's runtime
+/// gets its own copy.
+pub const FLYCAST_EXE: &str = "flycast.exe";
 
 /// The variable that makes the launcher's program start a Flycast board
 /// (its value: Flycast's program) instead of the launcher.
@@ -101,6 +110,9 @@ pub struct Places {
     /// The board BIOS files the player's BIOS folder holds for this game
     /// (F355's `f355bios.zip`), linked where the emulator reads them.
     pub bios: Vec<PathBuf>,
+    /// Windows: the local UDP port the session reads Flycast's log on
+    /// (its `LogServer`; the Windows build has no output to read).
+    pub log_port: Option<u16>,
 }
 
 /// How this machine reaches the network (lindbergh-loader's `NIC_NAME`):
@@ -343,15 +355,24 @@ pub fn board_env(board: Board) -> &'static [(&'static str, &'static str)] {
 }
 
 /// Flycast's `emu.cfg`: the render height and the window the slave board
-/// opens (gamescope scales it to the screen).
-pub fn flycast_cfg(size: Size) -> String {
-    format!(
+/// opens. On Linux gamescope scales a plain window to the screen; on
+/// Windows the window covers the screen itself when `fullscreen` (Flycast's
+/// borderless desktop size), and each board sends its log to `log_port`.
+pub fn flycast_cfg(size: Size, fullscreen: bool, log_port: Option<u16>) -> String {
+    let mut s = format!(
         "# Written by the launcher before every start.\n\
          [config]\nrend.Resolution = {h}\n\
-         [window]\nfullscreen = no\nmaximized = no\nwidth = {w}\nheight = {h}\n",
+         [window]\nfullscreen = {f}\nmaximized = no\nwidth = {w}\nheight = {h}\n",
         w = size.w,
-        h = size.h
-    )
+        h = size.h,
+        f = if fullscreen { "yes" } else { "no" },
+    );
+    if let Some(port) = log_port {
+        s.push_str(&format!(
+            "[log]\nLogToConsole = no\nLogToFile = no\nLogServer = 127.0.0.1:{port}\n"
+        ));
+    }
+    s
 }
 
 /// A CPU as Linux describes it in `/sys/devices/system/cpu/cpu<id>`.
@@ -398,6 +419,74 @@ pub fn uniform_cpus(cpus: &[Cpu], core: Option<&[u32]>) -> Option<Vec<u32>> {
         .collect();
     set.sort_unstable();
     (set.len() >= 4 && set.len() < cpus.len()).then_some(set)
+}
+
+/// The CPUs as Windows describes them: the buffer
+/// `GetLogicalProcessorInformationEx(RelationAll)` fills, read for
+/// processor group 0 (`Cpu::rank` is the core's efficiency class). The
+/// second value is the performance cores of a hybrid CPU, for
+/// [`uniform_cpus`]'s `core`; None when every core is alike.
+pub fn windows_cpus(buf: &[u8]) -> (Vec<Cpu>, Option<Vec<u32>>) {
+    const CORE: u32 = 0; // RelationProcessorCore
+    const CACHE: u32 = 2; // RelationCache
+    let u16_at = |i: usize| buf.get(i..i + 2).map(|b| u16::from_le_bytes([b[0], b[1]]));
+    let u32_at = |i: usize| {
+        buf.get(i..i + 4)
+            .map(|b| u32::from_le_bytes(b.try_into().unwrap()))
+    };
+    let u64_at = |i: usize| {
+        buf.get(i..i + 8)
+            .map(|b| u64::from_le_bytes(b.try_into().unwrap()))
+    };
+    let bits = |mask: u64| (0..64).filter(move |b| mask & (1 << b) != 0);
+    // (efficiency class, CPUs) per core; the CPUs of each level-3 cache
+    let mut cores: Vec<(u8, u64)> = Vec::new();
+    let mut l3s: Vec<u64> = Vec::new();
+    let mut at = 0;
+    while let (Some(kind), Some(size)) = (u32_at(at), u32_at(at + 4)) {
+        let size = size as usize;
+        if size == 0 {
+            break;
+        }
+        match kind {
+            // PROCESSOR_RELATIONSHIP: EfficiencyClass at 9, GroupMask at 32
+            CORE if u16_at(at + 40) == Some(0) => {
+                if let (Some(class), Some(mask)) = (buf.get(at + 9), u64_at(at + 32)) {
+                    cores.push((*class, mask));
+                }
+            }
+            // CACHE_RELATIONSHIP: Level at 8, GroupMask at 40
+            CACHE if buf.get(at + 8) == Some(&3) && u16_at(at + 48) == Some(0) => {
+                l3s.extend(u64_at(at + 40));
+            }
+            _ => {}
+        }
+        at += size;
+    }
+    let mut cpus: Vec<Cpu> = cores
+        .iter()
+        .flat_map(|&(class, mask)| {
+            let l3 = l3s
+                .iter()
+                .copied()
+                .find(|l3| l3 & mask != 0)
+                .unwrap_or(mask);
+            bits(mask).map(move |id| Cpu {
+                id,
+                rank: class as u64,
+                l3: bits(l3).collect(),
+            })
+        })
+        .collect();
+    cpus.sort_by_key(|c| c.id);
+    let top = cpus.iter().map(|c| c.rank).max();
+    let core = (cpus.iter().any(|c| Some(c.rank) != top)).then(|| {
+        cpus.iter()
+            .filter(|c| Some(c.rank) == top)
+            .map(|c| c.id)
+            .collect()
+    });
+    (cpus, core)
 }
 
 /// Why a game can't be planned yet (a route still being brought up).
@@ -487,17 +576,38 @@ pub fn plan(
                 cwd: root.clone(),
             }
         }
-        // Flycast's Windows build starts its boards by its own path
-        Route::Flycast { .. } if host == Host::Windows => {
-            return Err(format!(
-                "{} runs in the Linux version of the launcher for now.",
-                game.title
+        // Flycast's Windows build starts its boards by its own path: a copy
+        // in the runtime keeps its settings and saves there
+        Route::Flycast { set } if host == Host::Windows => {
+            let home = rt.join("flycast");
+            let Some(port) = places.log_port else {
+                return Err(format!("{} needs a port for Flycast's log.", game.title));
+            };
+            files.push((
+                home.join("emu.cfg"),
+                flycast_cfg(size, s.fullscreen, Some(port)),
             ));
+            links.push((home.join(FLYCAST_EXE), c.flycast.join(FLYCAST_EXE)));
+            for b in &places.bios {
+                if let Some(name) = b.file_name() {
+                    links.push((home.join("data").join(name), b.clone()));
+                }
+            }
+            Command {
+                program: home.join(FLYCAST_EXE),
+                args: vec![rt.join(format!("{set}.zip")).to_string_lossy().into_owned()],
+                // the master board reads the controls while its window is hidden
+                env: vec![("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS".into(), "1".into())],
+                cwd: rt.clone(),
+            }
         }
         Route::Flycast { set } => {
             let config = rt.join("flycast/config");
             let data = rt.join("flycast/data");
-            files.push((config.join("flycast/emu.cfg"), flycast_cfg(size)));
+            files.push((
+                config.join("flycast/emu.cfg"),
+                flycast_cfg(size, false, None),
+            ));
             for b in &places.bios {
                 if let Some(name) = b.file_name() {
                     links.push((data.join("flycast").join(name), b.clone()));
@@ -543,6 +653,7 @@ pub fn plan(
         boot_hang: flycast.then_some(FLYCAST_BOOT_HANG),
         one_cache: flycast,
         stopped: flycast.then_some(FLYCAST_SAVED),
+        one_window: flycast && host == Host::Windows,
     })
 }
 
@@ -569,6 +680,7 @@ mod tests {
             wal_root: "/d/wal".into(),
             wheel: None,
             bios: vec![],
+            log_port: None,
         }
     }
 
@@ -810,9 +922,137 @@ mod tests {
         assert!(p.one_cache);
         assert_eq!(p.stopped, Some(FLYCAST_SAVED));
         assert!(p.input_pipe.is_none());
-        assert!(plan(g, &pl, &comps(), &s, "eth0", false, Host::Windows).is_err());
+        assert!(!p.one_window, "gamescope shows only the slave's window");
+        assert!(!cfg.contains("LogServer"), "{cfg}");
         let other = plan_for(GameId::SegaRally3, &Settings::default(), false, Host::Linux);
         assert!(other.boot_hang.is_none() && !other.one_cache && other.stopped.is_none());
+        assert!(!other.one_window);
+    }
+
+    /// A `GetLogicalProcessorInformationEx` buffer: cores as (efficiency
+    /// class, CPU mask), level-3 caches as CPU masks.
+    fn slpi(cores: &[(u8, u64)], l3s: &[u64]) -> Vec<u8> {
+        let mut b = Vec::new();
+        for &(class, mask) in cores {
+            let mut r = vec![0u8; 48];
+            r[4..8].copy_from_slice(&48u32.to_le_bytes());
+            r[9] = class;
+            r[30..32].copy_from_slice(&1u16.to_le_bytes());
+            r[32..40].copy_from_slice(&mask.to_le_bytes());
+            b.extend(r);
+        }
+        for &mask in l3s {
+            // a level-1 cache first, which doesn't count
+            for level in [1u8, 3] {
+                let mut r = vec![0u8; 56];
+                r[0..4].copy_from_slice(&2u32.to_le_bytes());
+                r[4..8].copy_from_slice(&56u32.to_le_bytes());
+                r[8] = level;
+                r[38..40].copy_from_slice(&1u16.to_le_bytes());
+                r[40..48].copy_from_slice(&mask.to_le_bytes());
+                b.extend(r);
+            }
+        }
+        // a NUMA node record, skipped
+        let mut r = vec![0u8; 80];
+        r[0..4].copy_from_slice(&1u32.to_le_bytes());
+        r[4..8].copy_from_slice(&80u32.to_le_bytes());
+        b.extend(r);
+        b
+    }
+
+    #[test]
+    fn windows_cpu_records_pick_one_cache_domain() {
+        // two CCDs of 4 cores with SMT (CPUs 0-7 and 8-15), all one class:
+        // the first CCD
+        let cores: Vec<(u8, u64)> = (0..8).map(|c| (0, 0b11u64 << (2 * c))).collect();
+        let (cpus, core) = windows_cpus(&slpi(&cores, &[0x00ff, 0xff00]));
+        assert_eq!(cpus.len(), 16);
+        assert_eq!(cpus[9].l3, (8..16).collect::<Vec<u32>>());
+        assert_eq!(core, None);
+        assert_eq!(uniform_cpus(&cpus, core.as_deref()), Some((0..8).collect()));
+        // hybrid: 4 performance cores with SMT (0-7), 8 efficiency cores
+        // (8-15), one shared L3: the performance cores
+        let mut cores: Vec<(u8, u64)> = (0..4).map(|c| (1, 0b11u64 << (2 * c))).collect();
+        cores.extend((8..16).map(|c| (0, 1u64 << c)));
+        let (cpus, core) = windows_cpus(&slpi(&cores, &[0xffff]));
+        assert_eq!(core.as_deref(), Some(&(0..8).collect::<Vec<u32>>()[..]));
+        assert_eq!(uniform_cpus(&cpus, core.as_deref()), Some((0..8).collect()));
+        // one CCD, all alike: nothing to pin; a short or empty buffer: nothing
+        let cores: Vec<(u8, u64)> = (0..4).map(|c| (0, 0b11u64 << (2 * c))).collect();
+        let (cpus, core) = windows_cpus(&slpi(&cores, &[0xff]));
+        assert_eq!(uniform_cpus(&cpus, core.as_deref()), None);
+        assert!(windows_cpus(&[1, 2, 3]).0.is_empty());
+        assert!(windows_cpus(&[]).0.is_empty());
+    }
+
+    #[test]
+    fn on_windows_f355_runs_a_copy_of_flycast_that_logs_to_the_session() {
+        let g = game(GameId::F355Challenge2);
+        let mut pl = places(g.slug);
+        pl.bios = vec!["/bios/dc/f355bios.zip".into()];
+        // the session opens the port first
+        assert!(
+            plan(
+                g,
+                &pl,
+                &comps(),
+                &Settings::default(),
+                "eth0",
+                false,
+                Host::Windows
+            )
+            .is_err()
+        );
+        pl.log_port = Some(50123);
+        let rt = PathBuf::from("/d/runtimes/f355");
+        let p = plan(
+            g,
+            &pl,
+            &comps(),
+            &Settings::default(),
+            "eth0",
+            false,
+            Host::Windows,
+        )
+        .unwrap();
+        // Flycast keeps emu.cfg and data\ beside its program
+        assert_eq!(p.game.program, rt.join("flycast/flycast.exe"));
+        assert!(p.links.contains(&(
+            rt.join("flycast/flycast.exe"),
+            "/c/flycast/flycast.exe".into()
+        )));
+        assert!(p.links.contains(&(
+            rt.join("flycast/data/f355bios.zip"),
+            "/bios/dc/f355bios.zip".into()
+        )));
+        assert_eq!(
+            p.game.args,
+            vec![rt.join("f355twn2.zip").to_string_lossy().into_owned()]
+        );
+        assert_eq!(p.game.cwd, rt);
+        assert!(
+            p.game
+                .env
+                .contains(&("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS".into(), "1".into()))
+        );
+        let cfg = file(&p, "flycast/emu.cfg");
+        assert!(
+            cfg.contains("[log]\nLogToConsole = no\nLogToFile = no\nLogServer = 127.0.0.1:50123\n"),
+            "{cfg}"
+        );
+        // the fullscreen setting (on by default) is Flycast's own here
+        assert!(cfg.contains("fullscreen = yes\n"), "{cfg}");
+        let windowed = Settings {
+            fullscreen: false,
+            ..Settings::default()
+        };
+        let p2 = plan(g, &pl, &comps(), &windowed, "eth0", false, Host::Windows).unwrap();
+        assert!(file(&p2, "flycast/emu.cfg").contains("fullscreen = no\n"));
+        assert!(p.one_window && p.one_cache);
+        assert_eq!(p.boot_hang, Some(FLYCAST_BOOT_HANG));
+        assert_eq!(p.stopped, Some(FLYCAST_SAVED));
+        assert!(p.gamescope.is_empty());
     }
 
     #[test]

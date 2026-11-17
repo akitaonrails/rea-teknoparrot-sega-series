@@ -429,6 +429,7 @@ gamescope -w 640 -h 480 -W 2560 -H 1440 -r 60 -F linear -f
 input None
 restart on "TRAP #50"
 one cache domain
+saved on "Slave exiting"
 link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/config/flycast/emu.cfg
 # Written by the launcher before every start.
@@ -451,6 +452,7 @@ gamescope -w 640 -h 480 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
 input None
 restart on "TRAP #50"
 one cache domain
+saved on "Slave exiting"
 link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/config/flycast/emu.cfg
 # Written by the launcher before every start.
@@ -473,6 +475,7 @@ gamescope -w 640 -h 480 -W 1280 -H 800 -r 60 -F linear -f
 input None
 restart on "TRAP #50"
 one cache domain
+saved on "Slave exiting"
 link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/config/flycast/emu.cfg
 # Written by the launcher before every start.
@@ -878,8 +881,83 @@ env:
   WAL_SEGASHELL_FFB: "100"
 
 == Windows f355 original
-not yet: F355 Challenge 2 runs in the Linux version of the launcher for now.
+size 640x480
+run /d/runtimes/f355/flycast/flycast.exe /d/runtimes/f355/f355twn2.zip
+cwd /d/runtimes/f355
+env SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
+gamescope 
+input None
+restart on "TRAP #50"
+one cache domain
+saved on "Slave exiting"
+one window (the started program's hidden)
+link /d/runtimes/f355/flycast/flycast.exe -> /c/flycast/flycast.exe
+link /d/runtimes/f355/flycast/data/f355bios.zip -> /bios/f355bios.zip
+file /d/runtimes/f355/flycast/emu.cfg
+# Written by the launcher before every start.
+[config]
+rend.Resolution = 480
+[window]
+fullscreen = yes
+maximized = no
+width = 640
+height = 480
+[log]
+LogToConsole = no
+LogToFile = no
+LogServer = 127.0.0.1:50123
+
 == Windows f355 recommended
-not yet: F355 Challenge 2 runs in the Linux version of the launcher for now.
+size 640x480
+run /d/runtimes/f355/flycast/flycast.exe /d/runtimes/f355/f355twn2.zip
+cwd /d/runtimes/f355
+env SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
+gamescope 
+input None
+restart on "TRAP #50"
+one cache domain
+saved on "Slave exiting"
+one window (the started program's hidden)
+link /d/runtimes/f355/flycast/flycast.exe -> /c/flycast/flycast.exe
+link /d/runtimes/f355/flycast/data/f355bios.zip -> /bios/f355bios.zip
+file /d/runtimes/f355/flycast/emu.cfg
+# Written by the launcher before every start.
+[config]
+rend.Resolution = 480
+[window]
+fullscreen = yes
+maximized = no
+width = 640
+height = 480
+[log]
+LogToConsole = no
+LogToFile = no
+LogServer = 127.0.0.1:50123
+
 == Windows f355 steam_deck
-not yet: F355 Challenge 2 runs in the Linux version of the launcher for now.
+size 640x480
+run /d/runtimes/f355/flycast/flycast.exe /d/runtimes/f355/f355twn2.zip
+cwd /d/runtimes/f355
+env SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
+gamescope 
+input None
+restart on "TRAP #50"
+one cache domain
+saved on "Slave exiting"
+one window (the started program's hidden)
+link /d/runtimes/f355/flycast/flycast.exe -> /c/flycast/flycast.exe
+link /d/runtimes/f355/flycast/data/f355bios.zip -> /bios/f355bios.zip
+file /d/runtimes/f355/flycast/emu.cfg
+# Written by the launcher before every start.
+[config]
+rend.Resolution = 480
+[window]
+fullscreen = yes
+maximized = no
+width = 640
+height = 480
+[log]
+LogToConsole = no
+LogToFile = no
+LogServer = 127.0.0.1:50123
+

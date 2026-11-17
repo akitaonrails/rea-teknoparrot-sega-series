@@ -26,6 +26,24 @@ pub fn configure(cmd: &mut Command, tag: &str) {
     }
 }
 
+/// The processes `pid` started, and theirs, from (process, parent) pairs
+/// (F355's slave board on Windows is its master's child).
+#[cfg_attr(unix, allow(dead_code))]
+pub fn descendants(processes: &[(u32, u32)], pid: u32) -> Vec<u32> {
+    let mut out: Vec<u32> = Vec::new();
+    let mut next = vec![pid];
+    while let Some(p) = next.pop() {
+        for &(child, parent) in processes {
+            // Windows' idle process is its own parent
+            if parent == p && child != pid && child != parent && !out.contains(&child) {
+                out.push(child);
+                next.push(child);
+            }
+        }
+    }
+    out
+}
+
 pub struct Group {
     #[cfg(unix)]
     pgid: i32,
@@ -33,6 +51,9 @@ pub struct Group {
     tag: String,
     #[cfg(windows)]
     job: windows_sys::Win32::Foundation::HANDLE,
+    /// The process the session started.
+    #[cfg(windows)]
+    pid: u32,
 }
 
 #[cfg(unix)]
@@ -119,15 +140,31 @@ impl Group {
                 windows_sys::Win32::Foundation::CloseHandle(job);
                 return Err(e);
             }
-            Ok(Group { job })
+            Ok(Group {
+                job,
+                pid: child.id(),
+            })
         }
     }
 
-    /// Windows has no polite signal: the loaders end when their input ends
-    /// (the session closes it before this).
-    pub fn terminate(&self) {}
+    /// Windows has no polite signal: the session's process is asked to
+    /// close by its windows (Flycast saves, then quits). The loaders have
+    /// none; they end when their input ends (the session closes it before
+    /// this).
+    pub fn terminate(&self) {
+        crate::win32::close_windows(self.pid);
+    }
+
+    /// One look at the game's windows ([`sega_core::launch::Plan::one_window`]):
+    /// hides those of the session's process and returns the shown windows
+    /// of the processes it started (the game's).
+    pub fn game_windows(&self) -> Vec<windows_sys::Win32::Foundation::HWND> {
+        crate::win32::tidy(self.pid)
+    }
 
     pub fn kill(&self) {
+        // the processes it started, too: Wine's jobs don't always hold them
+        crate::win32::end_descendants(self.pid);
         unsafe { windows_sys::Win32::System::JobObjects::TerminateJobObject(self.job, 1) };
     }
 
@@ -158,5 +195,30 @@ impl Group {
 impl Drop for Group {
     fn drop(&mut self) {
         unsafe { windows_sys::Win32::Foundation::CloseHandle(self.job) };
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_boards_flycast_starts_are_its_descendants() {
+        // 340: the master; 576: the slave it started; 900: a helper the
+        // slave started; 12: another program; 0: Windows' idle process
+        let ps = [
+            (0, 0),
+            (12, 4),
+            (340, 100),
+            (576, 340),
+            (900, 576),
+            (13, 12),
+        ];
+        assert_eq!(descendants(&ps, 340), vec![576, 900]);
+        assert_eq!(descendants(&ps, 576), vec![900]);
+        assert!(descendants(&ps, 900).is_empty());
+        assert_eq!(descendants(&ps, 0), Vec::<u32>::new());
+        // a loop in stale records doesn't hang
+        assert_eq!(descendants(&[(1, 2), (2, 1)], 1), vec![2]);
     }
 }

@@ -16,7 +16,8 @@
 # owner decision 2026-11-16; built in a container with docker or podman, or
 # taken as built from dist/components/lindbergh while its .stamp matches the
 # pinned commit and recipe; the release workflow fills it from its own job) and Microsoft's DirectX June 2010 redistributable
-# for winetricks' xact verb, and Flycast's Linux build (F355). No game file is ever packaged.
+# for winetricks' xact verb, and Flycast's Linux build (F355); the Windows package carries
+# Flycast's Windows build. No game file is ever packaged.
 set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd -P)
@@ -65,11 +66,14 @@ else
 	exe=${CARGO_TARGET_DIR:-$root/target}/x86_64-pc-windows-gnu/release/sega-launcher.exe
 	[ -f "$exe" ] || die "missing $exe - run scripts/build-launcher.sh windows"
 	[ -f "$root/dist/sdl2/SDL2.dll" ] || die "missing dist/sdl2/SDL2.dll"
-	"$root/scripts/build-components.sh" "$comps" wal assets
+	"$root/scripts/build-components.sh" "$comps" wal flycast-win assets
 	cp "$exe" "$root/dist/sdl2/SDL2.dll" "$out/"
 	sdl=$(sed -n 's/^dir=//p' "$root/packaging/sdl2.pin")
 	cp "$root/dist/sdl2/${sdl%/*}/LICENSE.txt" "$out/licenses/SDL2-LICENSE.txt"
 	copy_wal arcade-launcher.exe
+	mkdir -p "$out/components/flycast"
+	cp "$comps/flycast-win/flycast.exe" "$out/components/flycast/"
+	cp "$comps/flycast-win/LICENSE" "$out/licenses/Flycast-LICENSE.txt"
 fi
 
 cp "$root/packaging/README-player.txt" "$out/README.txt"

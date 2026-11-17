@@ -14,6 +14,8 @@ mod paths;
 mod proc;
 mod session;
 mod ui;
+#[cfg(windows)]
+mod win32;
 
 use std::process::ExitCode;
 use std::sync::Arc;

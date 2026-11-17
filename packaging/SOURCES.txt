@@ -37,9 +37,11 @@ lindbergh-loader (CC BY-NC-SA 4.0), Linux package only: components/lindbergh
   open an issue at
   https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues
 
-Flycast 2.7 (GPL-2.0), Linux package only: components/flycast
-  https://github.com/flyinghead/flycast/tree/v2.7 (its official AppImage
-  flycast-x86_64-2.7.AppImage, unpacked, unmodified). The libraries in
+Flycast 2.7 (GPL-2.0): components/flycast
+  https://github.com/flyinghead/flycast/tree/v2.7. The Linux package holds
+  its official AppImage flycast-x86_64-2.7.AppImage, unpacked, unmodified;
+  the Windows package its official flycast-win64-2.7.zip's flycast.exe,
+  unmodified. The libraries in
   components/flycast/usr/lib are the ones that AppImage carries, from the
   Ubuntu archive of the release's build (their source packages are in that
   archive); for a copy of any of them, open an issue at

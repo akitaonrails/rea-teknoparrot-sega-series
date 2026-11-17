@@ -4,7 +4,8 @@
 
 use std::fs;
 use std::io::{BufRead, BufReader, Write};
-use std::path::{Path, PathBuf};
+use std::net::UdpSocket;
+use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
@@ -14,7 +15,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result, bail};
 use sega_core::catalog::{Game, Host, Route, Support};
 use sega_core::input::Cabinet;
-use sega_core::launch::{self, Cpu, DIRECTX_REDIST, FLYCAST_PROGRAM, Places, Plan};
+use sega_core::launch::{self, DIRECTX_REDIST, FLYCAST_EXE, FLYCAST_PROGRAM, Places, Plan};
 use sega_core::library::Entry;
 use sega_core::runtime;
 use sega_core::settings::Settings;
@@ -33,6 +34,8 @@ pub enum Display {
 pub struct Prepared {
     pub plan: Plan,
     pub runtime: PathBuf,
+    /// Where Flycast's Windows build sends its log ([`Places::log_port`]).
+    pub log: Option<UdpSocket>,
 }
 
 /// What drives the game.
@@ -69,6 +72,7 @@ pub fn check_components(game: &Game, p: &Paths) -> Result<()> {
             c.runner.join("bin/wine"),
             c.directx.join(DIRECTX_REDIST),
         ],
+        Route::Flycast { .. } if windows => vec![c.flycast.join(FLYCAST_EXE)],
         Route::Flycast { .. } => vec![c.flycast.join(FLYCAST_PROGRAM)],
         Route::Cxbx => vec![],
     };
@@ -133,7 +137,18 @@ pub fn prepare(
             ),
         }
     }
+    // Flycast's Windows build has no output to read: it sends its log here
+    let log = match game.route {
+        Route::Flycast { .. } if Host::current() == Host::Windows => Some(
+            UdpSocket::bind(("127.0.0.1", 0)).context("opening a local port for Flycast's log")?,
+        ),
+        _ => None,
+    };
     let places = Places {
+        log_port: log
+            .as_ref()
+            .map(|s| s.local_addr().map(|a| a.port()))
+            .transpose()?,
         bios,
         runtime: rt.clone(),
         wal_root: paths.wal_root(),
@@ -170,7 +185,11 @@ pub fn prepare(
         });
     }
     runtime::apply(&links)?;
-    Ok(Prepared { plan, runtime: rt })
+    Ok(Prepared {
+        plan,
+        runtime: rt,
+        log,
+    })
 }
 
 /// The command line: gamescope, then bubblewrap with every library folder
@@ -229,14 +248,21 @@ pub fn run(paths: &Paths, p: &Prepared, feed: Feed, stop: Arc<AtomicBool>) -> Re
 /// started before the session gives up.
 const BOOT_TRIES: u32 = 6;
 
+/// How long a stopping game gets to save and quit before it is ended. F355's
+/// master board on Windows, its game window closed, first waits out one
+/// 5 s timeout for the slave board (about 6 s in all, docs/RUNTIME_NOTES.md).
+const STOP_GRACE: Duration = Duration::from_secs(10);
+
 /// How long after the start a boot hang is looked for: F355 links its
 /// boards within about 50 s.
 const BOOT_WINDOW: Duration = Duration::from_secs(90);
 
 /// The CPUs a game that wants one cache domain runs on, from what Linux
 /// says about this machine's CPUs (`launch::uniform_cpus`).
+#[cfg(unix)]
 fn one_cache_cpus() -> Option<String> {
-    let base = Path::new("/sys/devices/system/cpu");
+    use sega_core::launch::Cpu;
+    let base = std::path::Path::new("/sys/devices/system/cpu");
     let read = |p: PathBuf| fs::read_to_string(p).ok();
     let cpus: Vec<Cpu> = launch::cpu_list(&read(base.join("online"))?)
         .into_iter()
@@ -258,17 +284,99 @@ fn one_cache_cpus() -> Option<String> {
 }
 
 /// The command the session starts: on Linux [`command_line`], on Windows
-/// the game's own (no gamescope, no bubblewrap).
+/// the game's own (no gamescope, no bubblewrap; the CPUs are set on the
+/// process once started, [`pin_windows`]).
 fn session_argv(plan: &Plan, libraries: &[PathBuf]) -> Vec<String> {
     if Host::current() == Host::Windows {
         return std::iter::once(plan.game.program.to_string_lossy().into_owned())
             .chain(plan.game.args.iter().cloned())
             .collect();
     }
+    #[cfg(unix)]
     let cpus = (plan.one_cache && which("taskset").is_some())
         .then(one_cache_cpus)
         .flatten();
+    #[cfg(not(unix))]
+    let cpus: Option<String> = None;
     command_line(plan, libraries, which("bwrap").is_some(), cpus.as_deref())
+}
+
+/// Windows: keeps the game on one cache domain of alike cores, as taskset
+/// does on Linux. Set right after the start, before Flycast's master
+/// starts its slave (which then inherits it).
+#[cfg(windows)]
+fn pin_windows(child: &std::process::Child) -> Option<String> {
+    use std::os::windows::io::AsRawHandle;
+    let (cpus, core) = crate::win32::cpus();
+    let set = launch::uniform_cpus(&cpus, core.as_deref())?;
+    crate::win32::pin(child.as_raw_handle(), &set)
+        .then(|| set.iter().map(u32::to_string).collect::<Vec<_>>().join(","))
+}
+
+/// What the session reads in the game's log: the line that means the boot
+/// hung, and the line that says a stopping game has saved.
+#[derive(Clone)]
+struct Watch {
+    hang: Option<&'static str>,
+    stopped: Option<&'static str>,
+    started: Instant,
+    hung: Arc<AtomicBool>,
+    saved: Arc<AtomicBool>,
+    log: Arc<Mutex<fs::File>>,
+}
+
+impl Watch {
+    fn line(&self, line: &str) {
+        if self.hang.is_some_and(|m| line.contains(m)) && self.started.elapsed() < BOOT_WINDOW {
+            self.hung.store(true, Ordering::SeqCst);
+        }
+        if self.stopped.is_some_and(|m| line.contains(m)) {
+            self.saved.store(true, Ordering::SeqCst);
+        }
+        let _ = writeln!(self.log.lock().unwrap(), "{line}");
+    }
+}
+
+/// Reads the lines Flycast sends to `socket` until `done`: each datagram
+/// is one log line, coloured for a terminal (the colours are dropped).
+/// What an earlier try left unread is dropped first, so its hang line
+/// can't stop this one.
+fn read_log(socket: &UdpSocket, watch: Watch, done: Arc<AtomicBool>) -> Result<()> {
+    let socket = socket.try_clone()?;
+    socket.set_nonblocking(true)?;
+    let mut buf = vec![0u8; 65536];
+    while socket.recv(&mut buf).is_ok() {}
+    socket.set_nonblocking(false)?;
+    socket.set_read_timeout(Some(Duration::from_millis(200)))?;
+    std::thread::spawn(move || {
+        while !done.load(Ordering::SeqCst) {
+            if let Ok(n) = socket.recv(&mut buf) {
+                let text = without_colours(&String::from_utf8_lossy(&buf[..n]));
+                for line in text.lines().filter(|l| !l.trim().is_empty()) {
+                    watch.line(line);
+                }
+            }
+        }
+    });
+    Ok(())
+}
+
+/// Text without its terminal colour codes (`ESC [ ... m`).
+fn without_colours(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        if c == '\x1b' {
+            for c in chars.by_ref() {
+                if c.is_ascii_alphabetic() {
+                    break;
+                }
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
 }
 
 fn run_once(
@@ -297,6 +405,11 @@ fn run_once(
         .spawn()
         .with_context(|| format!("starting {}", argv[0]))?;
     let group = proc::Group::of(&child, &tag).context("grouping the game's processes")?;
+    #[cfg(windows)]
+    if p.plan.one_cache {
+        let on = pin_windows(&child).unwrap_or_else(|| "all".into());
+        writeln!(log.lock().unwrap(), "# CPUs: {on}")?;
+    }
 
     // stdout: force feedback lines to the input thread, the rest to the log
     let out_tx = match &feed {
@@ -317,24 +430,25 @@ fn run_once(
             }
         });
     }
-    // stderr to the log, watched for the line that means the boot hung
-    // (and for the line that says a stopping game has saved)
-    let hung = Arc::new(AtomicBool::new(false));
-    let saved = Arc::new(AtomicBool::new(false));
+    // stderr (or the log Flycast sends) to the log, watched for the line
+    // that means the boot hung and the one that says a stopping game saved
+    let watch = Watch {
+        hang: p.plan.boot_hang,
+        stopped: p.plan.stopped,
+        started: Instant::now(),
+        hung: Arc::new(AtomicBool::new(false)),
+        saved: Arc::new(AtomicBool::new(false)),
+        log: Arc::clone(log),
+    };
+    let (hung, saved) = (Arc::clone(&watch.hung), Arc::clone(&watch.saved));
+    let log_done = Arc::new(AtomicBool::new(false));
+    if let Some(socket) = &p.log {
+        read_log(socket, watch.clone(), Arc::clone(&log_done))?;
+    }
     if let Some(stderr) = child.stderr.take() {
-        let log = Arc::clone(log);
-        let (hung, saved) = (Arc::clone(&hung), Arc::clone(&saved));
-        let (marker, stopped) = (p.plan.boot_hang, p.plan.stopped);
-        let started = Instant::now();
         std::thread::spawn(move || {
             for line in BufReader::new(stderr).lines().map_while(Result::ok) {
-                if marker.is_some_and(|m| line.contains(m)) && started.elapsed() < BOOT_WINDOW {
-                    hung.store(true, Ordering::SeqCst);
-                }
-                if stopped.is_some_and(|m| line.contains(m)) {
-                    saved.store(true, Ordering::SeqCst);
-                }
-                let _ = writeln!(log.lock().unwrap(), "{line}");
+                watch.line(&line);
             }
         });
     }
@@ -360,11 +474,24 @@ fn run_once(
     }
     let start = Instant::now();
     let mut last_line = String::new();
+    // Windows, F355: the game's window, once it has opened
+    #[cfg_attr(unix, allow(unused_mut))]
+    let mut window = Windows::default();
     let status = loop {
         if let Some(st) = child.try_wait()? {
             break st;
         }
-        if stop.load(Ordering::SeqCst) || hung.load(Ordering::SeqCst) {
+        #[cfg(windows)]
+        if p.plan.one_window && !window.gone {
+            if let Some(w) = window.look(Instant::now(), || group.game_windows().first().copied()) {
+                crate::win32::focus(w);
+                writeln!(log.lock().unwrap(), "# the game's window is open")?;
+            }
+            if window.gone {
+                writeln!(log.lock().unwrap(), "# the game's window closed: stopping")?;
+            }
+        }
+        if stop.load(Ordering::SeqCst) || hung.load(Ordering::SeqCst) || window.gone {
             if let Some((mut sink, _, _)) = script_sink.take() {
                 let _ = writeln!(sink, "quit");
             }
@@ -372,7 +499,7 @@ fn run_once(
                 let _ = tx.send(input::Command::Detach);
             }
             group.terminate();
-            let deadline = Instant::now() + Duration::from_secs(8);
+            let deadline = Instant::now() + STOP_GRACE;
             while Instant::now() < deadline
                 && !saved.load(Ordering::SeqCst)
                 && child.try_wait()?.is_none()
@@ -394,12 +521,151 @@ fn run_once(
     group.terminate();
     std::thread::sleep(Duration::from_millis(500));
     group.kill();
+    log_done.store(true, Ordering::SeqCst);
     let left = group.leftovers();
     writeln!(
         log.lock().unwrap(),
         "# exit: {status}; stopped {left} leftover process(es)"
     )?;
     Ok((status, hung.load(Ordering::SeqCst)))
+}
+
+/// The game's window on Windows ([`Plan::one_window`]): looked at every
+/// 50 ms; once it has been open, it counts as closed after a second
+/// without it (the player closed it, or the slave board quit).
+#[derive(Default)]
+struct Windows {
+    seen: bool,
+    last_look: Option<Instant>,
+    missing_since: Option<Instant>,
+    gone: bool,
+}
+
+#[cfg_attr(unix, allow(dead_code))]
+impl Windows {
+    /// One look at `now` (at most every 50 ms; `shown` finds the window).
+    /// Returns the window the first time it is seen, to give it the focus;
+    /// sets `gone` once it has been missing for a second.
+    fn look<W>(&mut self, now: Instant, shown: impl FnOnce() -> Option<W>) -> Option<W> {
+        if self.gone
+            || self
+                .last_look
+                .is_some_and(|t| now - t < Duration::from_millis(50))
+        {
+            return None;
+        }
+        self.last_look = Some(now);
+        match shown() {
+            Some(w) => {
+                self.missing_since = None;
+                (!std::mem::replace(&mut self.seen, true)).then_some(w)
+            }
+            None => {
+                if self.seen {
+                    let since = *self.missing_since.get_or_insert(now);
+                    self.gone = now - since >= Duration::from_secs(1);
+                }
+                None
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod window_tests {
+    use super::*;
+
+    #[test]
+    fn the_game_window_is_focused_once_and_closed_after_a_second_away() {
+        let t0 = Instant::now();
+        let ms = |n: u64| t0 + Duration::from_millis(n);
+        let mut w = Windows::default();
+        // the boards start: no window yet, for as long as it takes
+        assert_eq!(w.look(ms(0), || None::<u8>), None);
+        assert_eq!(w.look(ms(5000), || None::<u8>), None);
+        assert!(!w.gone);
+        // it opens: focused once
+        assert_eq!(w.look(ms(5100), || Some(7)), Some(7));
+        assert_eq!(w.look(ms(5200), || Some(7)), None);
+        // too soon to look again
+        assert_eq!(
+            w.look(ms(5210), || panic!("looked within 50 ms")),
+            None::<u8>
+        );
+        // a blink (a window recreated) doesn't end the game
+        w.look(ms(5300), || None::<u8>);
+        w.look(ms(5800), || Some(7));
+        w.look(ms(6900), || None::<u8>);
+        assert!(!w.gone);
+        // closed for a second: the game ends
+        w.look(ms(7500), || None::<u8>);
+        assert!(!w.gone);
+        w.look(ms(7900), || None::<u8>);
+        assert!(w.gone);
+    }
+
+    #[test]
+    fn flycast_log_lines_lose_their_colours() {
+        assert_eq!(
+            without_colours(
+                "\x1b[93m00:50:954 sh4_opcodes.cpp:929 W[INTERPRETER]: TRAP #50\n\x1b[0m"
+            ),
+            "00:50:954 sh4_opcodes.cpp:929 W[INTERPRETER]: TRAP #50\n"
+        );
+        assert_eq!(without_colours("plain"), "plain");
+    }
+
+    #[test]
+    fn the_session_reads_the_hang_from_flycasts_network_log() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = Arc::new(Mutex::new(
+            fs::File::create(dir.path().join("s.log")).unwrap(),
+        ));
+        let watch = Watch {
+            hang: Some(launch::FLYCAST_BOOT_HANG),
+            stopped: Some(launch::FLYCAST_SAVED),
+            started: Instant::now(),
+            hung: Arc::new(AtomicBool::new(false)),
+            saved: Arc::new(AtomicBool::new(false)),
+            log: file,
+        };
+        let socket = UdpSocket::bind(("127.0.0.1", 0)).unwrap();
+        let board = UdpSocket::bind(("127.0.0.1", 0)).unwrap();
+        board.connect(socket.local_addr().unwrap()).unwrap();
+        // the try before left a line unread: not this try's
+        board
+            .send(b"00:00:000 left over from the last try\n")
+            .unwrap();
+        std::thread::sleep(Duration::from_millis(100));
+        let done = Arc::new(AtomicBool::new(false));
+        read_log(&socket, watch.clone(), Arc::clone(&done)).unwrap();
+        // what a Flycast board sends: one coloured line per datagram
+        board
+            .send(b"\x1b[92m00:00:000 N[BOOT]: Game ID is [F355]\n\x1b[0m")
+            .unwrap();
+        board
+            .send(b"\x1b[93m00:50:954 W[INTERPRETER]: TRAP #50\n\x1b[0m")
+            .unwrap();
+        board
+            .send(b"\x1b[92m01:10:000 N[NAOMI]: Slave exiting\n\x1b[0m")
+            .unwrap();
+        let until = Instant::now() + Duration::from_secs(5);
+        while !(watch.hung.load(Ordering::SeqCst) && watch.saved.load(Ordering::SeqCst))
+            && Instant::now() < until
+        {
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        done.store(true, Ordering::SeqCst);
+        assert!(watch.hung.load(Ordering::SeqCst));
+        assert!(watch.saved.load(Ordering::SeqCst));
+        let text = fs::read_to_string(dir.path().join("s.log")).unwrap();
+        assert!(
+            text.contains("00:00:000 N[BOOT]: Game ID is [F355]\n"),
+            "{text}"
+        );
+        assert!(!text.contains('\x1b'), "{text}");
+        assert!(!text.contains("left over"), "{text}");
+    }
 }
 
 // the Linux command line (gamescope, bubblewrap)
@@ -416,6 +682,7 @@ mod tests {
             wal_root: "/d/wal".into(),
             wheel: None,
             bios: vec![],
+            log_port: None,
         };
         let c = Components {
             lindbergh: "/c/l".into(),

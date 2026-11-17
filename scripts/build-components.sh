@@ -13,13 +13,15 @@
 #               xact verb reads it from here (W_CACHE), so the first start needs no download
 #   flycast/    Flycast 2.7 (GPL-2.0), its official Linux AppImage unpacked (usr/: the program
 #               and the libraries it carries), checked by SHA-256, with its licence (F355)
+#   flycast-win/ Flycast 2.7's official Windows build (one flycast.exe), checked by SHA-256,
+#               with its licence: the Windows package's components/flycast
 #   art/ fonts/ the window's original illustrations and the Barlow typefaces (OFL)
-# usage: scripts/build-components.sh <components dir> [lindbergh|wal|runner|winetricks|directx|flycast|assets ...]
+# usage: scripts/build-components.sh <components dir> [lindbergh|wal|runner|winetricks|directx|flycast|flycast-win|assets ...]
 # LAUNCHER_FEATURES: passed to windowsarcadeloader's build (packages: sdl3/build-from-source-static)
 set -eu
 here=$(cd "$(dirname "$0")/.." && pwd)
 out=$(mkdir -p "$1" && cd "$1" && pwd); shift
-parts=${*:-lindbergh wal runner winetricks directx flycast assets}
+parts=${*:-lindbergh wal runner winetricks directx flycast flycast-win assets}
 work="$out/.build"; mkdir -p "$work"
 
 LINDBERGH_REPO=https://github.com/lindbergh-loader/lindbergh-loader
@@ -40,6 +42,8 @@ DIRECTX_URL=https://files.holarse-linuxgaming.de/mirrors/microsoft/directx_Jun20
 DIRECTX_SHA256=8746ee1a84a083a90e37899d71d50d5c7c015e69688a466aa80447f011780c0d
 FLYCAST_URL=https://github.com/flyinghead/flycast/releases/download/v2.7/flycast-x86_64-2.7.AppImage
 FLYCAST_SHA256=5b9f8a636a6acb8446bc78fe96650d8cb8233ac9f8ce69665dab3f39a1cbaae1
+FLYCAST_WIN_URL=https://github.com/flyinghead/flycast/releases/download/v2.7/flycast-win64-2.7.zip
+FLYCAST_WIN_SHA256=7edf489ba6b3053703a18ce8233767eb71a2d89e4bda0421b312c2167a739161
 FLYCAST_LICENSE_URL=https://raw.githubusercontent.com/flyinghead/flycast/v2.7/LICENSE
 FLYCAST_LICENSE_SHA256=8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643
 
@@ -130,6 +134,17 @@ flycast)
   [ -f "$l" ] || curl -fsSL -o "$l" "$FLYCAST_LICENSE_URL"
   echo "$FLYCAST_LICENSE_SHA256  $l" | sha256sum -c -
   cp "$l" "$out/flycast/LICENSE"
+  ;;
+flycast-win)
+  f="$work/flycast-win64-2.7.zip"
+  [ -f "$f" ] || curl -fsSL -o "$f" "$FLYCAST_WIN_URL"
+  echo "$FLYCAST_WIN_SHA256  $f" | sha256sum -c -
+  rm -rf "$out/flycast-win"; mkdir -p "$out/flycast-win"
+  unzip -q "$f" flycast.exe -d "$out/flycast-win"
+  l="$work/flycast-LICENSE"
+  [ -f "$l" ] || curl -fsSL -o "$l" "$FLYCAST_LICENSE_URL"
+  echo "$FLYCAST_LICENSE_SHA256  $l" | sha256sum -c -
+  cp "$l" "$out/flycast-win/LICENSE"
   ;;
 assets)
   rm -rf "$out/art" "$out/fonts"; cp -r "$here/assets/art" "$out/art"; cp -r "$here/assets/fonts" "$out/fonts"

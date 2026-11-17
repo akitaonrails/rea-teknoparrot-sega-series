@@ -88,7 +88,8 @@ entry, and every change that still needs a real-game check a line in
   SEGA Rally 3 and SEGA Racing Classic in windowsarcadeloader under GE-Proton's Wine (native XACT);
   the Chihiro pair in Cxbx-Reloaded (needs MAME's `chihiro` board files);
   Daytona in a windowsarcadeloader profile of our own; F355 Challenge 2 in the bundled
-  Flycast (Linux only: the launcher's program starts each board, the slave board alone in the window).
+  Flycast (Linux: the launcher's program starts each board, the slave board alone in gamescope;
+  Windows: a copy of flycast.exe in the runtime, the master's window hidden, its log over local UDP).
 - **Files the games write:** `Rally/`, `ShellData/` (SR3), `rom/` (SRC), `Jennifer/` and its ranking folders (OR2),
   `Sega/…` (Daytona): kept as real folders in the runtime (`runtime::opened`).
 - **Wheels:** the launcher owns the wheel for the windowsarcadeloader games (lock, strength, pad fallback);

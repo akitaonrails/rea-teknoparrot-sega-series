@@ -62,13 +62,26 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 | boot reliability, Flycast 2.7 AppImage and the box's 2.7 git build, unpinned | 1 boot in 6 reached the game; the others stopped at "being named..." with `W[INTERPRETER]: TRAP #50` (10 s in, or after the second `System reset` near 45 s). Upstream knows it: flycast#1909, #1630 (the author needed 6 or 7 tries for Twin 2; worse on CPUs with cores of different speeds). |
 | pinned with `taskset` to one CCD of the Ryzen 9 7950X3D | CCD0 (0-7,16-23): 3 boots in 4; CCD1 (8-15,24-31, the one Linux ranks fastest): 2 in 4. The launcher pins to the fastest CPU's cache domain (P-cores only on hybrid Intel CPUs) and restarts on `TRAP #50` in the first 90 s, up to 6 tries. |
 | through the launcher (`--play f355 --headless`, bundled Flycast 2.7, BIOS folder = EmuDeck's `bios`, 2026-11-16) | `taskset -c 8-15,24-31` in the session, `f355bios.zip` found in `bios/dc/` (`naomi.zip` isn't needed), the set packed into `runtimes/f355/f355twn2.zip` (stored): **attract mode and "PRESS START BUTTON" on the first try**; another run hung at 46 s, was stopped and started again by itself (try 2 of 6). No sound reached the host. Not played with controls yet. |
-| stopping (`--seconds`) | SDL turns SIGTERM into a quit event: the master saves the cabinet's memory (`flycast/data/flycast/f355twn2.zip.nvmem`, written at the stop) and lets its slave go; the slave prints "Slave exiting" and stays on Flycast's error screen, so the session ends what's left at that line: the stop takes about 2 s, 0 leftover processes. Making the slave die on SIGTERM instead was tried and is wrong: the master then waits for its vsync and is killed without saving. A stop during the boards' first seconds still waits for the 8 s kill. |
+| stopping (`--seconds`) | SDL turns SIGTERM into a quit event: the master saves the cabinet's memory (`flycast/data/flycast/f355twn2.zip.nvmem`, written at the stop) and lets its slave go; the slave prints "Slave exiting" and stays on Flycast's error screen, so the session ends what's left at that line: the stop takes about 2 s, 0 leftover processes. Making the slave die on SIGTERM instead was tried and is wrong: the master then waits for its vsync and is killed without saving. A stop during the boards' first seconds still waits for the kill (8 s then, 10 s since the Windows work). |
+
+## F355 Challenge 2 on Windows (the Windows launcher under Wine, 2026-11-17)
+
+Flycast's Windows build (official `flycast-win64-2.7.zip`) starts its slave board by its own path (`GetModuleFileNameW`), so the Linux trick (the launcher as `argv[0]`) can't apply. Run as `sega-launcher.exe --play f355 --seconds N` in GE-Proton 11-12's Wine, headless gamescope, private null sink. The probe runtime carried vkd3d and DXVK's `d3d11`/`dxgi` beside `flycast.exe`, because that Wine's `wined3d` couldn't load its vkd3d libraries outside Proton; real Windows has its own `d3d11`.
+
+| Step | Result |
+|---|---|
+| Flycast's log | `[log] LogServer = 127.0.0.1:<port>` in `emu.cfg`: both boards send each line as one UDP datagram (with terminal colours) to the port the session opened; "TRAP #50" and "Slave exiting" arrive as on Linux. |
+| one window | the session hides the master's window (`ShowWindow(SW_HIDE)`, its windows found through the threads of its process) and focuses the slave's (the master's child process). Attract mode and "FREE PLAY" on screen. The hidden master runs at full speed and saves. |
+| CPUs | `GetLogicalProcessorInformationEx` under Wine: one efficiency class, two L3 domains; the session set the master's affinity to 0-7,16-23 right after the start, and the slave inherited it. 12 boots in 13 reached the game on the first try; one hung ("TRAP #50" at 48 s), was stopped (the "Slave exiting" line about 2 s after the stop) and booted on try 2. The plain Flycast probe, unpinned, hung once in its one run. |
+| stopping (`--seconds`) | `WM_CLOSE` to the master's hidden window: SDL quits, the master saves `flycast/data/f355twn2.zip.nvmem` (written at the stop), the slave prints "Slave exiting", the session ends: exit 0, 0 leftover processes. |
+| closing the game's window (`taskkill /PID <slave>` without `/F`, which posts `WM_CLOSE`) | the slave quits; a second later the session sees no game window and closes the master, which waits out one 5 s multiboard timeout, then saves and quits by itself (about 6 s in all; the session allows 10 s): exit 0, records saved, 0 leftovers. |
+| Wine's job objects | `IsProcessInJob` says the slave isn't in the session's job under Wine, so the slave is found as the master's child (ToolHelp), and the session's last kill ends the master's children too. |
 
 ## Quitting and leftovers
 
 | Way to quit | SEGA Racing Classic | SEGA Rally 3 | OutRun 2 SP SDX |
 |---|---|---|---|
-| The launcher stops the game (`--seconds`, the window's Stop: SIGTERM to the session's process group, then SIGKILL after 8 s, then the session tag sweep) | 0 leftover processes | 0 leftover processes | 0 leftover processes |
+| The launcher stops the game (`--seconds`, the window's Stop: SIGTERM to the session's process group, then SIGKILL after 10 s (8 s until the F355 Windows work), then the session tag sweep) | 0 leftover processes | 0 leftover processes | 0 leftover processes |
 | Quit from the game menu | not applicable: arcade games have no quit; the test menu does not exit | not applicable | not applicable |
 | Window close / Alt+F4 on the game | not verified yet (needs a visible session) | not verified yet | not verified yet |
 | SIGINT/SIGTERM to the launcher (`--play` in a terminal, Ctrl+C) | the same stop path as the first row (signal-hook sets the stop flag); not run separately yet | not run separately yet | not run separately yet |
@@ -79,6 +92,6 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 
 - OutRun 2 SP SDX with a wheel: the launcher writes the wheel's SDL GUID and axes into lindbergh-loader's `controls.ini` (steering on the guessed axis, pedals by where they rest, `_INVERTED` when they rest at the top); not tried on hardware.
 - Any wheel on hardware: steering lock, force feedback direction and strength, pedals on a second USB device (the owner's wheel).
-- The Windows build of the launcher on real Windows; Steam Deck; multi-monitor; ultrawide.
+- The Windows build of the launcher on real Windows; Steam Deck; multi-monitor; ultrawide. F355 on real Windows: the hidden master window, the focus going to the game's window, `SetProcessAffinityMask` on a hybrid Intel CPU.
 - Free play in SEGA Rally 3 through `WAL_EUROPAR_FREEPLAY=1` (the race above used a coin).
 - Render sizes above the cabinets' (SEGA Rally 3 at 1920x1080, SEGA Racing Classic and OutRun 2 SP SDX at 4K).
