@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 
 use crate::catalog::{Game, GameId, Host, Route};
 use crate::input::StickLayout;
-use rea_launcher::gamescope::Size;
+use rea_launcher::gamescope::{Crt, Picture, Size};
 
 use crate::settings::Settings;
 
@@ -38,7 +38,8 @@ pub struct Plan {
     /// A line in the game's output that means its boot hung: the session
     /// starts the game again.
     pub boot_hang: Option<&'static str>,
-    /// Run the game on one cache domain of alike cores ([`uniform_cpus`]).
+    /// Run the game on one cache domain of alike cores
+    /// (`rea_launcher::cpus::uniform_cpus`).
     pub one_cache: bool,
     /// A line in the game's output that means, once a stop was asked for,
     /// that the game has saved and what's left can be ended.
@@ -120,21 +121,6 @@ pub struct Places {
     pub log_port: Option<u16>,
 }
 
-/// How this machine reaches the network (lindbergh-loader's `NIC_NAME`):
-/// the default route's interface, else loopback.
-pub fn default_interface(proc_net_route: &str) -> String {
-    proc_net_route
-        .lines()
-        .skip(1)
-        .filter_map(|l| {
-            let mut f = l.split_whitespace();
-            let (name, dest) = (f.next()?, f.next()?);
-            (dest == "00000000" && name != "lo").then(|| name.to_string())
-        })
-        .next()
-        .unwrap_or_else(|| "lo".into())
-}
-
 /// The size the game draws at: the setting, within what the game can do.
 /// SEGA Rally 3 draws at 1280x720 (the cabinet's) or 1920x1080
 /// (windowsarcadeloader's `WAL_EUROPAR_RESOLUTION`), nothing else;
@@ -150,35 +136,6 @@ pub fn game_size(game: &Game, s: &Settings) -> Size {
         GameId::F355Challenge2 => game.native,
         _ => want,
     }
-}
-
-fn gamescope_args(s: &Settings, size: Size, headless: bool) -> Vec<String> {
-    let mut a: Vec<String> = [
-        "-w",
-        &size.w.to_string(),
-        "-h",
-        &size.h.to_string(),
-        "-W",
-        &s.output.w.to_string(),
-        "-H",
-        &s.output.h.to_string(),
-        "-r",
-        "60",
-        "-F",
-        if headless { "linear" } else { s.upscaler.key() },
-    ]
-    .iter()
-    .map(|x| x.to_string())
-    .collect();
-    if !headless && matches!(s.upscaler.key(), "fsr" | "nis") {
-        a.extend(["--sharpness".into(), s.sharpness.to_string()]);
-    }
-    if headless {
-        a.extend(["--backend".into(), "headless".into()]);
-    } else if s.fullscreen {
-        a.push("-f".into());
-    }
-    a
 }
 
 /// lindbergh-loader's `lindbergh.ini`. OutRun 2 SP SDX stops at its
@@ -380,120 +337,6 @@ pub fn flycast_cfg(size: Size, fullscreen: bool, log_port: Option<u16>) -> Strin
     s
 }
 
-/// A CPU as Linux describes it in `/sys/devices/system/cpu/cpu<id>`.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Cpu {
-    pub id: u32,
-    /// `acpi_cppc/highest_perf`, else `cpufreq/cpuinfo_max_freq`.
-    pub rank: u64,
-    /// The CPUs sharing its last-level cache (`cache/index3/shared_cpu_list`).
-    pub l3: Vec<u32>,
-}
-
-/// Parses a Linux CPU list (`0-7,16-23`).
-pub fn cpu_list(text: &str) -> Vec<u32> {
-    let mut v = Vec::new();
-    for part in text.trim().split(',').filter(|p| !p.is_empty()) {
-        match part.split_once('-') {
-            Some((a, b)) => {
-                if let (Ok(a), Ok(b)) = (a.trim().parse::<u32>(), b.trim().parse::<u32>()) {
-                    v.extend(a..=b);
-                }
-            }
-            None => v.extend(part.trim().parse::<u32>().ok()),
-        }
-    }
-    v
-}
-
-/// The CPUs F355's boards should share: the cache domain of the CPU Linux
-/// ranks fastest, and on a hybrid Intel CPU only its performance cores
-/// (`core`, from `/sys/devices/cpu_core/cpus`). Flycast's linked boards
-/// often fail to boot when they run on cores of different speeds
-/// (flycast#1630; on a Ryzen 9 7950X3D, 1 boot in 6 unpinned, 3 in 4 on
-/// one CCD). None when every CPU is alike or too few remain.
-pub fn uniform_cpus(cpus: &[Cpu], core: Option<&[u32]>) -> Option<Vec<u32>> {
-    let best = cpus
-        .iter()
-        .max_by_key(|c| (c.rank, std::cmp::Reverse(c.id)))?;
-    let mut set: Vec<u32> = cpus
-        .iter()
-        .map(|c| c.id)
-        .filter(|id| best.l3.contains(id))
-        .filter(|id| core.is_none_or(|core| core.contains(id)))
-        .collect();
-    set.sort_unstable();
-    (set.len() >= 4 && set.len() < cpus.len()).then_some(set)
-}
-
-/// The CPUs as Windows describes them: the buffer
-/// `GetLogicalProcessorInformationEx(RelationAll)` fills, read for
-/// processor group 0 (`Cpu::rank` is the core's efficiency class). The
-/// second value is the performance cores of a hybrid CPU, for
-/// [`uniform_cpus`]'s `core`; None when every core is alike.
-pub fn windows_cpus(buf: &[u8]) -> (Vec<Cpu>, Option<Vec<u32>>) {
-    const CORE: u32 = 0; // RelationProcessorCore
-    const CACHE: u32 = 2; // RelationCache
-    let u16_at = |i: usize| buf.get(i..i + 2).map(|b| u16::from_le_bytes([b[0], b[1]]));
-    let u32_at = |i: usize| {
-        buf.get(i..i + 4)
-            .map(|b| u32::from_le_bytes(b.try_into().unwrap()))
-    };
-    let u64_at = |i: usize| {
-        buf.get(i..i + 8)
-            .map(|b| u64::from_le_bytes(b.try_into().unwrap()))
-    };
-    let bits = |mask: u64| (0..64).filter(move |b| mask & (1 << b) != 0);
-    // (efficiency class, CPUs) per core; the CPUs of each level-3 cache
-    let mut cores: Vec<(u8, u64)> = Vec::new();
-    let mut l3s: Vec<u64> = Vec::new();
-    let mut at = 0;
-    while let (Some(kind), Some(size)) = (u32_at(at), u32_at(at + 4)) {
-        let size = size as usize;
-        if size == 0 {
-            break;
-        }
-        match kind {
-            // PROCESSOR_RELATIONSHIP: EfficiencyClass at 9, GroupMask at 32
-            CORE if u16_at(at + 40) == Some(0) => {
-                if let (Some(class), Some(mask)) = (buf.get(at + 9), u64_at(at + 32)) {
-                    cores.push((*class, mask));
-                }
-            }
-            // CACHE_RELATIONSHIP: Level at 8, GroupMask at 40
-            CACHE if buf.get(at + 8) == Some(&3) && u16_at(at + 48) == Some(0) => {
-                l3s.extend(u64_at(at + 40));
-            }
-            _ => {}
-        }
-        at += size;
-    }
-    let mut cpus: Vec<Cpu> = cores
-        .iter()
-        .flat_map(|&(class, mask)| {
-            let l3 = l3s
-                .iter()
-                .copied()
-                .find(|l3| l3 & mask != 0)
-                .unwrap_or(mask);
-            bits(mask).map(move |id| Cpu {
-                id,
-                rank: class as u64,
-                l3: bits(l3).collect(),
-            })
-        })
-        .collect();
-    cpus.sort_by_key(|c| c.id);
-    let top = cpus.iter().map(|c| c.rank).max();
-    let core = (cpus.iter().any(|c| Some(c.rank) != top)).then(|| {
-        cpus.iter()
-            .filter(|c| Some(c.rank) == top)
-            .map(|c| c.id)
-            .collect()
-    });
-    (cpus, core)
-}
-
 /// Why a game can't be planned yet (a route still being brought up).
 pub type NotYet = String;
 
@@ -650,7 +493,15 @@ pub fn plan(
         links,
         game: game_cmd,
         gamescope: match host {
-            Host::Linux => gamescope_args(s, size, headless),
+            Host::Linux => Picture {
+                game: size,
+                output: s.output,
+                upscaler: s.upscaler,
+                sharpness: s.sharpness,
+                fullscreen: s.fullscreen,
+                crt: Crt::Off,
+            }
+            .args(headless),
             Host::Windows => Vec::new(),
         },
         input_pipe,
@@ -702,15 +553,6 @@ mod tests {
 
     fn file<'a>(p: &'a Plan, name: &str) -> &'a str {
         &p.files.iter().find(|(f, _)| f.ends_with(name)).unwrap().1
-    }
-
-    #[test]
-    fn the_default_route_interface_is_picked() {
-        let route = "Iface\tDestination\tGateway\n\
-                     lo\t0000007F\t00000000\n\
-                     eth0\t00000000\t010011AC\n";
-        assert_eq!(default_interface(route), "eth0");
-        assert_eq!(default_interface("Iface\tDestination\n"), "lo");
     }
 
     #[test]
@@ -939,61 +781,6 @@ mod tests {
 
     /// A `GetLogicalProcessorInformationEx` buffer: cores as (efficiency
     /// class, CPU mask), level-3 caches as CPU masks.
-    fn slpi(cores: &[(u8, u64)], l3s: &[u64]) -> Vec<u8> {
-        let mut b = Vec::new();
-        for &(class, mask) in cores {
-            let mut r = vec![0u8; 48];
-            r[4..8].copy_from_slice(&48u32.to_le_bytes());
-            r[9] = class;
-            r[30..32].copy_from_slice(&1u16.to_le_bytes());
-            r[32..40].copy_from_slice(&mask.to_le_bytes());
-            b.extend(r);
-        }
-        for &mask in l3s {
-            // a level-1 cache first, which doesn't count
-            for level in [1u8, 3] {
-                let mut r = vec![0u8; 56];
-                r[0..4].copy_from_slice(&2u32.to_le_bytes());
-                r[4..8].copy_from_slice(&56u32.to_le_bytes());
-                r[8] = level;
-                r[38..40].copy_from_slice(&1u16.to_le_bytes());
-                r[40..48].copy_from_slice(&mask.to_le_bytes());
-                b.extend(r);
-            }
-        }
-        // a NUMA node record, skipped
-        let mut r = vec![0u8; 80];
-        r[0..4].copy_from_slice(&1u32.to_le_bytes());
-        r[4..8].copy_from_slice(&80u32.to_le_bytes());
-        b.extend(r);
-        b
-    }
-
-    #[test]
-    fn windows_cpu_records_pick_one_cache_domain() {
-        // two CCDs of 4 cores with SMT (CPUs 0-7 and 8-15), all one class:
-        // the first CCD
-        let cores: Vec<(u8, u64)> = (0..8).map(|c| (0, 0b11u64 << (2 * c))).collect();
-        let (cpus, core) = windows_cpus(&slpi(&cores, &[0x00ff, 0xff00]));
-        assert_eq!(cpus.len(), 16);
-        assert_eq!(cpus[9].l3, (8..16).collect::<Vec<u32>>());
-        assert_eq!(core, None);
-        assert_eq!(uniform_cpus(&cpus, core.as_deref()), Some((0..8).collect()));
-        // hybrid: 4 performance cores with SMT (0-7), 8 efficiency cores
-        // (8-15), one shared L3: the performance cores
-        let mut cores: Vec<(u8, u64)> = (0..4).map(|c| (1, 0b11u64 << (2 * c))).collect();
-        cores.extend((8..16).map(|c| (0, 1u64 << c)));
-        let (cpus, core) = windows_cpus(&slpi(&cores, &[0xffff]));
-        assert_eq!(core.as_deref(), Some(&(0..8).collect::<Vec<u32>>()[..]));
-        assert_eq!(uniform_cpus(&cpus, core.as_deref()), Some((0..8).collect()));
-        // one CCD, all alike: nothing to pin; a short or empty buffer: nothing
-        let cores: Vec<(u8, u64)> = (0..4).map(|c| (0, 0b11u64 << (2 * c))).collect();
-        let (cpus, core) = windows_cpus(&slpi(&cores, &[0xff]));
-        assert_eq!(uniform_cpus(&cpus, core.as_deref()), None);
-        assert!(windows_cpus(&[1, 2, 3]).0.is_empty());
-        assert!(windows_cpus(&[]).0.is_empty());
-    }
-
     #[test]
     fn on_windows_f355_runs_a_copy_of_flycast_that_logs_to_the_session() {
         let g = game(GameId::F355Challenge2);
@@ -1082,54 +869,6 @@ mod tests {
         assert!(board_env(Board::Master).contains(&("SDL_VIDEODRIVER", "offscreen")));
         assert!(board_env(Board::Master).contains(&("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1")));
         assert_eq!(board_env(Board::Slave), &[("SDL_VIDEODRIVER", "x11")]);
-    }
-
-    fn cpu(id: u32, rank: u64, l3: &str) -> Cpu {
-        Cpu {
-            id,
-            rank,
-            l3: cpu_list(l3),
-        }
-    }
-
-    #[test]
-    fn cpu_lists_parse_like_linux_writes_them() {
-        assert_eq!(cpu_list("0-3,8,10-11\n"), vec![0, 1, 2, 3, 8, 10, 11]);
-        assert_eq!(cpu_list(""), Vec::<u32>::new());
-        assert_eq!(cpu_list("x,2"), vec![2]);
-    }
-
-    #[test]
-    fn the_boards_share_the_fastest_cache_domain() {
-        // a Ryzen 9 7950X3D: two CCDs, the faster one ranked higher
-        let mut cpus = Vec::new();
-        for id in 0..32u32 {
-            let ccd1 = (8..16).contains(&(id % 16));
-            let rank = if ccd1 {
-                206 + (id % 8) as u64 * 4
-            } else {
-                166 + (id % 8) as u64 * 5
-            };
-            cpus.push(cpu(id, rank, if ccd1 { "8-15,24-31" } else { "0-7,16-23" }));
-        }
-        assert_eq!(uniform_cpus(&cpus, None), Some(cpu_list("8-15,24-31")));
-        // a hybrid Intel CPU: one shared cache, only the performance cores
-        let hybrid: Vec<Cpu> = (0..12)
-            .map(|id| cpu(id, if id < 8 { 70 } else { 40 }, "0-11"))
-            .collect();
-        assert_eq!(
-            uniform_cpus(&hybrid, Some(&cpu_list("0-7"))),
-            Some(cpu_list("0-7"))
-        );
-        // alike cores: nothing to pin
-        let plain: Vec<Cpu> = (0..8).map(|id| cpu(id, 100, "0-7")).collect();
-        assert_eq!(uniform_cpus(&plain, None), None);
-        // too few left
-        let small: Vec<Cpu> = (0..4)
-            .map(|id| cpu(id, 100, if id < 2 { "0-1" } else { "2-3" }))
-            .collect();
-        assert_eq!(uniform_cpus(&small, None), None);
-        assert_eq!(uniform_cpus(&[], None), None);
     }
 
     #[test]

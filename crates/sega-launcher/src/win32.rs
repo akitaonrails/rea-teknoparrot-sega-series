@@ -30,7 +30,7 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
 };
 use windows_sys::core::BOOL;
 
-use sega_core::launch::{self, Cpu};
+use rea_launcher::cpus::{self, Cpu};
 
 /// The system's processes (with their parents) and threads (with their
 /// processes), from one snapshot.
@@ -173,7 +173,7 @@ pub fn focus(hwnd: HWND) {
 }
 
 /// The CPUs as Windows describes them (processor group 0), and the
-/// performance cores of a hybrid CPU: [`launch::windows_cpus`].
+/// performance cores of a hybrid CPU: [`cpus::windows_cpus`].
 pub fn cpus() -> (Vec<Cpu>, Option<Vec<u32>>) {
     let mut len = 0u32;
     unsafe { GetLogicalProcessorInformationEx(RelationAll, std::ptr::null_mut(), &mut len) };
@@ -188,7 +188,7 @@ pub fn cpus() -> (Vec<Cpu>, Option<Vec<u32>>) {
         return (Vec::new(), None);
     }
     let bytes = unsafe { std::slice::from_raw_parts(buf.as_ptr().cast::<u8>(), len as usize) };
-    launch::windows_cpus(bytes)
+    cpus::windows_cpus(bytes)
 }
 
 /// Keeps a process (and the processes it starts after this) on `cpus`.

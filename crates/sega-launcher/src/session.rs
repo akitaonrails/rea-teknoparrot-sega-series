@@ -5,7 +5,7 @@
 use std::fs;
 use std::io::{BufRead, BufReader, Write};
 use std::net::UdpSocket;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
@@ -13,8 +13,11 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, bail};
+use rea_launcher::cpus;
+use rea_launcher::gamescope::CommandLine;
 use rea_launcher::library::Entry;
 use rea_launcher::linkfarm::{self, Occupied};
+use rea_launcher::session::{WindowWatch, default_interface, strip_ansi};
 use sega_core::catalog::{Game, Host, Route, Support};
 use sega_core::input::Cabinet;
 use sega_core::launch::{self, DIRECTX_REDIST, FLYCAST_EXE, FLYCAST_PROGRAM, Places, Plan};
@@ -159,7 +162,7 @@ pub fn prepare(
             .then(input::find_wheel)
             .flatten(),
     };
-    let nic = launch::default_interface(&fs::read_to_string("/proc/net/route").unwrap_or_default());
+    let nic = default_interface(&fs::read_to_string("/proc/net/route").unwrap_or_default());
     let plan = launch::plan(
         game,
         &places,
@@ -192,33 +195,6 @@ pub fn prepare(
         runtime: rt,
         log,
     })
-}
-
-/// The command line: gamescope, then bubblewrap with every library folder
-/// read-only (no loader can write to the player's dumps), then the game
-/// (on `cpus` only, when given: [`launch::uniform_cpus`]).
-pub fn command_line(
-    plan: &Plan,
-    libraries: &[PathBuf],
-    bwrap: bool,
-    cpus: Option<&str>,
-) -> Vec<String> {
-    let mut v = vec!["gamescope".to_string()];
-    v.extend(plan.gamescope.iter().cloned());
-    v.push("--".into());
-    if bwrap {
-        v.extend(["bwrap", "--dev-bind", "/", "/"].map(String::from));
-        for l in libraries {
-            let l = l.to_string_lossy().into_owned();
-            v.extend(["--ro-bind".into(), l.clone(), l]);
-        }
-    }
-    if let Some(cpus) = cpus {
-        v.extend(["taskset".into(), "-c".into(), cpus.to_string()]);
-    }
-    v.push(plan.game.program.to_string_lossy().into_owned());
-    v.extend(plan.game.args.iter().cloned());
-    v
 }
 
 /// Run the game until it exits or `stop` is set; then stop everything the
@@ -259,34 +235,10 @@ const STOP_GRACE: Duration = Duration::from_secs(10);
 /// boards within about 50 s.
 const BOOT_WINDOW: Duration = Duration::from_secs(90);
 
-/// The CPUs a game that wants one cache domain runs on, from what Linux
-/// says about this machine's CPUs (`launch::uniform_cpus`).
-#[cfg(unix)]
-fn one_cache_cpus() -> Option<String> {
-    use sega_core::launch::Cpu;
-    let base = std::path::Path::new("/sys/devices/system/cpu");
-    let read = |p: PathBuf| fs::read_to_string(p).ok();
-    let cpus: Vec<Cpu> = launch::cpu_list(&read(base.join("online"))?)
-        .into_iter()
-        .map(|id| {
-            let dir = base.join(format!("cpu{id}"));
-            let rank = read(dir.join("acpi_cppc/highest_perf"))
-                .or_else(|| read(dir.join("cpufreq/cpuinfo_max_freq")))
-                .and_then(|t| t.trim().parse().ok())
-                .unwrap_or(0);
-            let l3 = read(dir.join("cache/index3/shared_cpu_list"))
-                .map(|t| launch::cpu_list(&t))
-                .unwrap_or_default();
-            Cpu { id, rank, l3 }
-        })
-        .collect();
-    let core = read(PathBuf::from("/sys/devices/cpu_core/cpus")).map(|t| launch::cpu_list(&t));
-    let set = launch::uniform_cpus(&cpus, core.as_deref())?;
-    Some(set.iter().map(u32::to_string).collect::<Vec<_>>().join(","))
-}
-
-/// The command the session starts: on Linux [`command_line`], on Windows
-/// the game's own (no gamescope, no bubblewrap; the CPUs are set on the
+/// The command the session starts: on Linux gamescope, then bubblewrap
+/// with every library folder read-only (no loader can write to the
+/// player's dumps), then the game on one cache domain when it wants one
+/// (F355's boards); on Windows the game's own (the CPUs are set on the
 /// process once started, [`pin_windows`]).
 fn session_argv(plan: &Plan, libraries: &[PathBuf]) -> Vec<String> {
     if Host::current() == Host::Windows {
@@ -294,13 +246,29 @@ fn session_argv(plan: &Plan, libraries: &[PathBuf]) -> Vec<String> {
             .chain(plan.game.args.iter().cloned())
             .collect();
     }
-    #[cfg(unix)]
     let cpus = (plan.one_cache && which("taskset").is_some())
-        .then(one_cache_cpus)
+        .then(|| {
+            let (all, core) = cpus::linux_cpus(Path::new("/sys"));
+            cpus::uniform_cpus(&all, core.as_deref())
+        })
         .flatten();
-    #[cfg(not(unix))]
-    let cpus: Option<String> = None;
-    command_line(plan, libraries, which("bwrap").is_some(), cpus.as_deref())
+    command_line(plan, libraries, which("bwrap").is_some(), cpus)
+}
+
+/// [`session_argv`] on Linux, with what this machine has decided.
+fn command_line(
+    plan: &Plan,
+    libraries: &[PathBuf],
+    bwrap: bool,
+    cpus: Option<Vec<u32>>,
+) -> Vec<String> {
+    CommandLine {
+        gamescope: plan.gamescope.clone(),
+        homes: None,
+        read_only: bwrap.then(|| libraries.to_vec()),
+        cpus: cpus.map(|set| cpus::taskset_list(&set)),
+    }
+    .argv(&plan.game.program, &plan.game.args)
 }
 
 /// Windows: keeps the game on one cache domain of alike cores, as taskset
@@ -309,10 +277,9 @@ fn session_argv(plan: &Plan, libraries: &[PathBuf]) -> Vec<String> {
 #[cfg(windows)]
 fn pin_windows(child: &std::process::Child) -> Option<String> {
     use std::os::windows::io::AsRawHandle;
-    let (cpus, core) = crate::win32::cpus();
-    let set = launch::uniform_cpus(&cpus, core.as_deref())?;
-    crate::win32::pin(child.as_raw_handle(), &set)
-        .then(|| set.iter().map(u32::to_string).collect::<Vec<_>>().join(","))
+    let (all, core) = crate::win32::cpus();
+    let set = cpus::uniform_cpus(&all, core.as_deref())?;
+    crate::win32::pin(child.as_raw_handle(), &set).then(|| cpus::taskset_list(&set))
 }
 
 /// What the session reads in the game's log: the line that means the boot
@@ -353,7 +320,7 @@ fn read_log(socket: &UdpSocket, watch: Watch, done: Arc<AtomicBool>) -> Result<(
     std::thread::spawn(move || {
         while !done.load(Ordering::SeqCst) {
             if let Ok(n) = socket.recv(&mut buf) {
-                let text = without_colours(&String::from_utf8_lossy(&buf[..n]));
+                let text = strip_ansi(&String::from_utf8_lossy(&buf[..n]));
                 for line in text.lines().filter(|l| !l.trim().is_empty()) {
                     watch.line(line);
                 }
@@ -399,24 +366,6 @@ impl Drop for SetOnDrop {
     fn drop(&mut self) {
         self.0.store(true, Ordering::SeqCst);
     }
-}
-
-/// Text without its terminal colour codes (`ESC [ ... m`).
-fn without_colours(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    let mut chars = s.chars();
-    while let Some(c) = chars.next() {
-        if c == '\x1b' {
-            for c in chars.by_ref() {
-                if c.is_ascii_alphabetic() {
-                    break;
-                }
-            }
-        } else {
-            out.push(c);
-        }
-    }
-    out
 }
 
 fn run_once(
@@ -519,12 +468,12 @@ fn run_once(
     let mut last_line = String::new();
     let mut stopped = false;
     // F355: the game's window, once it has opened
-    let mut window = GameWindow::default();
+    let mut window = WindowWatch::default();
     let status = loop {
         if let Some(st) = child.try_wait()? {
             break st;
         }
-        if p.plan.one_window && !window.gone {
+        if p.plan.one_window && !window.gone() {
             // Windows: the slave's window (hiding the master's); Linux: the
             // slave board's process, which ends with gamescope's window
             #[cfg(windows)]
@@ -541,11 +490,11 @@ fn run_once(
                 crate::win32::focus(_w);
                 writeln!(log.lock().unwrap(), "# the game's window is open")?;
             }
-            if window.gone {
+            if window.gone() {
                 writeln!(log.lock().unwrap(), "# the game's window closed: stopping")?;
             }
         }
-        if stop.load(Ordering::SeqCst) || hung.load(Ordering::SeqCst) || window.gone {
+        if stop.load(Ordering::SeqCst) || hung.load(Ordering::SeqCst) || window.gone() {
             if let Some((mut sink, _, _)) = script_sink.take() {
                 let _ = writeln!(sink, "quit");
             }
@@ -597,89 +546,9 @@ fn run_once(
     Ok((status, hung.load(Ordering::SeqCst)))
 }
 
-/// The game's window ([`Plan::one_window`]): looked at every 200 ms; once
-/// it has been open, it counts as closed after a second without it (the
-/// player closed it, or the slave board quit).
-#[derive(Default)]
-struct GameWindow {
-    seen: bool,
-    last_look: Option<Instant>,
-    missing_since: Option<Instant>,
-    gone: bool,
-}
-
-impl GameWindow {
-    /// One look at `now` (at most every 200 ms; `shown` finds the window).
-    /// Returns the window the first time it is seen, to give it the focus;
-    /// sets `gone` once it has been missing for a second.
-    fn look<W>(&mut self, now: Instant, shown: impl FnOnce() -> Option<W>) -> Option<W> {
-        if self.gone
-            || self
-                .last_look
-                .is_some_and(|t| now - t < Duration::from_millis(200))
-        {
-            return None;
-        }
-        self.last_look = Some(now);
-        match shown() {
-            Some(w) => {
-                self.missing_since = None;
-                (!std::mem::replace(&mut self.seen, true)).then_some(w)
-            }
-            None => {
-                if self.seen {
-                    let since = *self.missing_since.get_or_insert(now);
-                    self.gone = now - since >= Duration::from_secs(1);
-                }
-                None
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod window_tests {
     use super::*;
-
-    #[test]
-    fn the_game_window_is_focused_once_and_closed_after_a_second_away() {
-        let t0 = Instant::now();
-        let ms = |n: u64| t0 + Duration::from_millis(n);
-        let mut w = GameWindow::default();
-        // the boards start: no window yet, for as long as it takes
-        assert_eq!(w.look(ms(0), || None::<u8>), None);
-        assert_eq!(w.look(ms(5000), || None::<u8>), None);
-        assert!(!w.gone);
-        // it opens: focused once
-        assert_eq!(w.look(ms(5300), || Some(7)), Some(7));
-        assert_eq!(w.look(ms(5500), || Some(7)), None);
-        // too soon to look again
-        assert_eq!(
-            w.look(ms(5600), || panic!("looked within 200 ms")),
-            None::<u8>
-        );
-        // a blink (a window recreated) doesn't end the game
-        w.look(ms(5800), || None::<u8>);
-        w.look(ms(6200), || Some(7));
-        w.look(ms(6900), || None::<u8>);
-        assert!(!w.gone);
-        // closed for a second: the game ends
-        w.look(ms(7500), || None::<u8>);
-        assert!(!w.gone);
-        w.look(ms(7900), || None::<u8>);
-        assert!(w.gone);
-    }
-
-    #[test]
-    fn flycast_log_lines_lose_their_colours() {
-        assert_eq!(
-            without_colours(
-                "\x1b[93m00:50:954 sh4_opcodes.cpp:929 W[INTERPRETER]: TRAP #50\n\x1b[0m"
-            ),
-            "00:50:954 sh4_opcodes.cpp:929 W[INTERPRETER]: TRAP #50\n"
-        );
-        assert_eq!(without_colours("plain"), "plain");
-    }
 
     #[test]
     fn the_session_reads_the_hang_from_flycasts_network_log() {
@@ -770,7 +639,7 @@ mod tests {
         let plain = command_line(&plan, &["/lib".into()], false, None);
         assert!(!plain.join(" ").contains("bwrap"));
         // F355's boards on one cache domain
-        let pinned = command_line(&plan, &[], false, Some("8,9,10,11")).join(" ");
+        let pinned = command_line(&plan, &[], false, Some(vec![8, 9, 10, 11])).join(" ");
         assert!(
             pinned.contains(" -- taskset -c 8,9,10,11 /c/wal/arcade-launcher run "),
             "{pinned}"
@@ -809,11 +678,12 @@ mod tests {
                         break;
                     }
                 };
-                for (bwrap, cpus) in [(false, None), (true, Some("8,9,10,11"))] {
+                for (bwrap, set) in [(false, None), (true, Some(vec![8, 9, 10, 11]))] {
+                    let shown = set.as_deref().map(cpus::taskset_list);
                     out.push_str(&format!(
-                        "== {} headless {headless} bwrap {bwrap} cpus {cpus:?}\n{:?}\n",
+                        "== {} headless {headless} bwrap {bwrap} cpus {shown:?}\n{:?}\n",
                         g.slug,
-                        command_line(&plan, &libraries, bwrap, cpus)
+                        command_line(&plan, &libraries, bwrap, set)
                     ));
                 }
             }
