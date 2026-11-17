@@ -13,7 +13,7 @@ use rea_launcher::library::Entry;
 use rea_launcher::wheel::Kind;
 use rea_launcher_native::feeder::DeviceInfo;
 use rea_launcher_ui::hub::HubApp;
-use rea_launcher_ui::hub::testing::{self, SIZE_720, SIZE_800};
+use rea_launcher_ui::hub::testing::{self, SIZE_720, SIZE_800, says};
 use rea_launcher_ui::testing::{Harness, NodeT, Queryable};
 
 use super::*;
@@ -111,14 +111,12 @@ fn open_tab(h: &mut Hub, tab: Tab) {
     h.run_steps(3);
 }
 
+/// The value a settings row shows.
 fn row(h: &Hub, label: &str) -> String {
-    testing_value(h, label).unwrap_or_default()
-}
-
-fn testing_value(h: &Hub, label: &str) -> Option<String> {
     h.get_by_role_and_label(Role::Button, label)
         .accesskit_node()
         .value()
+        .unwrap_or_default()
 }
 
 fn row_disabled(h: &Hub, label: &str) -> bool {
@@ -132,10 +130,6 @@ fn row_reason(h: &Hub, label: &str) -> Option<String> {
     let n = h.get_by_role_and_label(Role::Button, label);
     let a = n.accesskit_node();
     a.is_disabled().then(|| a.description().unwrap_or_default())
-}
-
-fn says(h: &Hub, words: &str) -> bool {
-    testing::says(h, words)
 }
 
 // ------------------------------------------------------------ the hub

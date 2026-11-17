@@ -128,18 +128,20 @@ fn main() -> ExitCode {
         rea_launcher_ui::hub::fatal(&ui::THEME, &log, text, Some(link), says);
     };
     // --list only reads: it works while the window is open
-    let _instance = match (inv.mode != Mode::List).then(|| rea_launcher::instance::single(INSTANCE))
-    {
-        Some(Err(running)) if inv.is_action() => {
-            fail("The Sega Racing Launcher is already open. Close it first, then try again.");
-            return ExitCode::from(running.exit_code() as u8);
+    let _instance = if inv.mode == Mode::List {
+        None
+    } else {
+        match rea_launcher::instance::single(INSTANCE) {
+            Ok(guard) => Some(guard),
+            Err(running) if inv.is_action() => {
+                fail("The Sega Racing Launcher is already open. Close it first, then try again.");
+                return ExitCode::from(running.exit_code() as u8);
+            }
+            Err(_) => {
+                eprintln!("The Sega Racing Launcher is already open.");
+                return ExitCode::from(OK);
+            }
         }
-        Some(Err(_)) => {
-            eprintln!("The Sega Racing Launcher is already open.");
-            return ExitCode::from(OK);
-        }
-        Some(Ok(guard)) => Some(guard),
-        None => None,
     };
     match run_mode(&paths, &inv) {
         Ok(code) => ExitCode::from(code),
