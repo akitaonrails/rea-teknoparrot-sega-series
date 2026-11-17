@@ -4,7 +4,7 @@
 
 use std::fs;
 use std::io::{BufRead, BufReader, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
@@ -14,8 +14,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result, bail};
 use sega_core::catalog::{Game, Host, Route, Support};
 use sega_core::input::Cabinet;
-use sega_core::launch::DIRECTX_REDIST;
-use sega_core::launch::{self, Places, Plan};
+use sega_core::launch::{self, Cpu, DIRECTX_REDIST, FLYCAST_PROGRAM, Places, Plan};
 use sega_core::library::Entry;
 use sega_core::runtime;
 use sega_core::settings::Settings;
@@ -70,7 +69,8 @@ pub fn check_components(game: &Game, p: &Paths) -> Result<()> {
             c.runner.join("bin/wine"),
             c.directx.join(DIRECTX_REDIST),
         ],
-        Route::Cxbx | Route::Flycast { .. } => vec![],
+        Route::Flycast { .. } => vec![c.flycast.join(FLYCAST_PROGRAM)],
+        Route::Cxbx => vec![],
     };
     let missing: Vec<String> = need
         .iter()
@@ -116,7 +116,25 @@ pub fn prepare(
     let ops = runtime::plan(game, &entry.dir, &rt, &runtime::list)
         .with_context(|| format!("reading {}", entry.dir.display()))?;
     runtime::apply(&ops).with_context(|| format!("building {}", rt.display()))?;
+    let config = paths.config();
+    let mut bios = Vec::new();
+    for name in launch::bios_names(game) {
+        let found = launch::bios_places(config.bios.as_deref(), &entry.dir)
+            .into_iter()
+            .map(|d| d.join(name))
+            .find(|f| f.is_file());
+        match found {
+            Some(f) => bios.push(f),
+            None => bail!(
+                "{} needs {name}, its board's BIOS file. Add the folder that holds it under \
+                 Settings, Folders and BIOS (EmuDeck's bios folder works), or start the \
+                 launcher once with --bios <folder>.",
+                game.title
+            ),
+        }
+    }
     let places = Places {
+        bios,
         runtime: rt.clone(),
         wal_root: paths.wal_root(),
         // lindbergh-loader reads the wheel itself: tell it which one and how
@@ -156,8 +174,14 @@ pub fn prepare(
 }
 
 /// The command line: gamescope, then bubblewrap with every library folder
-/// read-only (no loader can write to the player's dumps), then the game.
-pub fn command_line(plan: &Plan, libraries: &[PathBuf], bwrap: bool) -> Vec<String> {
+/// read-only (no loader can write to the player's dumps), then the game
+/// (on `cpus` only, when given: [`launch::uniform_cpus`]).
+pub fn command_line(
+    plan: &Plan,
+    libraries: &[PathBuf],
+    bwrap: bool,
+    cpus: Option<&str>,
+) -> Vec<String> {
     let mut v = vec!["gamescope".to_string()];
     v.extend(plan.gamescope.iter().cloned());
     v.push("--".into());
@@ -167,6 +191,9 @@ pub fn command_line(plan: &Plan, libraries: &[PathBuf], bwrap: bool) -> Vec<Stri
             let l = l.to_string_lossy().into_owned();
             v.extend(["--ro-bind".into(), l.clone(), l]);
         }
+    }
+    if let Some(cpus) = cpus {
+        v.extend(["taskset".into(), "-c".into(), cpus.to_string()]);
     }
     v.push(plan.game.program.to_string_lossy().into_owned());
     v.extend(plan.game.args.iter().cloned());
@@ -178,7 +205,56 @@ pub fn command_line(plan: &Plan, libraries: &[PathBuf], bwrap: bool) -> Vec<Stri
 pub fn run(paths: &Paths, p: &Prepared, feed: Feed, stop: Arc<AtomicBool>) -> Result<ExitStatus> {
     let log_path = p.runtime.join("session.log");
     let log = Arc::new(Mutex::new(fs::File::create(&log_path)?));
-    run_once(paths, p, feed, &stop, &log)
+    let tries = if p.plan.boot_hang.is_some() {
+        BOOT_TRIES
+    } else {
+        1
+    };
+    let mut attempt = 1;
+    loop {
+        let (status, hung) = run_once(paths, p, feed.clone(), &stop, &log)?;
+        if !hung || stop.load(Ordering::SeqCst) || attempt == tries {
+            return Ok(status);
+        }
+        attempt += 1;
+        writeln!(
+            log.lock().unwrap(),
+            "# the game's boards didn't link up at boot (a known Flycast hang): \
+             starting again, try {attempt} of {tries}"
+        )?;
+    }
+}
+
+/// How many times a game whose boot can hang ([`Plan::boot_hang`]) is
+/// started before the session gives up.
+const BOOT_TRIES: u32 = 6;
+
+/// How long after the start a boot hang is looked for: F355 links its
+/// boards within about 50 s.
+const BOOT_WINDOW: Duration = Duration::from_secs(90);
+
+/// The CPUs a game that wants one cache domain runs on, from what Linux
+/// says about this machine's CPUs (`launch::uniform_cpus`).
+fn one_cache_cpus() -> Option<String> {
+    let base = Path::new("/sys/devices/system/cpu");
+    let read = |p: PathBuf| fs::read_to_string(p).ok();
+    let cpus: Vec<Cpu> = launch::cpu_list(&read(base.join("online"))?)
+        .into_iter()
+        .map(|id| {
+            let dir = base.join(format!("cpu{id}"));
+            let rank = read(dir.join("acpi_cppc/highest_perf"))
+                .or_else(|| read(dir.join("cpufreq/cpuinfo_max_freq")))
+                .and_then(|t| t.trim().parse().ok())
+                .unwrap_or(0);
+            let l3 = read(dir.join("cache/index3/shared_cpu_list"))
+                .map(|t| launch::cpu_list(&t))
+                .unwrap_or_default();
+            Cpu { id, rank, l3 }
+        })
+        .collect();
+    let core = read(PathBuf::from("/sys/devices/cpu_core/cpus")).map(|t| launch::cpu_list(&t));
+    let set = launch::uniform_cpus(&cpus, core.as_deref())?;
+    Some(set.iter().map(u32::to_string).collect::<Vec<_>>().join(","))
 }
 
 /// The command the session starts: on Linux [`command_line`], on Windows
@@ -189,7 +265,10 @@ fn session_argv(plan: &Plan, libraries: &[PathBuf]) -> Vec<String> {
             .chain(plan.game.args.iter().cloned())
             .collect();
     }
-    command_line(plan, libraries, which("bwrap").is_some())
+    let cpus = (plan.one_cache && which("taskset").is_some())
+        .then(one_cache_cpus)
+        .flatten();
+    command_line(plan, libraries, which("bwrap").is_some(), cpus.as_deref())
 }
 
 fn run_once(
@@ -198,7 +277,7 @@ fn run_once(
     feed: Feed,
     stop: &AtomicBool,
     log: &Arc<Mutex<fs::File>>,
-) -> Result<ExitStatus> {
+) -> Result<(ExitStatus, bool)> {
     let argv = session_argv(&p.plan, &paths.config().libraries);
     let tag = p.runtime.to_string_lossy().into_owned();
     let mut cmd = Command::new(&argv[0]);
@@ -206,7 +285,7 @@ fn run_once(
         .current_dir(&p.plan.game.cwd)
         .envs(p.plan.game.env.iter().map(|(k, v)| (k, v)))
         .stdout(Stdio::piped())
-        .stderr(Stdio::from(log.lock().unwrap().try_clone()?));
+        .stderr(Stdio::piped());
     cmd.stdin(if p.plan.input_pipe.is_some() {
         Stdio::piped()
     } else {
@@ -238,6 +317,27 @@ fn run_once(
             }
         });
     }
+    // stderr to the log, watched for the line that means the boot hung
+    // (and for the line that says a stopping game has saved)
+    let hung = Arc::new(AtomicBool::new(false));
+    let saved = Arc::new(AtomicBool::new(false));
+    if let Some(stderr) = child.stderr.take() {
+        let log = Arc::clone(log);
+        let (hung, saved) = (Arc::clone(&hung), Arc::clone(&saved));
+        let (marker, stopped) = (p.plan.boot_hang, p.plan.stopped);
+        let started = Instant::now();
+        std::thread::spawn(move || {
+            for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+                if marker.is_some_and(|m| line.contains(m)) && started.elapsed() < BOOT_WINDOW {
+                    hung.store(true, Ordering::SeqCst);
+                }
+                if stopped.is_some_and(|m| line.contains(m)) {
+                    saved.store(true, Ordering::SeqCst);
+                }
+                let _ = writeln!(log.lock().unwrap(), "{line}");
+            }
+        });
+    }
     // the loader's input is closed to ask it to stop (it ends the game and
     // gives back what it set up)
     let detach = match &feed {
@@ -264,7 +364,7 @@ fn run_once(
         if let Some(st) = child.try_wait()? {
             break st;
         }
-        if stop.load(Ordering::SeqCst) {
+        if stop.load(Ordering::SeqCst) || hung.load(Ordering::SeqCst) {
             if let Some((mut sink, _, _)) = script_sink.take() {
                 let _ = writeln!(sink, "quit");
             }
@@ -273,7 +373,10 @@ fn run_once(
             }
             group.terminate();
             let deadline = Instant::now() + Duration::from_secs(8);
-            while Instant::now() < deadline && child.try_wait()?.is_none() {
+            while Instant::now() < deadline
+                && !saved.load(Ordering::SeqCst)
+                && child.try_wait()?.is_none()
+            {
                 std::thread::sleep(Duration::from_millis(100));
             }
             group.kill();
@@ -296,7 +399,7 @@ fn run_once(
         log.lock().unwrap(),
         "# exit: {status}; stopped {left} leftover process(es)"
     )?;
-    Ok(status)
+    Ok((status, hung.load(Ordering::SeqCst)))
 }
 
 // the Linux command line (gamescope, bubblewrap)
@@ -312,6 +415,7 @@ mod tests {
             runtime: "/d/rt/src".into(),
             wal_root: "/d/wal".into(),
             wheel: None,
+            bios: vec![],
         };
         let c = Components {
             lindbergh: "/c/l".into(),
@@ -319,16 +423,24 @@ mod tests {
             runner: "/c/r".into(),
             winetricks: "/c/w".into(),
             directx: "/c/dx".into(),
+            flycast: "/c/fc".into(),
+            launcher: "/pkg/sega-launcher".into(),
         };
         let g = game(GameId::RacingClassic);
         let plan_with =
             |s: &Settings| launch::plan(g, &places, &c, s, "eth0", true, Host::Linux).unwrap();
         let plan = plan_with(&Settings::default());
-        let v = command_line(&plan, &["/lib".into(), "/more".into()], true);
+        let v = command_line(&plan, &["/lib".into(), "/more".into()], true, None);
         let s = v.join(" ");
         assert!(s.starts_with("gamescope -w 1280 -h 720 "), "{s}");
         assert!(s.contains(" -- bwrap --dev-bind / / --ro-bind /lib /lib --ro-bind /more /more /c/wal/arcade-launcher run "), "{s}");
-        let plain = command_line(&plan, &["/lib".into()], false);
+        let plain = command_line(&plan, &["/lib".into()], false, None);
         assert!(!plain.join(" ").contains("bwrap"));
+        // F355's boards on one cache domain
+        let pinned = command_line(&plan, &[], false, Some("8,9,10,11")).join(" ");
+        assert!(
+            pinned.contains(" -- taskset -c 8,9,10,11 /c/wal/arcade-launcher run "),
+            "{pinned}"
+        );
     }
 }

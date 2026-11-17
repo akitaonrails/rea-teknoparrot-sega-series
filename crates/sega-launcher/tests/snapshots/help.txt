@@ -2,7 +2,7 @@ sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
   sega-launcher                       open the window (games, settings, controls)
   sega-launcher --library <folder>    add a folder with your games (repeatable)
-  sega-launcher --chihiro-bios <folder>  your Chihiro BIOS folder
+  sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)
   sega-launcher --list                list the games found and their state
   sega-launcher --check [<game>]      check a game (or all) can start, without starting
   sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)

@@ -32,6 +32,13 @@ pub enum Op {
         from: PathBuf,
         to: PathBuf,
     },
+    /// A stored zip of these files ([`crate::zipstore`]), made again only
+    /// when their names, sizes or modification times change (recorded in
+    /// `<to>.sources`).
+    Archive {
+        files: Vec<PathBuf>,
+        to: PathBuf,
+    },
 }
 
 /// Files below this size are copied, not linked: the games write their
@@ -100,6 +107,22 @@ fn skip(route: Route, name: &str) -> bool {
     }
 }
 
+/// What an archive was made from: one line per file (name, size,
+/// modification time), so a changed dump makes it again.
+pub fn sources(files: &[PathBuf]) -> io::Result<String> {
+    let mut s = String::new();
+    for f in files {
+        let m = fs::metadata(f)?;
+        let t = m
+            .modified()?
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        s.push_str(&format!("{}\t{}\t{t}\n", f.display(), m.len()));
+    }
+    Ok(s)
+}
+
 /// Folders of the dump (relative to [`Game::source_folder`]) the game
 /// writes into: the runtime holds them as real folders whose entries are
 /// linked or copied one by one, so the game's writes stay in the runtime.
@@ -137,6 +160,19 @@ pub fn plan(
 ) -> io::Result<Vec<Op>> {
     let src = dump.join(game.source_folder());
     let mut ops = vec![Op::Dir(rt.to_path_buf())];
+    // a NAOMI cartridge: Flycast reads the set from one archive
+    if let Route::Flycast { set } = game.route {
+        let files = ls(&src)?
+            .into_iter()
+            .filter(|it| !it.dir && !skip(game.route, &it.name))
+            .map(|it| src.join(it.name))
+            .collect();
+        ops.push(Op::Archive {
+            files,
+            to: rt.join(format!("{set}.zip")),
+        });
+        return Ok(ops);
+    }
     let open = opened(game);
     let mut stack = vec![String::new()];
     while let Some(rel) = stack.pop() {
@@ -192,6 +228,18 @@ pub fn apply(ops: &[Op]) -> io::Result<()> {
                     fs::copy(from, to)?;
                 }
             },
+            Op::Archive { files, to } => {
+                let record = to.with_extension("sources");
+                let want = sources(files)?;
+                if to.is_file() && fs::read_to_string(&record).ok().as_deref() == Some(&want) {
+                    continue;
+                }
+                // a whole-file swap: a half-written archive never stays
+                let tmp = to.with_extension("partial");
+                crate::zipstore::write(files, &tmp)?;
+                fs::rename(&tmp, to)?;
+                fs::write(&record, want)?;
+            }
         }
     }
     Ok(())
@@ -548,5 +596,45 @@ mod tests {
         fs::write(&src, b"v2, longer").unwrap();
         apply(std::slice::from_ref(&op)).unwrap();
         assert_eq!(fs::read(&at).unwrap(), b"v2, longer");
+    }
+
+    #[test]
+    fn f355_runtime_is_its_set_packed_into_one_archive_made_once() {
+        let dump = tempfile::tempdir().unwrap();
+        let rt = tempfile::tempdir().unwrap();
+        let rt = rt.path().join("f355");
+        std::fs::write(dump.path().join("epr-23399.ic22"), b"program").unwrap();
+        std::fs::write(dump.path().join("f355twn2-key.bin"), b"key!").unwrap();
+        std::fs::create_dir(dump.path().join("notes")).unwrap();
+        let g = game(GameId::F355Challenge2);
+        let ops = plan(g, dump.path(), &rt, &list).unwrap();
+        let zip = rt.join("f355twn2.zip");
+        assert_eq!(
+            ops,
+            vec![
+                Op::Dir(rt.clone()),
+                Op::Archive {
+                    files: vec![
+                        dump.path().join("epr-23399.ic22"),
+                        dump.path().join("f355twn2-key.bin")
+                    ],
+                    to: zip.clone(),
+                }
+            ]
+        );
+        apply(&ops).unwrap();
+        let first = std::fs::metadata(&zip).unwrap().modified().unwrap();
+        assert!(!rt.join("f355twn2.partial").exists());
+        // unchanged dump: the archive stays as it is
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        apply(&ops).unwrap();
+        assert_eq!(std::fs::metadata(&zip).unwrap().modified().unwrap(), first);
+        // a chip replaced by one of another size: made again
+        std::fs::write(dump.path().join("epr-23399.ic22"), b"program, v2").unwrap();
+        apply(&ops).unwrap();
+        let bytes = std::fs::read(&zip).unwrap();
+        assert!(bytes.windows(11).any(|w| w == b"program, v2"));
+        // the dump itself is untouched
+        assert_eq!(std::fs::read_dir(dump.path()).unwrap().count(), 3);
     }
 }

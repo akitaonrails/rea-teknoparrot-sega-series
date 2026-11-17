@@ -2158,6 +2158,7 @@ dependencies = [
 name = "sega-core"
 version = "0.1.0"
 dependencies = [
+ "crc32fast",
  "junction",
  "rea-launcher",
  "sha2 0.10.9",

@@ -5,7 +5,7 @@
 //! wiring (setting → file / argument / environment) without starting
 //! anything. Every value here was seen to work in docs/RUNTIME_NOTES.md.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::catalog::{Game, GameId, Host, Route};
 use crate::input::StickLayout;
@@ -33,6 +33,14 @@ pub struct Plan {
     pub input_pipe: Option<StickLayout>,
     /// The size the game draws at.
     pub game_size: Size,
+    /// A line in the game's output that means its boot hung: the session
+    /// starts the game again.
+    pub boot_hang: Option<&'static str>,
+    /// Run the game on one cache domain of alike cores ([`uniform_cpus`]).
+    pub one_cache: bool,
+    /// A line in the game's output that means, once a stop was asked for,
+    /// that the game has saved and what's left can be ended.
+    pub stopped: Option<&'static str>,
 }
 
 /// The launcher's own components (built or downloaded on request).
@@ -51,7 +59,31 @@ pub struct Components {
     /// redistributable in it ([`DIRECTX_REDIST`]), so the XACT install
     /// needs no network (Linux).
     pub directx: PathBuf,
+    /// Flycast's Linux build (its AppImage unpacked: [`FLYCAST_PROGRAM`]
+    /// and the libraries beside it).
+    pub flycast: PathBuf,
+    /// This launcher's own program: Flycast starts each NAOMI board through
+    /// it ([`flycast_board`]).
+    pub launcher: PathBuf,
 }
+
+/// Flycast's program inside [`Components::flycast`].
+pub const FLYCAST_PROGRAM: &str = "usr/bin/flycast";
+
+/// The variable that makes the launcher's program start a Flycast board
+/// (its value: Flycast's program) instead of the launcher.
+pub const FLYCAST_ENV: &str = "SEGA_FLYCAST";
+
+/// What Flycast prints when F355's linked boards fail to find each other at
+/// boot (flycast#1909, #1630: the game then waits forever at "being
+/// named..."); the session starts the game again.
+pub const FLYCAST_BOOT_HANG: &str = "TRAP #50";
+
+/// What F355's slave board prints once its master has quit. The master
+/// saves the cabinet's memory (records, operator settings) when it stops,
+/// before it lets the slave go; the slave then stays on Flycast's error
+/// screen, so the session ends it at this line instead of waiting.
+pub const FLYCAST_SAVED: &str = "Slave exiting";
 
 /// The DirectX redistributable inside [`Components::directx`], where
 /// winetricks' `xact` verb looks for it (`<W_CACHE>/directx9/`).
@@ -66,6 +98,9 @@ pub struct Places {
     pub wal_root: PathBuf,
     /// The player's wheel, for the loaders that read it themselves.
     pub wheel: Option<LindberghWheel>,
+    /// The board BIOS files the player's BIOS folder holds for this game
+    /// (F355's `f355bios.zip`), linked where the emulator reads them.
+    pub bios: Vec<PathBuf>,
 }
 
 /// How this machine reaches the network (lindbergh-loader's `NIC_NAME`):
@@ -94,6 +129,8 @@ pub fn game_size(game: &Game, s: &Settings) -> Size {
         GameId::SegaRally3 => Size::new(1280, 720),
         // its profile has no resolution setting: the game's own 1920x1080
         GameId::Daytona => game.native,
+        // only the cabinet's 640x480 was checked in Flycast
+        GameId::F355Challenge2 => game.native,
         _ => want,
     }
 }
@@ -247,6 +284,122 @@ pub fn wal_layer(game: &Game, size: Size, ffb: u8) -> String {
     out
 }
 
+/// The BIOS files a game needs from the player's BIOS folder (MAME's
+/// names): F355's NAOMI board BIOS.
+pub fn bios_names(game: &Game) -> &'static [&'static str] {
+    match game.route {
+        Route::Flycast { .. } => &["f355bios.zip"],
+        _ => &[],
+    }
+}
+
+/// Where a BIOS file is looked for, in order: the BIOS folder, the board
+/// folders EmuDeck and MAME front ends keep inside it, then the game's own
+/// folder and the folder holding it.
+pub fn bios_places(bios: Option<&Path>, game_dir: &Path) -> Vec<PathBuf> {
+    let mut v = Vec::new();
+    if let Some(b) = bios {
+        v.push(b.to_path_buf());
+        for sub in ["dc", "naomi", "chihiro"] {
+            v.push(b.join(sub));
+        }
+    }
+    v.push(game_dir.to_path_buf());
+    v.extend(game_dir.parent().map(Path::to_path_buf));
+    v
+}
+
+/// Which NAOMI board a Flycast command line starts. Flycast runs a linked
+/// cabinet as one process per board: the master starts each slave by
+/// running its own program (`argv[0]`) again with
+/// `-config naomi:BoardId=<n>`, and the slave finds the master by its
+/// parent's process id.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Board {
+    Master,
+    Slave,
+}
+
+pub fn flycast_board(args: &[String]) -> Board {
+    if args.iter().any(|a| a.starts_with("naomi:BoardId=")) {
+        Board::Slave
+    } else {
+        Board::Master
+    }
+}
+
+/// The environment each board runs with. In F355 Challenge Twin the slave
+/// board draws the game and the master shows only the BIOS's screens, so
+/// the master runs off screen (still reading the controls) and the slave
+/// gets the session's one window (docs/RUNTIME_NOTES.md).
+pub fn board_env(board: Board) -> &'static [(&'static str, &'static str)] {
+    match board {
+        Board::Master => &[
+            ("SDL_VIDEODRIVER", "offscreen"),
+            ("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1"),
+        ],
+        Board::Slave => &[("SDL_VIDEODRIVER", "x11")],
+    }
+}
+
+/// Flycast's `emu.cfg`: the render height and the window the slave board
+/// opens (gamescope scales it to the screen).
+pub fn flycast_cfg(size: Size) -> String {
+    format!(
+        "# Written by the launcher before every start.\n\
+         [config]\nrend.Resolution = {h}\n\
+         [window]\nfullscreen = no\nmaximized = no\nwidth = {w}\nheight = {h}\n",
+        w = size.w,
+        h = size.h
+    )
+}
+
+/// A CPU as Linux describes it in `/sys/devices/system/cpu/cpu<id>`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Cpu {
+    pub id: u32,
+    /// `acpi_cppc/highest_perf`, else `cpufreq/cpuinfo_max_freq`.
+    pub rank: u64,
+    /// The CPUs sharing its last-level cache (`cache/index3/shared_cpu_list`).
+    pub l3: Vec<u32>,
+}
+
+/// Parses a Linux CPU list (`0-7,16-23`).
+pub fn cpu_list(text: &str) -> Vec<u32> {
+    let mut v = Vec::new();
+    for part in text.trim().split(',').filter(|p| !p.is_empty()) {
+        match part.split_once('-') {
+            Some((a, b)) => {
+                if let (Ok(a), Ok(b)) = (a.trim().parse::<u32>(), b.trim().parse::<u32>()) {
+                    v.extend(a..=b);
+                }
+            }
+            None => v.extend(part.trim().parse::<u32>().ok()),
+        }
+    }
+    v
+}
+
+/// The CPUs F355's boards should share: the cache domain of the CPU Linux
+/// ranks fastest, and on a hybrid Intel CPU only its performance cores
+/// (`core`, from `/sys/devices/cpu_core/cpus`). Flycast's linked boards
+/// often fail to boot when they run on cores of different speeds
+/// (flycast#1630; on a Ryzen 9 7950X3D, 1 boot in 6 unpinned, 3 in 4 on
+/// one CCD). None when every CPU is alike or too few remain.
+pub fn uniform_cpus(cpus: &[Cpu], core: Option<&[u32]>) -> Option<Vec<u32>> {
+    let best = cpus
+        .iter()
+        .max_by_key(|c| (c.rank, std::cmp::Reverse(c.id)))?;
+    let mut set: Vec<u32> = cpus
+        .iter()
+        .map(|c| c.id)
+        .filter(|id| best.l3.contains(id))
+        .filter(|id| core.is_none_or(|core| core.contains(id)))
+        .collect();
+    set.sort_unstable();
+    (set.len() >= 4 && set.len() < cpus.len()).then_some(set)
+}
+
 /// Why a game can't be planned yet (a route still being brought up).
 pub type NotYet = String;
 
@@ -334,10 +487,49 @@ pub fn plan(
                 cwd: root.clone(),
             }
         }
-        Route::Cxbx | Route::Flycast { .. } => {
+        // Flycast's Windows build starts its boards by its own path
+        Route::Flycast { .. } if host == Host::Windows => {
+            return Err(format!(
+                "{} runs in the Linux version of the launcher for now.",
+                game.title
+            ));
+        }
+        Route::Flycast { set } => {
+            let config = rt.join("flycast/config");
+            let data = rt.join("flycast/data");
+            files.push((config.join("flycast/emu.cfg"), flycast_cfg(size)));
+            for b in &places.bios {
+                if let Some(name) = b.file_name() {
+                    links.push((data.join("flycast").join(name), b.clone()));
+                }
+            }
+            Command {
+                // the launcher's program starts each board (flycast_board)
+                program: c.launcher.clone(),
+                args: vec![rt.join(format!("{set}.zip")).to_string_lossy().into_owned()],
+                env: vec![
+                    (
+                        FLYCAST_ENV.into(),
+                        c.flycast
+                            .join(FLYCAST_PROGRAM)
+                            .to_string_lossy()
+                            .into_owned(),
+                    ),
+                    (
+                        "XDG_CONFIG_HOME".into(),
+                        config.to_string_lossy().into_owned(),
+                    ),
+                    ("XDG_DATA_HOME".into(), data.to_string_lossy().into_owned()),
+                ],
+                cwd: rt.clone(),
+            }
+        }
+        Route::Cxbx => {
             return Err(format!("{} can't be started yet.", game.title));
         }
     };
+    // F355's linked boards: restart a hung boot, alike cores, stop once saved
+    let flycast = matches!(game.route, Route::Flycast { .. });
     Ok(Plan {
         files,
         links,
@@ -348,6 +540,9 @@ pub fn plan(
         },
         input_pipe,
         game_size: size,
+        boot_hang: flycast.then_some(FLYCAST_BOOT_HANG),
+        one_cache: flycast,
+        stopped: flycast.then_some(FLYCAST_SAVED),
     })
 }
 
@@ -363,6 +558,8 @@ mod tests {
             runner: "/c/runner".into(),
             winetricks: "/c/winetricks".into(),
             directx: "/c/directx".into(),
+            flycast: "/c/flycast".into(),
+            launcher: "/pkg/sega-launcher".into(),
         }
     }
 
@@ -371,6 +568,7 @@ mod tests {
             runtime: PathBuf::from("/d/runtimes").join(slug),
             wal_root: "/d/wal".into(),
             wheel: None,
+            bios: vec![],
         }
     }
 
@@ -561,5 +759,150 @@ mod tests {
                 .contains(&("/d/wal/dist/payloads".into(), "/c/wal/payloads".into()))
         );
         assert!(p.gamescope.is_empty());
+    }
+
+    #[test]
+    fn f355_starts_its_master_board_through_the_launcher_with_the_bios_linked() {
+        let g = game(GameId::F355Challenge2);
+        let mut pl = places(g.slug);
+        pl.bios = vec!["/bios/dc/f355bios.zip".into()];
+        let s = Settings {
+            render: Some(Size::new(3840, 2160)),
+            ..Settings::default()
+        };
+        let p = plan(g, &pl, &comps(), &s, "eth0", false, Host::Linux).unwrap();
+        let rt = PathBuf::from("/d/runtimes/f355");
+        assert_eq!(p.game.program, PathBuf::from("/pkg/sega-launcher"));
+        assert_eq!(
+            p.game.args,
+            vec!["/d/runtimes/f355/f355twn2.zip".to_string()]
+        );
+        let env = |k: &str| {
+            p.game
+                .env
+                .iter()
+                .find(|(n, _)| n == k)
+                .map(|(_, v)| v.clone())
+        };
+        assert_eq!(
+            env(FLYCAST_ENV).as_deref(),
+            Some("/c/flycast/usr/bin/flycast")
+        );
+        assert_eq!(
+            env("XDG_DATA_HOME").as_deref(),
+            Some("/d/runtimes/f355/flycast/data")
+        );
+        assert_eq!(
+            env("XDG_CONFIG_HOME").as_deref(),
+            Some("/d/runtimes/f355/flycast/config")
+        );
+        assert!(p.links.contains(&(
+            rt.join("flycast/data/flycast/f355bios.zip"),
+            "/bios/dc/f355bios.zip".into()
+        )));
+        // the cabinet's size whatever the setting: only 640x480 was checked
+        assert_eq!(p.game_size, Size::new(640, 480));
+        assert_eq!(arg_after(&p.gamescope, "-w").as_deref(), Some("640"));
+        let cfg = file(&p, "flycast/config/flycast/emu.cfg");
+        assert!(cfg.contains("rend.Resolution = 480\n"), "{cfg}");
+        assert!(cfg.contains("width = 640\nheight = 480\n"), "{cfg}");
+        assert_eq!(p.boot_hang, Some(FLYCAST_BOOT_HANG));
+        assert!(p.one_cache);
+        assert_eq!(p.stopped, Some(FLYCAST_SAVED));
+        assert!(p.input_pipe.is_none());
+        assert!(plan(g, &pl, &comps(), &s, "eth0", false, Host::Windows).is_err());
+        let other = plan_for(GameId::SegaRally3, &Settings::default(), false, Host::Linux);
+        assert!(other.boot_hang.is_none() && !other.one_cache && other.stopped.is_none());
+    }
+
+    #[test]
+    fn flycast_slave_boards_get_the_window_and_the_master_runs_off_screen() {
+        let master: Vec<String> = vec!["/d/runtimes/f355/f355twn2.zip".into()];
+        assert_eq!(flycast_board(&master), Board::Master);
+        // what Flycast's master passes when it starts the slave
+        let slave: Vec<String> = [
+            "-config",
+            "naomi:BoardId=1",
+            "-config",
+            "naomi:SlaveCount=1",
+            "f355bios",
+        ]
+        .map(String::from)
+        .to_vec();
+        assert_eq!(flycast_board(&slave), Board::Slave);
+        assert!(board_env(Board::Master).contains(&("SDL_VIDEODRIVER", "offscreen")));
+        assert!(board_env(Board::Master).contains(&("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1")));
+        assert_eq!(board_env(Board::Slave), &[("SDL_VIDEODRIVER", "x11")]);
+    }
+
+    fn cpu(id: u32, rank: u64, l3: &str) -> Cpu {
+        Cpu {
+            id,
+            rank,
+            l3: cpu_list(l3),
+        }
+    }
+
+    #[test]
+    fn cpu_lists_parse_like_linux_writes_them() {
+        assert_eq!(cpu_list("0-3,8,10-11\n"), vec![0, 1, 2, 3, 8, 10, 11]);
+        assert_eq!(cpu_list(""), Vec::<u32>::new());
+        assert_eq!(cpu_list("x,2"), vec![2]);
+    }
+
+    #[test]
+    fn the_boards_share_the_fastest_cache_domain() {
+        // a Ryzen 9 7950X3D: two CCDs, the faster one ranked higher
+        let mut cpus = Vec::new();
+        for id in 0..32u32 {
+            let ccd1 = (8..16).contains(&(id % 16));
+            let rank = if ccd1 {
+                206 + (id % 8) as u64 * 4
+            } else {
+                166 + (id % 8) as u64 * 5
+            };
+            cpus.push(cpu(id, rank, if ccd1 { "8-15,24-31" } else { "0-7,16-23" }));
+        }
+        assert_eq!(uniform_cpus(&cpus, None), Some(cpu_list("8-15,24-31")));
+        // a hybrid Intel CPU: one shared cache, only the performance cores
+        let hybrid: Vec<Cpu> = (0..12)
+            .map(|id| cpu(id, if id < 8 { 70 } else { 40 }, "0-11"))
+            .collect();
+        assert_eq!(
+            uniform_cpus(&hybrid, Some(&cpu_list("0-7"))),
+            Some(cpu_list("0-7"))
+        );
+        // alike cores: nothing to pin
+        let plain: Vec<Cpu> = (0..8).map(|id| cpu(id, 100, "0-7")).collect();
+        assert_eq!(uniform_cpus(&plain, None), None);
+        // too few left
+        let small: Vec<Cpu> = (0..4)
+            .map(|id| cpu(id, 100, if id < 2 { "0-1" } else { "2-3" }))
+            .collect();
+        assert_eq!(uniform_cpus(&small, None), None);
+        assert_eq!(uniform_cpus(&[], None), None);
+    }
+
+    #[test]
+    fn the_naomi_bios_is_looked_for_where_emudeck_and_mame_keep_it() {
+        let g = game(GameId::F355Challenge2);
+        assert_eq!(bios_names(g), ["f355bios.zip"]);
+        assert!(bios_names(game(GameId::SegaRally3)).is_empty());
+        let at = bios_places(Some(Path::new("/emu/bios")), Path::new("/roms/tp/f355twn2"));
+        let want: Vec<PathBuf> = [
+            "/emu/bios",
+            "/emu/bios/dc",
+            "/emu/bios/naomi",
+            "/emu/bios/chihiro",
+            "/roms/tp/f355twn2",
+            "/roms/tp",
+        ]
+        .map(PathBuf::from)
+        .to_vec();
+        assert_eq!(at, want);
+        assert_eq!(
+            bios_places(None, Path::new("/g")),
+            [PathBuf::from("/g"), PathBuf::from("/")]
+        );
     }
 }

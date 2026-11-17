@@ -16,7 +16,7 @@
 # owner decision 2026-11-16; built in a container with docker or podman, or
 # taken as built from dist/components/lindbergh while its .stamp matches the
 # pinned commit and recipe; the release workflow fills it from its own job) and Microsoft's DirectX June 2010 redistributable
-# for winetricks' xact verb. No game file is ever packaged.
+# for winetricks' xact verb, and Flycast's Linux build (F355). No game file is ever packaged.
 set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd -P)
@@ -46,7 +46,7 @@ if [ "$os" = linux ]; then
 	bin=$root/dist/linux
 	[ -f "$bin/sega-launcher" ] || die "missing $bin/sega-launcher - build it first"
 	[ -f "$bin/lib/libSDL2-2.0.so.0" ] || die "missing $bin/lib/libSDL2-2.0.so.0"
-	"$root/scripts/build-components.sh" "$comps" lindbergh wal runner winetricks directx assets
+	"$root/scripts/build-components.sh" "$comps" lindbergh wal runner winetricks directx flycast assets
 	install -m 755 "$bin/sega-launcher" "$out/sega-launcher"
 	mkdir -p "$out/lib"
 	cp "$bin"/lib/* "$out/lib/"
@@ -59,6 +59,8 @@ if [ "$os" = linux ]; then
 	mv "$out/components/lindbergh/notices" "$out/licenses/lindbergh-libraries"
 	rm -f "$out/components/lindbergh/.stamp"
 	cp -r "$comps/directx" "$out/components/directx"
+	cp -r "$comps/flycast" "$out/components/flycast"
+	mv "$out/components/flycast/LICENSE" "$out/licenses/Flycast-LICENSE.txt"
 else
 	exe=${CARGO_TARGET_DIR:-$root/target}/x86_64-pc-windows-gnu/release/sega-launcher.exe
 	[ -f "$exe" ] || die "missing $exe - run scripts/build-launcher.sh windows"

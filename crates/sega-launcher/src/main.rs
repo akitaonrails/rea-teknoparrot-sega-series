@@ -6,6 +6,8 @@
 // reach the terminal that started them (console::attach_parent)
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
+#[cfg(unix)]
+mod board;
 mod cli;
 mod input;
 mod paths;
@@ -77,6 +79,11 @@ impl Out {
 }
 
 fn main() -> ExitCode {
+    // a Flycast board the session started (F355): become Flycast
+    #[cfg(unix)]
+    if let Some(flycast) = std::env::var_os(sega_core::launch::FLYCAST_ENV) {
+        return board::exec(flycast);
+    }
     #[cfg(windows)]
     if std::env::args().len() > 1 {
         rea_launcher_win32::console::attach_parent();
@@ -143,7 +150,7 @@ fn run_mode(inv: &Invocation) -> Result<u8, String> {
                     b.display()
                 ));
             }
-            config.chihiro_bios = Some(std::path::absolute(b).unwrap_or(b.clone()));
+            config.bios = Some(std::path::absolute(b).unwrap_or(b.clone()));
         }
         paths
             .save_config(&config)

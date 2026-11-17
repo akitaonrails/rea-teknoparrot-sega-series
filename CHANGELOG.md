@@ -6,6 +6,27 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+### Added
+
+- F355 Challenge 2 (twin) starts on Linux in Flycast 2.7, which the Linux
+  package now carries. The cabinet's two linked boards run in one window:
+  the second board, which draws the race, gets the screen, and the main
+  board runs out of sight and reads the controls. The launcher packs the
+  game's chips into the archive Flycast reads, links `f355bios.zip` from your
+  BIOS folder, and keeps the cabinet's memory (records, operator settings)
+  in the game's runtime folder.
+- When F355's boards fail to find each other at boot (a known Flycast
+  problem), the launcher notices and starts the game again by itself. It
+  also runs both boards on one group of matching CPU cores, which makes that
+  failure rarer on CPUs with two kinds of cores.
+
+### Changed
+
+- One BIOS folder for every game that needs one (`bios` in `launcher.cfg`,
+  `--bios <folder>`): the Chihiro files and F355's `f355bios.zip`, also found
+  in a `chihiro`, `dc` or `naomi` folder inside it, as EmuDeck keeps them.
+  The `chihiro_bios` key and `--chihiro-bios` flag from 0.1.0 still work.
+
 ## 0.1.0 - 2026-11-16
 
 ### Added

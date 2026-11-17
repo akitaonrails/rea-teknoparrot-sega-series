@@ -350,7 +350,7 @@ impl App {
                 self.folder.clear();
                 self.bios = self
                     .config
-                    .chihiro_bios
+                    .bios
                     .as_ref()
                     .map(|p| p.display().to_string())
                     .unwrap_or_default();
@@ -424,10 +424,7 @@ impl App {
     fn submit_bios(&mut self) {
         let file = typed_path(&self.bios);
         if self.bios.trim().is_empty() {
-            self.bios_note = Some((
-                "Type the path of your Chihiro BIOS folder first.".into(),
-                false,
-            ));
+            self.bios_note = Some(("Type the path of your BIOS folder first.".into(), false));
             return;
         }
         if !file.is_dir() {
@@ -440,9 +437,9 @@ impl App {
             ));
             return;
         }
-        self.config.chihiro_bios = Some(std::path::absolute(&file).unwrap_or(file));
+        self.config.bios = Some(std::path::absolute(&file).unwrap_or(file));
         self.bios_note = Some(match self.save_config() {
-            Ok(()) => ("Chihiro BIOS folder saved.".to_string(), true),
+            Ok(()) => ("BIOS folder saved.".to_string(), true),
             Err(e) => (e, false),
         });
     }
@@ -1391,9 +1388,11 @@ impl App {
             say(ui, "folder", fr, &line);
             y = fr.bottom();
         }
-        if matches!(g.route, Route::Cxbx) && self.config.chihiro_bios.is_none() && state.playable()
+        if matches!(g.route, Route::Cxbx | Route::Flycast { .. })
+            && self.config.bios.is_none()
+            && state.playable()
         {
-            let note = "Needs the Chihiro BIOS folder: add it in Settings.";
+            let note = "Needs your BIOS folder: add it in Settings.";
             let nr = wrapped(
                 p,
                 pos2(x, y + 4.0),
@@ -2181,12 +2180,12 @@ impl App {
         y = fr.bottom() + 8.0;
         y = self.note_line(ui, p, "folder-note", &self.folder_note, x, y, w) + 12.0;
 
-        // the Chihiro BIOS folder
+        // the BIOS folder (the Chihiro files, F355's NAOMI BIOS)
         let hr = text(
             p,
             pos2(x, y),
             Align2::LEFT_TOP,
-            "Chihiro BIOS folder, needed for OutRun 2 SP and Crazy Taxi High Roller",
+            "BIOS folder, needed for OutRun 2 SP, Crazy Taxi High Roller and F355 Challenge 2",
             theme::semibold(size::LABEL),
             INK,
         );
@@ -2194,7 +2193,7 @@ impl App {
             ui,
             "bios-heading",
             hr,
-            "Chihiro BIOS folder, needed for OutRun 2 SP and Crazy Taxi High Roller",
+            "BIOS folder, needed for OutRun 2 SP, Crazy Taxi High Roller and F355 Challenge 2",
         );
         y += 30.0;
         let fr = Rect::from_min_size(pos2(x, y), vec2(field_w, 46.0));
@@ -2204,9 +2203,9 @@ impl App {
             fr,
             TextField {
                 id: "bios-field",
-                label: "Chihiro BIOS folder",
+                label: "BIOS folder",
                 text: &self.bios,
-                placeholder: "/path/to/bios/chihiro",
+                placeholder: "/path/to/bios",
                 focused: self.model.focus == Focus::BiosField,
             },
             || clicks.push(Click::Focus(Focus::BiosField, None)),
@@ -2229,7 +2228,7 @@ impl App {
         }
         y = fr.bottom() + 8.0;
         if self.bios_note.is_none()
-            && let Some(b) = &self.config.chihiro_bios
+            && let Some(b) = &self.config.bios
         {
             let line = format!("In use: {}", b.display());
             let lr = text(
@@ -3229,7 +3228,7 @@ mod tests {
     }
 
     #[test]
-    fn the_first_run_takes_the_chihiro_bios_path() {
+    fn the_first_run_takes_the_bios_path() {
         let t = tempfile::tempdir().unwrap();
         let paths = paths_in(t.path());
         let lib = t.path().join("games");
@@ -3240,14 +3239,14 @@ mod tests {
         click_button(&mut h, "Folders and BIOS");
 
         click_button(&mut h, "Use BIOS");
-        assert!(says(&h, "Type the path of your Chihiro BIOS folder first."));
-        let field = h.get_by_role_and_label(Role::TextInput, "Chihiro BIOS folder");
+        assert!(says(&h, "Type the path of your BIOS folder first."));
+        let field = h.get_by_role_and_label(Role::TextInput, "BIOS folder");
         field.click();
         field.type_text("/no/such/chihiro");
         h.run_steps(3);
         click_button(&mut h, "Use BIOS");
         assert!(says(&h, "isn't a folder this computer can open"));
-        assert_eq!(paths.config().chihiro_bios, None);
+        assert_eq!(paths.config().bios, None);
 
         // a file is not the BIOS folder
         let file = t.path().join("chihiro.zip");
@@ -3259,19 +3258,19 @@ mod tests {
         let bios = t.path().join("bios/chihiro");
         std::fs::create_dir_all(&bios).unwrap();
         h.state_mut().bios.clear();
-        let field = h.get_by_role_and_label(Role::TextInput, "Chihiro BIOS folder");
+        let field = h.get_by_role_and_label(Role::TextInput, "BIOS folder");
         field.click();
         field.type_text(&bios.display().to_string());
         h.run_steps(3);
         click_button(&mut h, "Use BIOS");
-        assert!(says(&h, "Chihiro BIOS folder saved."));
-        assert_eq!(paths.config().chihiro_bios, Some(bios.clone()));
+        assert!(says(&h, "BIOS folder saved."));
+        assert_eq!(paths.config().bios, Some(bios.clone()));
         // the folders are kept next to it
         assert_eq!(paths.config().libraries.len(), 1);
     }
 
     #[test]
-    fn a_chihiro_game_without_the_bios_says_so_on_its_page() {
+    fn a_chihiro_or_naomi_game_without_the_bios_says_so_on_its_page() {
         let t = tempfile::tempdir().unwrap();
         let mut h = hub(t.path());
         let g = chihiro();
@@ -3281,19 +3280,13 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         h.state_mut().entries = Some(vec![fake_entry(g.slug, &dir)]);
         select(&mut h, g.slug);
-        assert!(says(&h, "Needs the Chihiro BIOS folder"));
+        assert!(says(&h, "Needs your BIOS folder"));
         select(&mut h, ready().slug);
-        assert!(
-            h.query_by_label_contains("Needs the Chihiro BIOS")
-                .is_none()
-        );
+        assert!(h.query_by_label_contains("Needs your BIOS").is_none());
         select(&mut h, g.slug);
-        h.state_mut().config.chihiro_bios = Some(t.path().into());
+        h.state_mut().config.bios = Some(t.path().into());
         h.run_steps(3);
-        assert!(
-            h.query_by_label_contains("Needs the Chihiro BIOS")
-                .is_none()
-        );
+        assert!(h.query_by_label_contains("Needs your BIOS").is_none());
     }
 
     // ------------------------------------------------------------ controls

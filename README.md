@@ -13,9 +13,9 @@ This project contains no game files: you need your own dumps.
 
 > **Work in progress.** OutRun 2 SP SDX, SEGA Rally 3, SEGA Racing Classic and
 > Daytona Championship USA play full races through the launcher on Linux.
-> OutRun 2 SP Special Tours and Crazy Taxi High Roller need three Chihiro
-> BIOS files and are still being brought up, and so is F355 Challenge 2.
-> Wheels, the
+> F355 Challenge 2 starts and reaches its attract mode on Linux, but hasn't
+> been played with controls yet. OutRun 2 SP Special Tours and Crazy Taxi
+> High Roller are still being brought up. Wheels, the
 > Windows build and the Steam Deck are not tested on hardware yet
 > ([docs/RUNTIME_NOTES.md](docs/RUNTIME_NOTES.md)). Reports are welcome at
 > <https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues>.
@@ -50,8 +50,10 @@ repository, with its poster image. -->
 - Linux on x86-64 with a Vulkan driver, gamescope and bubblewrap (most
   gaming setups have them). The release package brings Wine, the loaders
   and everything else.
-- For the two Chihiro games: your Chihiro BIOS folder with MAME's
-  `chihiro` files (media board ROM and the three base-board EEPROMs).
+- Your BIOS folder, for three of the games (EmuDeck's `bios` folder works):
+  F355 Challenge 2 needs MAME's `f355bios.zip`; the two Chihiro games need
+  MAME's `chihiro` files (media board ROM and the three base-board
+  EEPROMs).
 - A wheel or a gamepad. The keyboard works for menus only.
 
 The launcher runs the dumps as the arcade community distributes them. Their
@@ -72,8 +74,9 @@ windowsarcadeloader games without Wine. It is not tested on Windows yet.
 
 The first window asks for the folder that holds your game folders. Type its
 path and press **Add folder**; add more folders if your games are spread out.
-The launcher looks inside, lists what it found, and opens the hub. For the
-Chihiro games, add your BIOS folder under **Settings → Folders and BIOS**.
+The launcher looks inside, lists what it found, and opens the hub. For
+F355 Challenge 2 and the Chihiro games, add your BIOS folder under
+**Settings → Folders and BIOS**.
 
 ## The settings window
 
@@ -110,7 +113,7 @@ settings file and a flag for `--play <game>` or `--set <game>`:
 | Stick dead zone | `--deadzone 0-30` | How far a stick moves before the car steers |
 
 Other commands: `--list` (what was found), `--check [<game>]` (what could
-start, without starting), `--library <folder>`, `--chihiro-bios <folder>`,
+start, without starting), `--library <folder>`, `--bios <folder>`,
 `--help`.
 
 ## Where things live
@@ -139,9 +142,10 @@ start, without starting), `--library <folder>`, `--chihiro-bios <folder>`,
 - Daytona Championship USA: the view and gear buttons are mapped from the
   game's own table but not yet seen working in a race (races so far used the
   automatic transmission). Coins are needed (free play off).
-- F355 Challenge 2 can't start yet: Flycast runs it as two linked NAOMI
-  boards (it needs your `naomi.zip` and `f355bios.zip`), and that setup is
-  still being brought up.
+- F355 Challenge 2 runs only in the Linux version for now. Its two linked
+  boards sometimes fail to find each other at boot; the launcher then starts
+  the game again by itself, so the first start can take a minute or two.
+  Wheels aren't set up for it yet; use a pad or the keyboard.
 - OutRun 2 SP SDX runs only in the Linux version (it's a Linux game).
 - No wheel has been tried on hardware yet.
 

@@ -24,8 +24,10 @@ pub struct Paths {
 pub struct Config {
     /// Folders the games are looked for in.
     pub libraries: Vec<PathBuf>,
-    /// The Chihiro BIOS folder (MAME `chihiro` files).
-    pub chihiro_bios: Option<PathBuf>,
+    /// The player's BIOS folder: MAME's `chihiro` files, F355's
+    /// `f355bios.zip` (at the top or in a `chihiro`, `dc` or `naomi`
+    /// folder, as EmuDeck keeps them).
+    pub bios: Option<PathBuf>,
 }
 
 impl Config {
@@ -38,7 +40,8 @@ impl Config {
             let v = v.trim();
             match k.trim() {
                 "library" if !v.is_empty() => c.libraries.push(v.into()),
-                "chihiro_bios" if !v.is_empty() => c.chihiro_bios = Some(v.into()),
+                // `chihiro_bios`: what 0.1.0 wrote
+                "bios" | "chihiro_bios" if !v.is_empty() => c.bios = Some(v.into()),
                 _ => {}
             }
         }
@@ -50,8 +53,8 @@ impl Config {
         for l in &self.libraries {
             s.push_str(&format!("library = {}\n", l.display()));
         }
-        if let Some(b) = &self.chihiro_bios {
-            s.push_str(&format!("chihiro_bios = {}\n", b.display()));
+        if let Some(b) = &self.bios {
+            s.push_str(&format!("bios = {}\n", b.display()));
         }
         s
     }
@@ -122,6 +125,9 @@ impl Paths {
             runner: self.components.join("runner"),
             winetricks: self.components.join("winetricks"),
             directx: self.components.join("directx"),
+            flycast: self.components.join("flycast"),
+            // Flycast starts F355's boards through this program
+            launcher: std::env::current_exe().unwrap_or_else(|_| "sega-launcher".into()),
         }
     }
 
@@ -165,9 +171,18 @@ mod tests {
         c.add_library(Path::new("/roms/TeknoParrot"));
         c.add_library(Path::new("/roms/arcade"));
         c.add_library(Path::new("/roms/arcade"));
-        c.chihiro_bios = Some("/bios/chihiro".into());
+        c.bios = Some("/bios".into());
         assert_eq!(Config::parse(&c.save()), c);
         assert_eq!(c.libraries.len(), 2);
+    }
+
+    #[test]
+    fn the_bios_folder_that_0_1_0_saved_still_reads() {
+        let c = Config::parse(
+            "# Written by the launcher.\nlibrary = /g\nchihiro_bios = /bios/chihiro\n",
+        );
+        assert_eq!(c.bios, Some(PathBuf::from("/bios/chihiro")));
+        assert!(c.save().contains("bios = /bios/chihiro\n"));
     }
 
     #[test]

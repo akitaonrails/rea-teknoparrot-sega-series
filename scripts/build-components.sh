@@ -11,13 +11,15 @@
 #   winetricks  pinned, checked by SHA-256 (windowsarcadeloader installs native XAudio with it)
 #   directx/    Microsoft's DirectX June 2010 redistributable, checked by SHA-256: winetricks'
 #               xact verb reads it from here (W_CACHE), so the first start needs no download
+#   flycast/    Flycast 2.7 (GPL-2.0), its official Linux AppImage unpacked (usr/: the program
+#               and the libraries it carries), checked by SHA-256, with its licence (F355)
 #   art/ fonts/ the window's original illustrations and the Barlow typefaces (OFL)
-# usage: scripts/build-components.sh <components dir> [lindbergh|wal|runner|winetricks|directx|assets ...]
+# usage: scripts/build-components.sh <components dir> [lindbergh|wal|runner|winetricks|directx|flycast|assets ...]
 # LAUNCHER_FEATURES: passed to windowsarcadeloader's build (packages: sdl3/build-from-source-static)
 set -eu
 here=$(cd "$(dirname "$0")/.." && pwd)
 out=$(mkdir -p "$1" && cd "$1" && pwd); shift
-parts=${*:-lindbergh wal runner winetricks directx assets}
+parts=${*:-lindbergh wal runner winetricks directx flycast assets}
 work="$out/.build"; mkdir -p "$work"
 
 LINDBERGH_REPO=https://github.com/lindbergh-loader/lindbergh-loader
@@ -36,6 +38,10 @@ WINETRICKS_SHA256=431f82fc74000e6c864409f1d8fb495d696c03928808e3e8acffc45179312a
 # refuses any file but this one
 DIRECTX_URL=https://files.holarse-linuxgaming.de/mirrors/microsoft/directx_Jun2010_redist.exe
 DIRECTX_SHA256=8746ee1a84a083a90e37899d71d50d5c7c015e69688a466aa80447f011780c0d
+FLYCAST_URL=https://github.com/flyinghead/flycast/releases/download/v2.7/flycast-x86_64-2.7.AppImage
+FLYCAST_SHA256=5b9f8a636a6acb8446bc78fe96650d8cb8233ac9f8ce69665dab3f39a1cbaae1
+FLYCAST_LICENSE_URL=https://raw.githubusercontent.com/flyinghead/flycast/v2.7/LICENSE
+FLYCAST_LICENSE_SHA256=8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643
 
 checkout() { # repo commit dir
   [ -d "$3/.git" ] || git clone -q "$1" "$3"
@@ -109,6 +115,21 @@ directx)
   echo "$DIRECTX_SHA256  $f" | sha256sum -c -
   # winetricks' cache layout: <W_CACHE>/directx9/<file>
   mkdir -p "$out/directx/directx9"; cp "$f" "$out/directx/directx9/"
+  ;;
+flycast)
+  f="$work/flycast-x86_64-2.7.AppImage"
+  [ -f "$f" ] || curl -fsSL -o "$f" "$FLYCAST_URL"
+  echo "$FLYCAST_SHA256  $f" | sha256sum -c -
+  # the AppImage unpacks itself (no FUSE needed); its program finds the libraries beside it
+  # (RUNPATH $ORIGIN/../lib)
+  rm -rf "$work/squashfs-root"; chmod +x "$f"
+  (cd "$work" && "$f" --appimage-extract >/dev/null)
+  rm -rf "$out/flycast"; mkdir -p "$out/flycast"
+  mv "$work/squashfs-root/usr" "$out/flycast/usr"; rm -rf "$work/squashfs-root"
+  l="$work/flycast-LICENSE"
+  [ -f "$l" ] || curl -fsSL -o "$l" "$FLYCAST_LICENSE_URL"
+  echo "$FLYCAST_LICENSE_SHA256  $l" | sha256sum -c -
+  cp "$l" "$out/flycast/LICENSE"
   ;;
 assets)
   rm -rf "$out/art" "$out/fonts"; cp -r "$here/assets/art" "$out/art"; cp -r "$here/assets/fonts" "$out/fonts"

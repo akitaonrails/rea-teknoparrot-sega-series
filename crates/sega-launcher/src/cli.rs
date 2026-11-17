@@ -98,7 +98,7 @@ pub fn usage() -> String {
         "sega-launcher — the Sega arcade racers on TeknoParrot dumps\n\n\
          \x20 sega-launcher                       open the window (games, settings, controls)\n\
          \x20 sega-launcher --library <folder>    add a folder with your games (repeatable)\n\
-         \x20 sega-launcher --chihiro-bios <folder>  your Chihiro BIOS folder\n\
+         \x20 sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)\n\
          \x20 sega-launcher --list                list the games found and their state\n\
          \x20 sega-launcher --check [<game>]      check a game (or all) can start, without starting\n\
          \x20 sega-launcher --play <game> [options]  start a game ({})\n\
@@ -165,7 +165,8 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Result<Invocation, Strin
                 });
             }
             "--library" => inv.libraries.push(value("a folder")?.into()),
-            "--chihiro-bios" => inv.bios = Some(value("a folder")?.into()),
+            // --chihiro-bios: 0.1.0's name
+            "--bios" | "--chihiro-bios" => inv.bios = Some(value("a folder")?.into()),
             "--list" => set_mode(&mut mode, Mode::List)?,
             "--check" => {
                 let game = match it.peek() {
@@ -302,8 +303,11 @@ mod tests {
 
     #[test]
     fn library_and_bios_alone_configure() {
-        let inv = parse_v(&["--library", "/games", "--chihiro-bios", "/bios"]).unwrap();
+        let inv = parse_v(&["--library", "/games", "--bios", "/bios"]).unwrap();
         assert_eq!(inv.mode, Mode::Configure);
+        assert_eq!(inv.bios, Some(PathBuf::from("/bios")));
+        let old = parse_v(&["--chihiro-bios", "/bios/chihiro"]).unwrap();
+        assert_eq!(old.bios, Some(PathBuf::from("/bios/chihiro")));
         assert_eq!(inv.libraries, [PathBuf::from("/games")]);
         assert!(inv.is_action());
     }

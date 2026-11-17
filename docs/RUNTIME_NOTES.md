@@ -38,7 +38,8 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 | then | Cxbx starts, patches the XBE (HLE), needs `boot.id` beside the XBE (keep it in the runtime), extracts SEGABOOT from the media board ROM and boots it |
 | with zero-filled stand-ins for the three base-board EEPROMs (a probe only) | the screen stays black for two minutes. |
 | 2026-11-16, the owner's real `ic10_g24lc64` (sha1 `3ababd43…`), `pc20_g24lc64.bin`, `ic11_24lc024.bin` and `EEPROM.bin`, through `cxbxr-ldr.exe` | no window at all: SEGABOOT's reboot starts a second `cxbxr-ldr.exe … Partition3.bin /chihiro /sid …` and the first exits, so the session's shared memory goes with it and the second runs silent |
-| the same through `cxbx.exe <xbe>` (its GUI keeps the session) | Chihiro mode is detected, SEGABOOT reboots into `OUTRUN2.XBE`, the emulator runs (about one CPU core busy), and its window stays black after 75 s, windowed and full screen, in gamescope's capture and in a direct X capture. **Still blocked**: next is a visible run, and Cxbx's own Chihiro compatibility for these two titles |
+| the same through `cxbx.exe <xbe>` (its GUI keeps the session) | Chihiro mode is detected, SEGABOOT reboots into `OUTRUN2.XBE`, the emulator runs (about one CPU core busy), and its window stays black after 75 s, windowed and full screen, in gamescope's capture and in a direct X capture. Still blocked (see the next row) |
+| 2026-11-16, visible run on the owner's display (`cxbx.exe <xbe>`, windowed), with DXVK's `d3d9.dll` and then Wine's own `d3d9` (wined3d, OpenGL) | the game runs: its sound plays and Cxbx's counter reads about 15 FPS. With DXVK the render window keeps Cxbx's splash logo; with wined3d it is black (the owner watched it and confirmed). The game's shaders compile, but nothing is drawn. **Blocked on Cxbx-Reloaded's emulation of this title**, not on Wine or our setup. (The owner's Hyprland rules send `steam_proton` windows to workspace 9, which is why the earlier visible attempt seemed to show no window.) |
 
 ## Daytona Championship USA (2026-11-15)
 
@@ -56,6 +57,12 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 | with `naomi.zip` only | "cannot load BIOS f355bios": the F355 cabinet BIOS (`epr-22849/22850/22851.ic27`) is its own set; the owner's `bios/dc/f355bios.zip` has it |
 | with `f355bios.zip` | Flycast always runs F355 as a multiboard game: the master waits forever ("Time out waiting for multiboard vsync. Slave 0") when started as `flycast`, because it restarts itself for the slave with `execv(argv[0])`, which doesn't search `PATH`. Started as `/usr/bin/flycast`, the slave boots ("naomi multi system… found my master, being named…"). |
 | then | gamescope shows the focused window, which is the slave's: the master's picture was not seen yet. **Blocked** until the two boards are shown properly (the slave hidden, or its own display). |
+| 2026-11-16, both boards visible on the owner's display | in F355 Twin the **slave draws the game** (its window is titled "Ferrari F355 Challenge 2"); the master shows only the BIOS's screens. The cabinet had one screen per board, so one window is the slave's. |
+| the master with `SDL_VIDEODRIVER=offscreen`, the slave re-run through a wrapper as `argv[0]` with `SDL_VIDEODRIVER=x11`, headless gamescope, private null sink | one window, the slave's: "naomi multi system", then the attract mode and "PRESS START BUTTON / FREE PLAY". The slave must be the master's direct child (it opens `/naomi_multiboard_mem<getppid()>`), so the wrapper `exec`s. Flycast sets SDL's joystick background-events hint itself; the slave forwards its keyboard to the master. |
+| boot reliability, Flycast 2.7 AppImage and the box's 2.7 git build, unpinned | 1 boot in 6 reached the game; the others stopped at "being named..." with `W[INTERPRETER]: TRAP #50` (10 s in, or after the second `System reset` near 45 s). Upstream knows it: flycast#1909, #1630 (the author needed 6 or 7 tries for Twin 2; worse on CPUs with cores of different speeds). |
+| pinned with `taskset` to one CCD of the Ryzen 9 7950X3D | CCD0 (0-7,16-23): 3 boots in 4; CCD1 (8-15,24-31, the one Linux ranks fastest): 2 in 4. The launcher pins to the fastest CPU's cache domain (P-cores only on hybrid Intel CPUs) and restarts on `TRAP #50` in the first 90 s, up to 6 tries. |
+| through the launcher (`--play f355 --headless`, bundled Flycast 2.7, BIOS folder = EmuDeck's `bios`, 2026-11-16) | `taskset -c 8-15,24-31` in the session, `f355bios.zip` found in `bios/dc/` (`naomi.zip` isn't needed), the set packed into `runtimes/f355/f355twn2.zip` (stored): **attract mode and "PRESS START BUTTON" on the first try**; another run hung at 46 s, was stopped and started again by itself (try 2 of 6). No sound reached the host. Not played with controls yet. |
+| stopping (`--seconds`) | SDL turns SIGTERM into a quit event: the master saves the cabinet's memory (`flycast/data/flycast/f355twn2.zip.nvmem`, written at the stop) and lets its slave go; the slave prints "Slave exiting" and stays on Flycast's error screen, so the session ends what's left at that line: the stop takes about 2 s, 0 leftover processes. Making the slave die on SIGTERM instead was tried and is wrong: the master then waits for its vsync and is killed without saving. A stop during the boards' first seconds still waits for the 8 s kill. |
 
 ## Quitting and leftovers
 
@@ -67,6 +74,8 @@ winetricks 20260125, lindbergh-loader `0af606d`.
 | SIGINT/SIGTERM to the launcher (`--play` in a terminal, Ctrl+C) | the same stop path as the first row (signal-hook sets the stop flag); not run separately yet | not run separately yet | not run separately yet |
 
 ## Not verified yet
+
+- F355 Challenge 2 played with controls: a pad (Flycast's own layout, read by the master board off screen) and the keyboard (the slave forwards it); wheels aren't mapped for Flycast yet. A visible window, closing it, and render sizes above 640x480 (the launcher keeps the cabinet's size for now).
 
 - OutRun 2 SP SDX with a wheel: the launcher writes the wheel's SDL GUID and axes into lindbergh-loader's `controls.ini` (steering on the guessed axis, pedals by where they rest, `_INVERTED` when they rest at the top); not tried on hardware.
 - Any wheel on hardware: steering lock, force feedback direction and strength, pedals on a second USB device (the owner's wheel).

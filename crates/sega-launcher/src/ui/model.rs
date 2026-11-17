@@ -26,7 +26,7 @@ pub enum Input {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Page {
-    /// Library folders and the Chihiro BIOS folder: the first run, and again from Settings.
+    /// Library folders and the BIOS folder: the first run, and again from Settings.
     FirstRun,
     Hub,
     Controls,

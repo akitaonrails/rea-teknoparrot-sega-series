@@ -44,6 +44,8 @@ fn every_look_of_every_game() {
         runner: "/c/runner".into(),
         winetricks: "/c/winetricks".into(),
         directx: "/c/directx".into(),
+        flycast: "/c/flycast".into(),
+        launcher: "/pkg/sega-launcher".into(),
     };
     let mut out = String::new();
     for host in [Host::Linux, Host::Windows] {
@@ -52,6 +54,10 @@ fn every_look_of_every_game() {
                 runtime: PathBuf::from("/d/runtimes").join(g.slug),
                 wal_root: "/d/wal".into(),
                 wheel: None,
+                bios: launch::bios_names(g)
+                    .iter()
+                    .map(|n| PathBuf::from("/bios").join(n))
+                    .collect(),
             };
             for look in Look::ALL {
                 let mut s = Settings::default();
@@ -72,6 +78,12 @@ fn every_look_of_every_game() {
                         }
                         let _ = writeln!(out, "gamescope {}", plan.gamescope.join(" "));
                         let _ = writeln!(out, "input {:?}", plan.input_pipe);
+                        if let Some(m) = plan.boot_hang {
+                            let _ = writeln!(out, "restart on {m:?}");
+                        }
+                        if plan.one_cache {
+                            let _ = writeln!(out, "one cache domain");
+                        }
                         for (at, target) in &plan.links {
                             let _ = writeln!(out, "link {} -> {}", p(at), p(target));
                         }

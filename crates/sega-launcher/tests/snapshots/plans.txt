@@ -419,11 +419,71 @@ env:
   WAL_SEGASHELL_FFB: "100"
 
 == Linux f355 original
-not yet: F355 Challenge 2 can't be started yet.
+size 640x480
+run /pkg/sega-launcher /d/runtimes/f355/f355twn2.zip
+cwd /d/runtimes/f355
+env SEGA_FLYCAST=/c/flycast/usr/bin/flycast
+env XDG_CONFIG_HOME=/d/runtimes/f355/flycast/config
+env XDG_DATA_HOME=/d/runtimes/f355/flycast/data
+gamescope -w 640 -h 480 -W 2560 -H 1440 -r 60 -F linear -f
+input None
+restart on "TRAP #50"
+one cache domain
+link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
+file /d/runtimes/f355/flycast/config/flycast/emu.cfg
+# Written by the launcher before every start.
+[config]
+rend.Resolution = 480
+[window]
+fullscreen = no
+maximized = no
+width = 640
+height = 480
+
 == Linux f355 recommended
-not yet: F355 Challenge 2 can't be started yet.
+size 640x480
+run /pkg/sega-launcher /d/runtimes/f355/f355twn2.zip
+cwd /d/runtimes/f355
+env SEGA_FLYCAST=/c/flycast/usr/bin/flycast
+env XDG_CONFIG_HOME=/d/runtimes/f355/flycast/config
+env XDG_DATA_HOME=/d/runtimes/f355/flycast/data
+gamescope -w 640 -h 480 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
+input None
+restart on "TRAP #50"
+one cache domain
+link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
+file /d/runtimes/f355/flycast/config/flycast/emu.cfg
+# Written by the launcher before every start.
+[config]
+rend.Resolution = 480
+[window]
+fullscreen = no
+maximized = no
+width = 640
+height = 480
+
 == Linux f355 steam_deck
-not yet: F355 Challenge 2 can't be started yet.
+size 640x480
+run /pkg/sega-launcher /d/runtimes/f355/f355twn2.zip
+cwd /d/runtimes/f355
+env SEGA_FLYCAST=/c/flycast/usr/bin/flycast
+env XDG_CONFIG_HOME=/d/runtimes/f355/flycast/config
+env XDG_DATA_HOME=/d/runtimes/f355/flycast/data
+gamescope -w 640 -h 480 -W 1280 -H 800 -r 60 -F linear -f
+input None
+restart on "TRAP #50"
+one cache domain
+link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
+file /d/runtimes/f355/flycast/config/flycast/emu.cfg
+# Written by the launcher before every start.
+[config]
+rend.Resolution = 480
+[window]
+fullscreen = no
+maximized = no
+width = 640
+height = 480
+
 == Windows or2sdx original
 size 800x480
 run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
@@ -818,8 +878,8 @@ env:
   WAL_SEGASHELL_FFB: "100"
 
 == Windows f355 original
-not yet: F355 Challenge 2 can't be started yet.
+not yet: F355 Challenge 2 runs in the Linux version of the launcher for now.
 == Windows f355 recommended
-not yet: F355 Challenge 2 can't be started yet.
+not yet: F355 Challenge 2 runs in the Linux version of the launcher for now.
 == Windows f355 steam_deck
-not yet: F355 Challenge 2 can't be started yet.
+not yet: F355 Challenge 2 runs in the Linux version of the launcher for now.
