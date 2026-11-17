@@ -1,0 +1,411 @@
+== or2sdx settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="OutRun 2 SP SDX settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1800 × 1080" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Screen size" value="1920 × 1080 (1080p)" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="FSR 1 (sharp upscale)" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest (Linux)." [67 460 809 516]
+        Button label="Sharpness: previous" [493 466 524 510]
+        Button label="Sharpness: next" [767 466 798 510]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="This game reads your wheel itself: set the lock and strength in your wheel's software." disabled [67 571 809 627]
+        Button label="Force feedback" value="100%" description="This game reads your wheel itself: set the lock and strength in your wheel's software." disabled [67 627 809 682]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== or2sp settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="OutRun 2 SP Special Tours settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1440 × 1080" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Screen size" value="1920 × 1080 (1080p)" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="FSR 1 (sharp upscale)" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest (Linux)." [67 460 809 516]
+        Button label="Sharpness: previous" [493 466 524 510]
+        Button label="Sharpness: next" [767 466 798 510]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 571 809 627]
+        Button label="Steering lock: previous" [493 577 524 621]
+        Button label="Steering lock: next" [767 577 798 621]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 627 809 682]
+        Button label="Force feedback: previous" [493 632 524 677]
+        Button label="Force feedback: next" [767 632 798 677]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== cthr settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="Crazy Taxi High Roller settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1440 × 1080" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Screen size" value="1920 × 1080 (1080p)" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="FSR 1 (sharp upscale)" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest (Linux)." [67 460 809 516]
+        Button label="Sharpness: previous" [493 466 524 510]
+        Button label="Sharpness: next" [767 466 798 510]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 571 809 627]
+        Button label="Steering lock: previous" [493 577 524 621]
+        Button label="Steering lock: next" [767 577 798 621]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 627 809 682]
+        Button label="Force feedback: previous" [493 632 524 677]
+        Button label="Force feedback: next" [767 632 798 677]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== sr3 settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Rally 3 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1920 × 1080 (1080p)" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Screen size" value="1920 × 1080 (1080p)" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="FSR 1 (sharp upscale)" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest (Linux)." [67 460 809 516]
+        Button label="Sharpness: previous" [493 466 524 510]
+        Button label="Sharpness: next" [767 466 798 510]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 571 809 627]
+        Button label="Steering lock: previous" [493 577 524 621]
+        Button label="Steering lock: next" [767 577 798 621]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 627 809 682]
+        Button label="Force feedback: previous" [493 632 524 677]
+        Button label="Force feedback: next" [767 632 798 677]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== src settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Racing Classic settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1920 × 1080 (1080p)" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Screen size" value="1920 × 1080 (1080p)" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="FSR 1 (sharp upscale)" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest (Linux)." [67 460 809 516]
+        Button label="Sharpness: previous" [493 466 524 510]
+        Button label="Sharpness: next" [767 466 798 510]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 571 809 627]
+        Button label="Steering lock: previous" [493 577 524 621]
+        Button label="Steering lock: next" [767 577 798 621]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 627 809 682]
+        Button label="Force feedback: previous" [493 632 524 677]
+        Button label="Force feedback: next" [767 632 798 677]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== dcusa settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="Daytona Championship USA settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="Native, 1920 × 1080 (1080p)" description="This game always draws at its own size; the upscaler still fits it to your screen." disabled [67 293 809 349]
+        Button label="Screen size" value="1920 × 1080 (1080p)" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="FSR 1 (sharp upscale)" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest (Linux)." [67 460 809 516]
+        Button label="Sharpness: previous" [493 466 524 510]
+        Button label="Sharpness: next" [767 466 798 510]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 571 809 627]
+        Button label="Steering lock: previous" [493 577 524 621]
+        Button label="Steering lock: next" [767 577 798 621]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 627 809 682]
+        Button label="Force feedback: previous" [493 632 524 677]
+        Button label="Force feedback: next" [767 632 798 677]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== f355 settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="F355 Challenge 2 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1440 × 1080" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Screen size" value="1920 × 1080 (1080p)" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="FSR 1 (sharp upscale)" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest (Linux)." [67 460 809 516]
+        Button label="Sharpness: previous" [493 466 524 510]
+        Button label="Sharpness: next" [767 466 798 510]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 571 809 627]
+        Button label="Steering lock: previous" [493 577 524 621]
+        Button label="Steering lock: next" [767 577 798 621]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 627 809 682]
+        Button label="Force feedback: previous" [493 632 524 677]
+        Button label="Force feedback: next" [767 632 798 677]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== f355 settings, look Steam Deck
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="F355 Challenge 2 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Steam Deck" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1066 × 800" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Screen size" value="1280 × 800" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="Smooth" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="Only FSR 1 and NVIDIA Image Scaling use sharpness." disabled [67 460 809 516]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 571 809 627]
+        Button label="Steering lock: previous" [493 577 524 621]
+        Button label="Steering lock: next" [767 577 798 621]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 627 809 682]
+        Button label="Force feedback: previous" [493 632 524 677]
+        Button label="Force feedback: next" [767 632 798 677]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Label value="Saved. The game uses it the next time you press Play."
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== f355 settings, look Steam Deck
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="F355 Challenge 2 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Steam Deck" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1066 × 800" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Screen size" value="1280 × 800" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="Smooth" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="Only FSR 1 and NVIDIA Image Scaling use sharpness." disabled [67 460 809 516]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 571 809 627]
+        Button label="Steering lock: previous" [493 577 524 621]
+        Button label="Steering lock: next" [767 577 798 621]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 627 809 682]
+        Button label="Force feedback: previous" [493 632 524 677]
+        Button label="Force feedback: next" [767 632 798 677]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Label value="Saved. The game uses it the next time you press Play."
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== f355 settings, look Steam Deck
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="F355 Challenge 2 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Steam Deck" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1066 × 800" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Screen size" value="1280 × 800" description="The size the picture is shown at on your screen (Linux)." [67 349 809 404]
+        Button label="Screen size: previous" [493 354 524 399]
+        Button label="Screen size: next" [767 354 798 399]
+        Button label="Upscaler" value="Smooth" description="How the picture is enlarged to the screen size (Linux)." [67 404 809 460]
+        Button label="Upscaler: previous" [493 410 524 454]
+        Button label="Upscaler: next" [767 410 798 454]
+        Button label="Sharpness" value="5" description="Only FSR 1 and NVIDIA Image Scaling use sharpness." disabled [67 460 809 516]
+        Button label="Full screen" value="On" description="Fills the screen; off shows the game in a window (Linux)." [67 516 809 571]
+        Button label="Full screen: previous" [493 521 524 566]
+        Button label="Full screen: next" [767 521 798 566]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 571 809 627]
+        Button label="Steering lock: previous" [493 577 524 621]
+        Button label="Steering lock: next" [767 577 798 621]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 627 809 682]
+        Button label="Force feedback: previous" [493 632 524 677]
+        Button label="Force feedback: next" [767 632 798 677]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 682 809 738]
+        Button label="Stick dead zone: previous" [493 688 524 732]
+        Button label="Stick dead zone: next" [767 688 798 732]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Label value="Saved. The game uses it the next time you press Play."
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"

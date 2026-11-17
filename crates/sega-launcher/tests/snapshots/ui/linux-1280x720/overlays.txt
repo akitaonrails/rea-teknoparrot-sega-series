@@ -1,0 +1,154 @@
+== getting the game ready
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Rally 3"
+        Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/sr3"
+        Button label="Play" disabled [56 454 226 504]
+        Button label="Settings" [242 454 412 504]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [56 548 214 637]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [224 548 383 637]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [393 548 551 637]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=True [561 548 719 637]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 548 887 637]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [897 548 1056 637]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1066 548 1224 637]
+        Tab label="Games" toggled=True [326 17 404 55]
+        Tab label="Controls" toggled=False [412 17 503 55]
+        Tab label="Settings" toggled=False [511 17 602 55]
+        Label value="Controller: No controller"
+        Label value="Getting SEGA Rally 3 ready…"
+        Label value="This takes a few seconds the first time."
+== an error, started: false
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Rally 3"
+        Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/sr3"
+        Button label="Play" [56 454 226 504]
+        Button label="Settings" [242 454 412 504]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [56 548 214 637]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [224 548 383 637]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [393 548 551 637]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=True [561 548 719 637]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 548 887 637]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [897 548 1056 637]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1066 548 1224 637]
+        Tab label="Games" toggled=True [326 17 404 55]
+        Tab label="Controls" toggled=False [412 17 503 55]
+        Tab label="Settings" toggled=False [511 17 602 55]
+        Label value="Controller: No controller"
+        Label value="SEGA Rally 3 couldn't start"
+        Label value="Starting gamescope (is it installed?).\n\nCheck that the game folder is complete, then try again. Details are in /data/launcher.log."
+        Button label="OK" [354 394 494 444]
+== getting the game ready
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Rally 3"
+        Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/sr3"
+        Button label="Play" disabled [56 454 226 504]
+        Button label="Settings" [242 454 412 504]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [56 548 214 637]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [224 548 383 637]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [393 548 551 637]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=True [561 548 719 637]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 548 887 637]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [897 548 1056 637]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1066 548 1224 637]
+        Tab label="Games" toggled=True [326 17 404 55]
+        Tab label="Controls" toggled=False [412 17 503 55]
+        Tab label="Settings" toggled=False [511 17 602 55]
+        Label value="Controller: No controller"
+        Label value="Getting SEGA Rally 3 ready…"
+        Label value="This takes a few seconds the first time."
+== the game running
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Rally 3"
+        Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/sr3"
+        Button label="Play" disabled [56 454 226 504]
+        Button label="Settings" [242 454 412 504]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [56 548 214 637]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [224 548 383 637]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [393 548 551 637]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=True [561 548 719 637]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 548 887 637]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [897 548 1056 637]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1066 548 1224 637]
+        Tab label="Games" toggled=True [326 17 404 55]
+        Tab label="Controls" toggled=False [412 17 503 55]
+        Tab label="Settings" toggled=False [511 17 602 55]
+        Label value="Controller: No controller"
+        Label value="SEGA Rally 3 is running"
+        Label value="Close the game window or press Stop to come back."
+        Button label="Stop" [550 455 730 505]
+== Stop pressed
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Rally 3"
+        Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/sr3"
+        Button label="Play" disabled [56 454 226 504]
+        Button label="Settings" [242 454 412 504]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [56 548 214 637]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [224 548 383 637]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [393 548 551 637]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=True [561 548 719 637]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 548 887 637]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [897 548 1056 637]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1066 548 1224 637]
+        Tab label="Games" toggled=True [326 17 404 55]
+        Tab label="Controls" toggled=False [412 17 503 55]
+        Tab label="Settings" toggled=False [511 17 602 55]
+        Label value="Controller: No controller"
+        Label value="SEGA Rally 3 is running"
+        Label value="Close the game window or press Stop to come back."
+        Button label="Stop" description="Stopping the game…" disabled [550 455 730 505]
+== an error, started: true
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Rally 3"
+        Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/sr3"
+        Button label="Play" [56 454 226 504]
+        Button label="Settings" [242 454 412 504]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [56 548 214 637]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [224 548 383 637]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [393 548 551 637]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=True [561 548 719 637]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 548 887 637]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [897 548 1056 637]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1066 548 1224 637]
+        Tab label="Games" toggled=True [326 17 404 55]
+        Tab label="Controls" toggled=False [412 17 503 55]
+        Tab label="Settings" toggled=False [511 17 602 55]
+        Label value="Controller: No controller"
+        Label value="SEGA Rally 3 stopped with an error"
+        Label value="Starting gamescope (is it installed?).\n\nTry again. If it happens again: Details are in /data/launcher.log."
+        Button label="OK" [354 394 494 444]

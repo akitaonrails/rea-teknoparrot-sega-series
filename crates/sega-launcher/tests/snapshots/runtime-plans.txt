@@ -1,0 +1,118 @@
+== or2sdx
+dir /rt/or2sdx
+link /rt/or2sdx/AMFS -> /dump/or2sdx/or2g/disk0/AMFS
+copy /dump/or2sdx/or2g/disk0/TeknoParrot.ini -> /rt/or2sdx/TeknoParrot.ini
+link /rt/or2sdx/big.bin -> /dump/or2sdx/or2g/disk0/big.bin
+link /rt/or2sdx/code.dll -> /dump/or2sdx/or2g/disk0/code.dll
+link /rt/or2sdx/data -> /dump/or2sdx/or2g/disk0/data
+link /rt/or2sdx/libfoo.so.1 -> /dump/or2sdx/or2g/disk0/libfoo.so.1
+copy /dump/or2sdx/or2g/disk0/old.windowsloader -> /rt/or2sdx/old.windowsloader
+copy /dump/or2sdx/or2g/disk0/small.ini -> /rt/or2sdx/small.ini
+dir /rt/or2sdx/Jennifer
+link /rt/or2sdx/Jennifer/Jennifer -> /dump/or2sdx/or2g/disk0/Jennifer/Jennifer
+copy /dump/or2sdx/or2g/disk0/Jennifer/config.ini -> /rt/or2sdx/Jennifer/config.ini
+link /rt/or2sdx/Jennifer/data.bin -> /dump/or2sdx/or2g/disk0/Jennifer/data.bin
+link /rt/or2sdx/Jennifer/sub -> /dump/or2sdx/or2g/disk0/Jennifer/sub
+dir /rt/or2sdx/Jennifer/recordedata
+copy /dump/or2sdx/or2g/disk0/Jennifer/recordedata/config.ini -> /rt/or2sdx/Jennifer/recordedata/config.ini
+link /rt/or2sdx/Jennifer/recordedata/data.bin -> /dump/or2sdx/or2g/disk0/Jennifer/recordedata/data.bin
+link /rt/or2sdx/Jennifer/recordedata/sub -> /dump/or2sdx/or2g/disk0/Jennifer/recordedata/sub
+dir /rt/or2sdx/Jennifer/rankingdata
+copy /dump/or2sdx/or2g/disk0/Jennifer/rankingdata/config.ini -> /rt/or2sdx/Jennifer/rankingdata/config.ini
+link /rt/or2sdx/Jennifer/rankingdata/data.bin -> /dump/or2sdx/or2g/disk0/Jennifer/rankingdata/data.bin
+link /rt/or2sdx/Jennifer/rankingdata/sub -> /dump/or2sdx/or2g/disk0/Jennifer/rankingdata/sub
+== or2sp
+dir /rt/or2sp
+link /rt/or2sp/AMFS -> /dump/or2sp/AMFS
+link /rt/or2sp/big.bin -> /dump/or2sp/big.bin
+link /rt/or2sp/code.dll -> /dump/or2sp/code.dll
+link /rt/or2sp/data -> /dump/or2sp/data
+link /rt/or2sp/libfoo.so.1 -> /dump/or2sp/libfoo.so.1
+copy /dump/or2sp/lindbergh.ini -> /rt/or2sp/lindbergh.ini
+copy /dump/or2sp/old.windowsloader -> /rt/or2sp/old.windowsloader
+link /rt/or2sp/outrun2.xbe -> /dump/or2sp/outrun2.xbe
+copy /dump/or2sp/small.ini -> /rt/or2sp/small.ini
+== cthr
+dir /rt/cthr
+link /rt/cthr/AMFS -> /dump/cthr/AMFS
+link /rt/cthr/big.bin -> /dump/cthr/big.bin
+link /rt/cthr/code.dll -> /dump/cthr/code.dll
+link /rt/cthr/ctx_ac[r].xbe -> /dump/cthr/ctx_ac[r].xbe
+link /rt/cthr/data -> /dump/cthr/data
+link /rt/cthr/libfoo.so.1 -> /dump/cthr/libfoo.so.1
+copy /dump/cthr/lindbergh.ini -> /rt/cthr/lindbergh.ini
+copy /dump/cthr/old.windowsloader -> /rt/cthr/old.windowsloader
+copy /dump/cthr/small.ini -> /rt/cthr/small.ini
+== sr3
+dir /rt/sr3
+copy /dump/sr3/TeknoParrot.ini -> /rt/sr3/TeknoParrot.ini
+link /rt/sr3/big.bin -> /dump/sr3/big.bin
+link /rt/sr3/code.dll -> /dump/sr3/code.dll
+link /rt/sr3/data -> /dump/sr3/data
+link /rt/sr3/libfoo.so.1 -> /dump/sr3/libfoo.so.1
+copy /dump/sr3/lindbergh.ini -> /rt/sr3/lindbergh.ini
+copy /dump/sr3/small.ini -> /rt/sr3/small.ini
+dir /rt/sr3/ShellData
+copy /dump/sr3/ShellData/config.ini -> /rt/sr3/ShellData/config.ini
+link /rt/sr3/ShellData/data.bin -> /dump/sr3/ShellData/data.bin
+link /rt/sr3/ShellData/sub -> /dump/sr3/ShellData/sub
+dir /rt/sr3/Shell
+copy /dump/sr3/Shell/config.ini -> /rt/sr3/Shell/config.ini
+link /rt/sr3/Shell/data.bin -> /dump/sr3/Shell/data.bin
+link /rt/sr3/Shell/sub -> /dump/sr3/Shell/sub
+dir /rt/sr3/Rally
+link /rt/sr3/Rally/Rally.exe -> /dump/sr3/Rally/Rally.exe
+copy /dump/sr3/Rally/config.ini -> /rt/sr3/Rally/config.ini
+link /rt/sr3/Rally/data.bin -> /dump/sr3/Rally/data.bin
+link /rt/sr3/Rally/sub -> /dump/sr3/Rally/sub
+== src
+dir /rt/src
+copy /dump/src/TeknoParrot.ini -> /rt/src/TeknoParrot.ini
+link /rt/src/big.bin -> /dump/src/big.bin
+link /rt/src/code.dll -> /dump/src/code.dll
+link /rt/src/d1a.exe -> /dump/src/d1a.exe
+link /rt/src/data -> /dump/src/data
+link /rt/src/libfoo.so.1 -> /dump/src/libfoo.so.1
+copy /dump/src/lindbergh.ini -> /rt/src/lindbergh.ini
+copy /dump/src/small.ini -> /rt/src/small.ini
+dir /rt/src/rom
+copy /dump/src/rom/config.ini -> /rt/src/rom/config.ini
+link /rt/src/rom/data.bin -> /dump/src/rom/data.bin
+link /rt/src/rom/sub -> /dump/src/rom/sub
+== dcusa
+dir /rt/dcusa
+copy /dump/dcusa/TeknoParrot.ini -> /rt/dcusa/TeknoParrot.ini
+link /rt/dcusa/big.bin -> /dump/dcusa/big.bin
+link /rt/dcusa/code.dll -> /dump/dcusa/code.dll
+link /rt/dcusa/data -> /dump/dcusa/data
+link /rt/dcusa/libfoo.so.1 -> /dump/dcusa/libfoo.so.1
+copy /dump/dcusa/lindbergh.ini -> /rt/dcusa/lindbergh.ini
+copy /dump/dcusa/small.ini -> /rt/dcusa/small.ini
+dir /rt/dcusa/Sega
+copy /dump/dcusa/Sega/config.ini -> /rt/dcusa/Sega/config.ini
+link /rt/dcusa/Sega/data.bin -> /dump/dcusa/Sega/data.bin
+link /rt/dcusa/Sega/sub -> /dump/dcusa/Sega/sub
+dir /rt/dcusa/Sega/shell
+copy /dump/dcusa/Sega/shell/config.ini -> /rt/dcusa/Sega/shell/config.ini
+link /rt/dcusa/Sega/shell/data.bin -> /dump/dcusa/Sega/shell/data.bin
+link /rt/dcusa/Sega/shell/sub -> /dump/dcusa/Sega/shell/sub
+dir /rt/dcusa/Sega/ShellData
+copy /dump/dcusa/Sega/ShellData/config.ini -> /rt/dcusa/Sega/ShellData/config.ini
+link /rt/dcusa/Sega/ShellData/data.bin -> /dump/dcusa/Sega/ShellData/data.bin
+link /rt/dcusa/Sega/ShellData/sub -> /dump/dcusa/Sega/ShellData/sub
+dir /rt/dcusa/Sega/Launcher
+copy /dump/dcusa/Sega/Launcher/config.ini -> /rt/dcusa/Sega/Launcher/config.ini
+link /rt/dcusa/Sega/Launcher/data.bin -> /dump/dcusa/Sega/Launcher/data.bin
+link /rt/dcusa/Sega/Launcher/sub -> /dump/dcusa/Sega/Launcher/sub
+dir /rt/dcusa/Sega/GameData
+copy /dump/dcusa/Sega/GameData/config.ini -> /rt/dcusa/Sega/GameData/config.ini
+link /rt/dcusa/Sega/GameData/data.bin -> /dump/dcusa/Sega/GameData/data.bin
+link /rt/dcusa/Sega/GameData/sub -> /dump/dcusa/Sega/GameData/sub
+dir /rt/dcusa/Sega/Daytona
+link /rt/dcusa/Sega/Daytona/Daytona.exe -> /dump/dcusa/Sega/Daytona/Daytona.exe
+copy /dump/dcusa/Sega/Daytona/config.ini -> /rt/dcusa/Sega/Daytona/config.ini
+link /rt/dcusa/Sega/Daytona/data.bin -> /dump/dcusa/Sega/Daytona/data.bin
+link /rt/dcusa/Sega/Daytona/sub -> /dump/dcusa/Sega/Daytona/sub
+== f355
+dir /rt/f355
+zip /rt/f355/f355twn2.zip <- /dump/f355/TeknoParrot.ini /dump/f355/big.bin /dump/f355/code.dll /dump/f355/epr-23399.ic22 /dump/f355/libfoo.so.1 /dump/f355/lindbergh.ini /dump/f355/old.windowsloader /dump/f355/small.ini

@@ -1,0 +1,42 @@
+== or2sdx headless false bwrap false cpus None
+["gamescope", "-w", "800", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "/c/lindbergh/lindbergh", "-c", "/d/runtimes/or2sdx/lindbergh.ini", "-o", "/d/runtimes/or2sdx/controls.ini", "-g", "/d/runtimes/or2sdx/Jennifer"]
+== or2sdx headless false bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "800", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/lindbergh/lindbergh", "-c", "/d/runtimes/or2sdx/lindbergh.ini", "-o", "/d/runtimes/or2sdx/controls.ini", "-g", "/d/runtimes/or2sdx/Jennifer"]
+== or2sdx headless true bwrap false cpus None
+["gamescope", "-w", "800", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "/c/lindbergh/lindbergh", "-c", "/d/runtimes/or2sdx/lindbergh.ini", "-o", "/d/runtimes/or2sdx/controls.ini", "-g", "/d/runtimes/or2sdx/Jennifer"]
+== or2sdx headless true bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "800", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/lindbergh/lindbergh", "-c", "/d/runtimes/or2sdx/lindbergh.ini", "-o", "/d/runtimes/or2sdx/controls.ini", "-g", "/d/runtimes/or2sdx/Jennifer"]
+== or2sp: OutRun 2 SP Special Tours can't be started yet.
+== cthr: Crazy Taxi High Roller can't be started yet.
+== sr3 headless false bwrap false cpus None
+["gamescope", "-w", "1280", "-h", "720", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "/c/wal/arcade-launcher", "run", "/d/runtimes/sr3", "--root", "/d/wal", "--profile", "/d/wal/layer-sr3.yaml", "--input-pipe"]
+== sr3 headless false bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "1280", "-h", "720", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/wal/arcade-launcher", "run", "/d/runtimes/sr3", "--root", "/d/wal", "--profile", "/d/wal/layer-sr3.yaml", "--input-pipe"]
+== sr3 headless true bwrap false cpus None
+["gamescope", "-w", "1280", "-h", "720", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "/c/wal/arcade-launcher", "run", "/d/runtimes/sr3", "--root", "/d/wal", "--profile", "/d/wal/layer-sr3.yaml", "--input-pipe"]
+== sr3 headless true bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "1280", "-h", "720", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/wal/arcade-launcher", "run", "/d/runtimes/sr3", "--root", "/d/wal", "--profile", "/d/wal/layer-sr3.yaml", "--input-pipe"]
+== src headless false bwrap false cpus None
+["gamescope", "-w", "1280", "-h", "720", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "/c/wal/arcade-launcher", "run", "/d/runtimes/src", "--root", "/d/wal", "--profile", "/d/wal/layer-src.yaml", "--input-pipe"]
+== src headless false bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "1280", "-h", "720", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/wal/arcade-launcher", "run", "/d/runtimes/src", "--root", "/d/wal", "--profile", "/d/wal/layer-src.yaml", "--input-pipe"]
+== src headless true bwrap false cpus None
+["gamescope", "-w", "1280", "-h", "720", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "/c/wal/arcade-launcher", "run", "/d/runtimes/src", "--root", "/d/wal", "--profile", "/d/wal/layer-src.yaml", "--input-pipe"]
+== src headless true bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "1280", "-h", "720", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/wal/arcade-launcher", "run", "/d/runtimes/src", "--root", "/d/wal", "--profile", "/d/wal/layer-src.yaml", "--input-pipe"]
+== dcusa headless false bwrap false cpus None
+["gamescope", "-w", "1920", "-h", "1080", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "/c/wal/arcade-launcher", "run", "/d/runtimes/dcusa", "--root", "/d/wal", "--profile", "/d/wal/layer-dcusa.yaml", "--input-pipe"]
+== dcusa headless false bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "1920", "-h", "1080", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/wal/arcade-launcher", "run", "/d/runtimes/dcusa", "--root", "/d/wal", "--profile", "/d/wal/layer-dcusa.yaml", "--input-pipe"]
+== dcusa headless true bwrap false cpus None
+["gamescope", "-w", "1920", "-h", "1080", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "/c/wal/arcade-launcher", "run", "/d/runtimes/dcusa", "--root", "/d/wal", "--profile", "/d/wal/layer-dcusa.yaml", "--input-pipe"]
+== dcusa headless true bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "1920", "-h", "1080", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/wal/arcade-launcher", "run", "/d/runtimes/dcusa", "--root", "/d/wal", "--profile", "/d/wal/layer-dcusa.yaml", "--input-pipe"]
+== f355 headless false bwrap false cpus None
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "/pkg/sega-launcher", "/d/runtimes/f355/f355twn2.zip"]
+== f355 headless false bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/pkg/sega-launcher", "/d/runtimes/f355/f355twn2.zip"]
+== f355 headless true bwrap false cpus None
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "/pkg/sega-launcher", "/d/runtimes/f355/f355twn2.zip"]
+== f355 headless true bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind", "/games", "/games", "--ro-bind", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/pkg/sega-launcher", "/d/runtimes/f355/f355twn2.zip"]

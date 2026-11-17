@@ -1,0 +1,335 @@
+== empty
+
+-- problems
+-- read
+Settings {
+    look: None,
+    render: None,
+    output: Size {
+        w: 3840,
+        h: 2160,
+    },
+    upscaler: Fsr,
+    sharpness: 5,
+    fullscreen: true,
+    steering_lock: Degrees(
+        270,
+    ),
+    force_feedback: 100,
+    deadzone: 5,
+}
+-- saved unchanged
+# Settings for one game of the Sega racing launcher.
+# Every key is also a command-line flag with --game <id>: steering_lock =
+# 540 is --steering-lock 540.
+
+# Sets the picture options at once: the cabinet's picture, sharper for your
+# screen, or for the Steam Deck. Options set after it win.
+# Values: original, recommended or steam_deck.
+#look =
+
+# The size the game draws at, or native for the cabinet's own. Sharper but
+# heavier when larger.
+# Values: WIDTHxHEIGHT or native.
+render = native
+
+# The size the picture is shown at on your screen (Linux).
+# Values: WIDTHxHEIGHT.
+output = 3840x2160
+
+# How the picture is enlarged to the screen size (Linux).
+# Values: fsr, nis, linear or nearest.
+upscaler = fsr
+
+# How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest
+# (Linux).
+# Values: 0 to 20.
+sharpness = 5
+
+# Fills the screen; off shows the game in a window (Linux).
+# Values: on or off.
+fullscreen = on
+
+# How far your wheel turns from full left to full right in the game; the
+# cabinets turned 270°.
+# Values: 180, 270, 360, 540, 900 or full.
+steering_lock = 270
+
+# The strength of the wheel's force feedback, in percent of the game's; 0
+# turns it off.
+# Values: 0 to 200.
+force_feedback = 100
+
+# How far, in percent, a pad's stick moves before the car steers.
+# Values: 0 to 30.
+deadzone = 5
+
+-- saved with steering_lock 900, look steam_deck, render native
+# Settings for one game of the Sega racing launcher.
+# Every key is also a command-line flag with --game <id>: steering_lock =
+# 540 is --steering-lock 540.
+
+# Sets the picture options at once: the cabinet's picture, sharper for your
+# screen, or for the Steam Deck. Options set after it win.
+# Values: original, recommended or steam_deck.
+look = steam_deck
+
+# The size the game draws at, or native for the cabinet's own. Sharper but
+# heavier when larger.
+# Values: WIDTHxHEIGHT or native.
+render = native
+
+# The size the picture is shown at on your screen (Linux).
+# Values: WIDTHxHEIGHT.
+output = 3840x2160
+
+# How the picture is enlarged to the screen size (Linux).
+# Values: fsr, nis, linear or nearest.
+upscaler = fsr
+
+# How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest
+# (Linux).
+# Values: 0 to 20.
+sharpness = 5
+
+# Fills the screen; off shows the game in a window (Linux).
+# Values: on or off.
+fullscreen = on
+
+# How far your wheel turns from full left to full right in the game; the
+# cabinets turned 270°.
+# Values: 180, 270, 360, 540, 900 or full.
+steering_lock = 900
+
+# The strength of the wheel's force feedback, in percent of the game's; 0
+# turns it off.
+# Values: 0 to 200.
+force_feedback = 100
+
+# How far, in percent, a pad's stick moves before the car steers.
+# Values: 0 to 30.
+deadzone = 5
+
+== messy
+<BOM># my notes<CR>
+upscaler = nis<CR>
+future_key = 7<CR>
+sharpness = 99<CR>
+render = 1920x1080<CR>
+render = 640x480<CR>
+[section]<CR>
+fullscreen = off # trailing<CR>
+steering_lock = 333<CR>
+
+-- problems
+settings line 3: unknown setting "future_key" (ignored, kept in the file)
+settings line 4: sharpness needs 0 to 20, not "99"
+settings line 8: fullscreen needs on or off, not "off # trailing"
+settings line 9: steering_lock needs 180, 270, 360, 540, 900 or full, not "333"
+-- read
+Settings {
+    look: None,
+    render: Some(
+        Size {
+            w: 640,
+            h: 480,
+        },
+    ),
+    output: Size {
+        w: 3840,
+        h: 2160,
+    },
+    upscaler: Nis,
+    sharpness: 5,
+    fullscreen: true,
+    steering_lock: Degrees(
+        270,
+    ),
+    force_feedback: 100,
+    deadzone: 5,
+}
+-- saved unchanged
+<BOM># my notes<CR>
+upscaler = nis<CR>
+future_key = 7<CR>
+sharpness = 5<CR>
+render = 640x480<CR>
+render = 640x480<CR>
+[section]<CR>
+fullscreen = on<CR>
+steering_lock = 270<CR>
+output = 3840x2160<CR>
+force_feedback = 100<CR>
+deadzone = 5<CR>
+
+-- saved with steering_lock 900, look steam_deck, render native
+<BOM># my notes<CR>
+upscaler = nis<CR>
+future_key = 7<CR>
+sharpness = 5<CR>
+render = native<CR>
+render = native<CR>
+[section]<CR>
+fullscreen = on<CR>
+steering_lock = 900<CR>
+look = steam_deck<CR>
+output = 3840x2160<CR>
+force_feedback = 100<CR>
+deadzone = 5<CR>
+
+== template
+# Settings for one game of the Sega racing launcher.
+# Every key is also a command-line flag with --game <id>: steering_lock =
+# 540 is --steering-lock 540.
+
+# Sets the picture options at once: the cabinet's picture, sharper for your
+# screen, or for the Steam Deck. Options set after it win.
+# Values: original, recommended or steam_deck.
+#look =
+
+# The size the game draws at, or native for the cabinet's own. Sharper but
+# heavier when larger.
+# Values: WIDTHxHEIGHT or native.
+#render = 1920x1080
+
+# The size the picture is shown at on your screen (Linux).
+# Values: WIDTHxHEIGHT.
+#output = 3840x2160
+
+# How the picture is enlarged to the screen size (Linux).
+# Values: fsr, nis, linear or nearest.
+#upscaler =
+
+# How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest
+# (Linux).
+# Values: 0 to 20.
+#sharpness =
+
+# Fills the screen; off shows the game in a window (Linux).
+# Values: on or off.
+#fullscreen =
+
+# How far your wheel turns from full left to full right in the game; the
+# cabinets turned 270°.
+# Values: 180, 270, 360, 540, 900 or full.
+#steering_lock =
+
+# The strength of the wheel's force feedback, in percent of the game's; 0
+# turns it off.
+# Values: 0 to 200.
+#force_feedback =
+
+# How far, in percent, a pad's stick moves before the car steers.
+# Values: 0 to 30.
+#deadzone =
+
+-- problems
+-- read
+Settings {
+    look: None,
+    render: None,
+    output: Size {
+        w: 3840,
+        h: 2160,
+    },
+    upscaler: Fsr,
+    sharpness: 5,
+    fullscreen: true,
+    steering_lock: Degrees(
+        270,
+    ),
+    force_feedback: 100,
+    deadzone: 5,
+}
+-- saved unchanged
+# Settings for one game of the Sega racing launcher.
+# Every key is also a command-line flag with --game <id>: steering_lock =
+# 540 is --steering-lock 540.
+
+# Sets the picture options at once: the cabinet's picture, sharper for your
+# screen, or for the Steam Deck. Options set after it win.
+# Values: original, recommended or steam_deck.
+#look =
+
+# The size the game draws at, or native for the cabinet's own. Sharper but
+# heavier when larger.
+# Values: WIDTHxHEIGHT or native.
+render = native
+
+# The size the picture is shown at on your screen (Linux).
+# Values: WIDTHxHEIGHT.
+output = 3840x2160
+
+# How the picture is enlarged to the screen size (Linux).
+# Values: fsr, nis, linear or nearest.
+upscaler = fsr
+
+# How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest
+# (Linux).
+# Values: 0 to 20.
+sharpness = 5
+
+# Fills the screen; off shows the game in a window (Linux).
+# Values: on or off.
+fullscreen = on
+
+# How far your wheel turns from full left to full right in the game; the
+# cabinets turned 270°.
+# Values: 180, 270, 360, 540, 900 or full.
+steering_lock = 270
+
+# The strength of the wheel's force feedback, in percent of the game's; 0
+# turns it off.
+# Values: 0 to 200.
+force_feedback = 100
+
+# How far, in percent, a pad's stick moves before the car steers.
+# Values: 0 to 30.
+deadzone = 5
+
+-- saved with steering_lock 900, look steam_deck, render native
+# Settings for one game of the Sega racing launcher.
+# Every key is also a command-line flag with --game <id>: steering_lock =
+# 540 is --steering-lock 540.
+
+# Sets the picture options at once: the cabinet's picture, sharper for your
+# screen, or for the Steam Deck. Options set after it win.
+# Values: original, recommended or steam_deck.
+look = steam_deck
+
+# The size the game draws at, or native for the cabinet's own. Sharper but
+# heavier when larger.
+# Values: WIDTHxHEIGHT or native.
+render = native
+
+# The size the picture is shown at on your screen (Linux).
+# Values: WIDTHxHEIGHT.
+output = 3840x2160
+
+# How the picture is enlarged to the screen size (Linux).
+# Values: fsr, nis, linear or nearest.
+upscaler = fsr
+
+# How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest
+# (Linux).
+# Values: 0 to 20.
+sharpness = 5
+
+# Fills the screen; off shows the game in a window (Linux).
+# Values: on or off.
+fullscreen = on
+
+# How far your wheel turns from full left to full right in the game; the
+# cabinets turned 270°.
+# Values: 180, 270, 360, 540, 900 or full.
+steering_lock = 900
+
+# The strength of the wheel's force feedback, in percent of the game's; 0
+# turns it off.
+# Values: 0 to 200.
+force_feedback = 100
+
+# How far, in percent, a pad's stick moves before the car steers.
+# Values: 0 to 30.
+deadzone = 5
+

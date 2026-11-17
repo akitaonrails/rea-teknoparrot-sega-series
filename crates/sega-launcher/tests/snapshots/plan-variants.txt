@@ -1,0 +1,441 @@
+== Linux or2sdx default settings, headless
+size 800x480
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope -w 800 -h 480 -W 3840 -H 2160 -r 60 -F linear --backend headless
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 800
+HEIGHT = 480
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "eth0"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+MusicChange = KEY_M, GC0_BUTTON_X
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER
+P1_Steer = GC0_AXIS_LEFTX
+P1_Gas = GC0_AXIS_RIGHTTRIGGER
+P1_Brake = GC0_AXIS_LEFTTRIGGER
+
+== Linux or2sp default settings, headless
+not yet: OutRun 2 SP Special Tours can't be started yet.
+== Linux cthr default settings, headless
+not yet: Crazy Taxi High Roller can't be started yet.
+== Linux sr3 default settings, headless
+size 1280x720
+run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
+env W_CACHE=/c/directx
+gamescope -w 1280 -h 720 -W 3840 -H 2160 -r 60 -F linear --backend headless
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/sr3/sega-rally-3.windowsloader
+Rally\Rally.exe
+
+file /d/wal/layer-sr3.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_EUROPAR_RESOLUTION: "1280x720"
+  WAL_EUROPAR_FREEPLAY: "1"
+  WAL_EUROPAR_FFB: "100"
+
+== Linux src default settings, headless
+size 1280x720
+run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
+env W_CACHE=/c/directx
+gamescope -w 1280 -h 720 -W 3840 -H 2160 -r 60 -F linear --backend headless
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/src/sega-racing-classic.windowsloader
+d1a.exe
+
+file /d/wal/layer-src.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_RINGEDGE_GL_SCALE: "1280x720"
+
+== Linux dcusa default settings, headless
+size 1920x1080
+run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
+env W_CACHE=/c/directx
+gamescope -w 1920 -h 1080 -W 3840 -H 2160 -r 60 -F linear --backend headless
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+link /d/wal/wine-runners/runner -> /c/runner
+link /d/wal/wine-runners/winetricks -> /c/winetricks
+file /d/runtimes/dcusa/daytona-championship-usa.windowsloader
+Sega\Daytona\Daytona.exe
+
+file /d/wal/layer-dcusa.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_SEGASHELL_FFB: "100"
+
+== Linux f355 default settings, headless
+size 640x480
+run /pkg/sega-launcher /d/runtimes/f355/f355twn2.zip
+env SEGA_FLYCAST=/c/flycast/usr/bin/flycast
+env XDG_CONFIG_HOME=/d/runtimes/f355/flycast/config
+env XDG_DATA_HOME=/d/runtimes/f355/flycast/data
+gamescope -w 640 -h 480 -W 3840 -H 2160 -r 60 -F linear --backend headless
+link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
+file /d/runtimes/f355/flycast/config/flycast/emu.cfg
+# Written by the launcher before every start.
+[config]
+rend.Resolution = 480
+[window]
+fullscreen = no
+maximized = no
+width = 640
+height = 480
+
+== Linux or2sdx with a wheel
+size 800x480
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope -w 800 -h 480 -W 3840 -H 2160 -r 60 -F fsr --sharpness 5 -f
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 800
+HEIGHT = 480
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "lo"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[ControllerGUIDs]
+P1_GUID = 030000006d04000062c2000011010000
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+MusicChange = KEY_M, GC0_BUTTON_X
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER, JOY0_BUTTON_4
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER, JOY0_BUTTON_5
+P1_Steer = GC0_AXIS_LEFTX, JOY0_AXIS_0
+P1_Gas = GC0_AXIS_RIGHTTRIGGER, JOY0_AXIS_2_INVERTED
+P1_Brake = GC0_AXIS_LEFTTRIGGER, JOY0_AXIS_3
+
+== Linux f355 without its BIOS or a log port
+size 640x480
+run /pkg/sega-launcher /d/runtimes/f355/f355twn2.zip
+env SEGA_FLYCAST=/c/flycast/usr/bin/flycast
+env XDG_CONFIG_HOME=/d/runtimes/f355/flycast/config
+env XDG_DATA_HOME=/d/runtimes/f355/flycast/data
+gamescope -w 640 -h 480 -W 3840 -H 2160 -r 60 -F fsr --sharpness 5 -f
+file /d/runtimes/f355/flycast/config/flycast/emu.cfg
+# Written by the launcher before every start.
+[config]
+rend.Resolution = 480
+[window]
+fullscreen = no
+maximized = no
+width = 640
+height = 480
+
+== Windows or2sdx default settings, headless
+size 800x480
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope 
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 800
+HEIGHT = 480
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "eth0"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+MusicChange = KEY_M, GC0_BUTTON_X
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER
+P1_Steer = GC0_AXIS_LEFTX
+P1_Gas = GC0_AXIS_RIGHTTRIGGER
+P1_Brake = GC0_AXIS_LEFTTRIGGER
+
+== Windows or2sp default settings, headless
+not yet: OutRun 2 SP Special Tours can't be started yet.
+== Windows cthr default settings, headless
+not yet: Crazy Taxi High Roller can't be started yet.
+== Windows sr3 default settings, headless
+size 1280x720
+run /c/wal/arcade-launcher.exe run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
+gamescope 
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/sr3/sega-rally-3.windowsloader
+Rally\Rally.exe
+
+file /d/wal/layer-sr3.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_EUROPAR_RESOLUTION: "1280x720"
+  WAL_EUROPAR_FREEPLAY: "1"
+  WAL_EUROPAR_FFB: "100"
+
+== Windows src default settings, headless
+size 1280x720
+run /c/wal/arcade-launcher.exe run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
+gamescope 
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/src/sega-racing-classic.windowsloader
+d1a.exe
+
+file /d/wal/layer-src.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_RINGEDGE_GL_SCALE: "1280x720"
+
+== Windows dcusa default settings, headless
+size 1920x1080
+run /c/wal/arcade-launcher.exe run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
+gamescope 
+link /d/wal/systemprofiles -> /c/wal/systemprofiles
+link /d/wal/dist/payloads -> /c/wal/payloads
+file /d/runtimes/dcusa/daytona-championship-usa.windowsloader
+Sega\Daytona\Daytona.exe
+
+file /d/wal/layer-dcusa.yaml
+# Written by the launcher before every start.
+runner: runner
+prefix: wine-prefix/sega
+prefix_tricks: [xact]
+reshade: false
+gamescope:
+  enabled: false
+env:
+  WAL_SEGASHELL_FFB: "100"
+
+== Windows f355 default settings, headless
+size 640x480
+run /d/runtimes/f355/flycast/flycast.exe /d/runtimes/f355/f355twn2.zip
+env SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
+gamescope 
+link /d/runtimes/f355/flycast/flycast.exe -> /c/flycast/flycast.exe
+link /d/runtimes/f355/flycast/data/f355bios.zip -> /bios/f355bios.zip
+file /d/runtimes/f355/flycast/emu.cfg
+# Written by the launcher before every start.
+[config]
+rend.Resolution = 480
+[window]
+fullscreen = yes
+maximized = no
+width = 640
+height = 480
+[log]
+LogToConsole = no
+LogToFile = no
+LogServer = 127.0.0.1:50123
+
+== Windows or2sdx with a wheel
+size 800x480
+run /c/lindbergh/lindbergh -c /d/runtimes/or2sdx/lindbergh.ini -o /d/runtimes/or2sdx/controls.ini -g /d/runtimes/or2sdx/Jennifer
+env LD_LIBRARY_PATH=/c/lindbergh:/d/runtimes/or2sdx/lib
+gamescope 
+file /d/runtimes/or2sdx/lindbergh.ini
+# Written by the launcher before every start.
+[Display]
+WIDTH = 800
+HEIGHT = 480
+BOOST_RENDER_RES = true
+FULLSCREEN = true
+KEEP_ASPECT_RATIO = true
+HIDE_CURSOR = true
+BORDER_ENABLED = false
+[Input]
+INPUT_MODE = 0
+[Emulation]
+REGION = EX
+FREEPLAY = true
+EMULATE_JVS = true
+EMULATE_DRIVEBOARD = AUTO
+EMULATE_MOTIONBOARD = AUTO
+[GameSpecific]
+SKIP_OUTRUN_CABINET_CHECK = true
+[System]
+DEBUG_MSGS = false
+[Paths]
+SRAM_PATH = "sram.bin"
+EEPROM_PATH = "eeprom.bin"
+[Graphics]
+GPU_VENDOR = 0
+FPS_LIMITER_ENABLED = true
+FPS_TARGET = 60.0
+[Network]
+NIC_NAME = "lo"
+
+file /d/runtimes/or2sdx/controls.ini
+# Written by the launcher before every start.
+[ControllerGUIDs]
+P1_GUID = 030000006d04000062c2000011010000
+[Common]
+Test = KEY_T
+P1_Coin = KEY_5, GC0_BUTTON_BACK
+P1_Start = KEY_1, GC0_BUTTON_START, GC0_BUTTON_A
+P1_Service = KEY_S
+[Driving]
+P1_Steer_Left = KEY_Left
+P1_Steer_Right = KEY_Right
+P1_Gas_Digital = KEY_Up
+P1_Brake_Digital = KEY_Down
+ViewChange = KEY_V, GC0_BUTTON_Y
+MusicChange = KEY_M, GC0_BUTTON_X
+GearUp = KEY_A, GC0_BUTTON_RIGHTSHOULDER, JOY0_BUTTON_4
+GearDown = KEY_Z, GC0_BUTTON_LEFTSHOULDER, JOY0_BUTTON_5
+P1_Steer = GC0_AXIS_LEFTX, JOY0_AXIS_0
+P1_Gas = GC0_AXIS_RIGHTTRIGGER, JOY0_AXIS_2_INVERTED
+P1_Brake = GC0_AXIS_LEFTTRIGGER, JOY0_AXIS_3
+
+== Windows f355 without its BIOS or a log port
+not yet: F355 Challenge 2 needs a port for Flycast's log.
+== Flycast boards
+/d/runtimes/f355/f355twn2.zip -> Master [("SDL_VIDEODRIVER", "offscreen"), ("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1")]
+-config naomi:BoardId=1 /d/runtimes/f355/f355twn2.zip -> Slave [("SDL_VIDEODRIVER", "x11")]
+== the BIOS is looked for in
+/bios
+/bios/dc
+/bios/naomi
+/bios/chihiro
+/games/f355
+/games

@@ -1,0 +1,24 @@
+== 0.1.0
+# Written by the launcher.
+library = /old/games
+chihiro_bios = /old/bios/chihiro
+-- exit 0, then
+# Written by the launcher.
+library = /old/games
+library = <tmp>/games
+bios = /old/bios/chihiro
+
+== by hand
+<BOM>library = /first<CR>
+# my notes<CR>
+future_key = 1<CR>
+library = /second<CR>
+bios = /bios<CR>
+chihiro_bios = /legacy<CR>
+library =<CR>
+-- exit 0, then
+# Written by the launcher.
+library = /second
+library = <tmp>/games
+bios = /legacy
+

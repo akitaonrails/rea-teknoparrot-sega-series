@@ -774,4 +774,48 @@ mod tests {
             "{pinned}"
         );
     }
+
+    /// The full Linux command line of every game, windowed and headless,
+    /// with and without bubblewrap and pinned CPUs.
+    #[test]
+    fn every_games_command_line() {
+        let c = Components {
+            lindbergh: "/c/lindbergh".into(),
+            wal: "/c/wal".into(),
+            runner: "/c/runner".into(),
+            winetricks: "/c/winetricks".into(),
+            directx: "/c/directx".into(),
+            flycast: "/c/flycast".into(),
+            launcher: "/pkg/sega-launcher".into(),
+        };
+        let libraries = ["/games".into(), "/more games".into()];
+        let mut out = String::new();
+        for g in sega_core::catalog::GAMES {
+            let places = Places {
+                runtime: PathBuf::from("/d/runtimes").join(g.slug),
+                wal_root: "/d/wal".into(),
+                wheel: None,
+                bios: vec![],
+                log_port: None,
+            };
+            for headless in [false, true] {
+                let s = Settings::default();
+                let plan = match launch::plan(g, &places, &c, &s, "eth0", headless, Host::Linux) {
+                    Ok(plan) => plan,
+                    Err(e) => {
+                        out.push_str(&format!("== {}: {e}\n", g.slug));
+                        break;
+                    }
+                };
+                for (bwrap, cpus) in [(false, None), (true, Some("8,9,10,11"))] {
+                    out.push_str(&format!(
+                        "== {} headless {headless} bwrap {bwrap} cpus {cpus:?}\n{:?}\n",
+                        g.slug,
+                        command_line(&plan, &libraries, bwrap, cpus)
+                    ));
+                }
+            }
+        }
+        rea_launcher::snapshot!("command-lines.txt", out);
+    }
 }

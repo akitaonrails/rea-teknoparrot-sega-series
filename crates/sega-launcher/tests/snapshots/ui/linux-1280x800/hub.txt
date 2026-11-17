@@ -1,0 +1,210 @@
+== looking for the games
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="OutRun 2 SP SDX"
+        Label value="Sega Lindbergh · 2006"
+        Label value="Looking for your games…"
+        Button label="Play" description="Still looking for your games." disabled [62 504 251 560]
+        Button label="Settings" [269 504 458 560]
+        Label value="Your games · looking…"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Looking for your games…" toggled=True [62 609 218 696]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [229 609 384 696]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [396 609 551 696]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Looking for your games…" toggled=False [562 609 718 696]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Looking for your games…" toggled=False [729 609 884 696]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Looking for your games…" toggled=False [896 609 1051 696]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Looking for your games…" toggled=False [1062 609 1218 696]
+        Tab label="Games" toggled=True [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"
+== no game found
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="OutRun 2 SP SDX"
+        Label value="Sega Lindbergh · 2006"
+        Label value="Not in your library"
+        Label value="Not found in your game folders. Add its folder in Settings, then choose Rescan."
+        Button label="Play" description="Not found in your game folders." disabled [62 524 251 580]
+        Button label="Settings" [269 524 458 580]
+        Label value="Your games · 0 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Not in your library" toggled=True [62 609 218 696]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [229 609 384 696]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [396 609 551 696]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Not in your library" toggled=False [562 609 718 696]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Not in your library" toggled=False [729 609 884 696]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Not in your library" toggled=False [896 609 1051 696]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Not in your library" toggled=False [1062 609 1218 696]
+        Tab label="Games" toggled=True [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"
+== every game found, or2sdx selected
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="OutRun 2 SP SDX"
+        Label value="Sega Lindbergh · 2006 · 1.003 (DVP-0015, TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/or2sdx"
+        Button label="Play" [62 504 251 560]
+        Button label="Settings" [269 504 458 560]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=True [62 609 218 696]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [229 609 384 696]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [396 609 551 696]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=False [562 609 718 696]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 609 884 696]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [896 609 1051 696]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1062 609 1218 696]
+        Tab label="Games" toggled=True [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"
+== every game found, or2sp selected
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="OutRun 2 SP Special Tours"
+        Label value="Sega Chihiro · 2004 · Japan (TeknoParrot dump)"
+        Label value="Not supported yet"
+        Label value="Needs the Chihiro emulator, which is still being brought up."
+        Label value="Folder: /games/or2sp"
+        Button label="Play" description="Needs the Chihiro emulator, which is still being brought up." disabled [62 524 251 580]
+        Button label="Settings" [269 524 458 580]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [62 609 218 696]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=True [229 609 384 696]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [396 609 551 696]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=False [562 609 718 696]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 609 884 696]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [896 609 1051 696]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1062 609 1218 696]
+        Tab label="Games" toggled=True [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"
+== every game found, cthr selected
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="Crazy Taxi High Roller"
+        Label value="Sega Chihiro · 2003 · 3.000 Japan (TeknoParrot dump)"
+        Label value="Not supported yet"
+        Label value="Needs the Chihiro emulator, which is still being brought up."
+        Label value="Folder: /games/cthr"
+        Button label="Play" description="Needs the Chihiro emulator, which is still being brought up." disabled [62 524 251 580]
+        Button label="Settings" [269 524 458 580]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [62 609 218 696]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [229 609 384 696]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=True [396 609 551 696]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=False [562 609 718 696]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 609 884 696]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [896 609 1051 696]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1062 609 1218 696]
+        Tab label="Games" toggled=True [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"
+== every game found, sr3 selected
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Rally 3"
+        Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/sr3"
+        Button label="Play" [62 504 251 560]
+        Button label="Settings" [269 504 458 560]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [62 609 218 696]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [229 609 384 696]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [396 609 551 696]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=True [562 609 718 696]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 609 884 696]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [896 609 1051 696]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1062 609 1218 696]
+        Tab label="Games" toggled=True [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"
+== every game found, src selected
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Racing Classic"
+        Label value="Sega RingWide · 2009 · 1.01.00 (TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/src"
+        Button label="Play" [62 504 251 560]
+        Button label="Settings" [269 504 458 560]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [62 609 218 696]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [229 609 384 696]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [396 609 551 696]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=False [562 609 718 696]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=True [729 609 884 696]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [896 609 1051 696]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1062 609 1218 696]
+        Tab label="Games" toggled=True [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"
+== every game found, dcusa selected
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="Daytona Championship USA"
+        Label value="Sega PC (Shell) · 2017 · New Season Edition (TeknoParrot dump)"
+        Label value="Ready"
+        Label value="Folder: /games/dcusa"
+        Button label="Play" [62 504 251 560]
+        Button label="Settings" [269 504 458 560]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [62 609 218 696]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [229 609 384 696]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [396 609 551 696]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=False [562 609 718 696]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 609 884 696]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=True [896 609 1051 696]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=False [1062 609 1218 696]
+        Tab label="Games" toggled=True [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"
+== every game found, f355 selected
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="F355 Challenge 2"
+        Label value="Sega NAOMI · 2001 · International Course Edition, twin (MAME f355twn2)"
+        Label value="Starts, not verified"
+        Label value="Runs in Flycast as two linked boards in one window. When the boards fail to find each other at boot, the launcher starts the game again by itself. Wheels aren't set up for it yet."
+        Label value="Folder: /games/f355"
+        Label value="Needs your BIOS folder: add it in Settings."
+        Button label="Play" [62 589 251 644]
+        Button label="Settings" [269 589 458 644]
+        Label value="Your games · 7 of 7 found"
+        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Ready" toggled=False [62 609 218 696]
+        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [229 609 384 696]
+        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [396 609 551 696]
+        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Ready" toggled=False [562 609 718 696]
+        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Ready" toggled=False [729 609 884 696]
+        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Ready" toggled=False [896 609 1051 696]
+        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Starts, not verified" toggled=True [1062 609 1218 696]
+        Tab label="Games" toggled=True [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"

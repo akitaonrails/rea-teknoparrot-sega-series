@@ -1,0 +1,297 @@
+== or2sdx settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="OutRun 2 SP SDX settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1800 × 1080" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Steering lock" value="270°" description="This game reads your wheel itself: set the lock and strength in your wheel's software." disabled [67 349 809 404]
+        Button label="Force feedback" value="100%" description="This game reads your wheel itself: set the lock and strength in your wheel's software." disabled [67 404 809 460]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== or2sp settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="OutRun 2 SP Special Tours settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1440 × 1080" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 349 809 404]
+        Button label="Steering lock: previous" [493 354 524 399]
+        Button label="Steering lock: next" [767 354 798 399]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 404 809 460]
+        Button label="Force feedback: previous" [493 410 524 454]
+        Button label="Force feedback: next" [767 410 798 454]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== cthr settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="Crazy Taxi High Roller settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1440 × 1080" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 349 809 404]
+        Button label="Steering lock: previous" [493 354 524 399]
+        Button label="Steering lock: next" [767 354 798 399]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 404 809 460]
+        Button label="Force feedback: previous" [493 410 524 454]
+        Button label="Force feedback: next" [767 410 798 454]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== sr3 settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Rally 3 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1920 × 1080 (1080p)" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 349 809 404]
+        Button label="Steering lock: previous" [493 354 524 399]
+        Button label="Steering lock: next" [767 354 798 399]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 404 809 460]
+        Button label="Force feedback: previous" [493 410 524 454]
+        Button label="Force feedback: next" [767 410 798 454]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== src settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="SEGA Racing Classic settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1920 × 1080 (1080p)" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 349 809 404]
+        Button label="Steering lock: previous" [493 354 524 399]
+        Button label="Steering lock: next" [767 354 798 399]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 404 809 460]
+        Button label="Force feedback: previous" [493 410 524 454]
+        Button label="Force feedback: next" [767 410 798 454]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== dcusa settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="Daytona Championship USA settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="Native, 1920 × 1080 (1080p)" description="This game always draws at its own size; the upscaler still fits it to your screen." disabled [67 293 809 349]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 349 809 404]
+        Button label="Steering lock: previous" [493 354 524 399]
+        Button label="Steering lock: next" [767 354 798 399]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 404 809 460]
+        Button label="Force feedback: previous" [493 410 524 454]
+        Button label="Force feedback: next" [767 410 798 454]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== f355 settings, first opened
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="F355 Challenge 2 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Recommended" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1440 × 1080" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 349 809 404]
+        Button label="Steering lock: previous" [493 354 524 399]
+        Button label="Steering lock: next" [767 354 798 399]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 404 809 460]
+        Button label="Force feedback: previous" [493 410 524 454]
+        Button label="Force feedback: next" [767 410 798 454]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== f355 settings, look Steam Deck
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="F355 Challenge 2 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Steam Deck" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1066 × 800" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 349 809 404]
+        Button label="Steering lock: previous" [493 354 524 399]
+        Button label="Steering lock: next" [767 354 798 399]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 404 809 460]
+        Button label="Force feedback: previous" [493 410 524 454]
+        Button label="Force feedback: next" [767 410 798 454]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Label value="Saved. The game uses it the next time you press Play."
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== f355 settings, look Steam Deck
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="F355 Challenge 2 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Steam Deck" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1066 × 800" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 349 809 404]
+        Button label="Steering lock: previous" [493 354 524 399]
+        Button label="Steering lock: next" [767 354 798 399]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 404 809 460]
+        Button label="Force feedback: previous" [493 410 524 454]
+        Button label="Force feedback: next" [767 410 798 454]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Label value="Saved. The game uses it the next time you press Play."
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"
+== f355 settings, look Steam Deck
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="F355 Challenge 2 settings"
+        Label value="Changes are saved as you make them and used the next time you press Play."
+        Button label="Look" value="Steam Deck" description="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win." [67 238 809 293]
+        Button label="Look: previous" [493 243 524 288]
+        Button label="Look: next" [767 243 798 288]
+        Button label="Game resolution" value="1066 × 800" description="The size the game draws at, or native for the cabinet's own. Sharper but heavier when larger." [67 293 809 349]
+        Button label="Game resolution: previous" [493 299 524 343]
+        Button label="Game resolution: next" [767 299 798 343]
+        Button label="Steering lock" value="270°" description="How far your wheel turns from full left to full right in the game; the cabinets turned 270°." [67 349 809 404]
+        Button label="Steering lock: previous" [493 354 524 399]
+        Button label="Steering lock: next" [767 354 798 399]
+        Button label="Force feedback" value="100%" description="The strength of the wheel's force feedback, in percent of the game's; 0 turns it off." [67 404 809 460]
+        Button label="Force feedback: previous" [493 410 524 454]
+        Button label="Force feedback: next" [767 410 798 454]
+        Button label="Stick dead zone" value="5%" description="How far, in percent, a pad's stick moves before the car steers." [67 460 809 516]
+        Button label="Stick dead zone: previous" [493 466 524 510]
+        Button label="Stick dead zone: next" [767 466 798 510]
+        Label value="/games"
+        Label value="7 of 7 games found."
+        Button label="Rescan" [862 327 1196 378]
+        Button label="Folders and BIOS" [862 393 1196 444]
+        Label value="Saved. The game uses it the next time you press Play."
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=False [457 19 559 61]
+        Tab label="Settings" toggled=True [568 19 668 61]
+        Label value="Controller: No controller"

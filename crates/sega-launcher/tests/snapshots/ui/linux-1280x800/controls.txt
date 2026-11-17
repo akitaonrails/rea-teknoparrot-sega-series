@@ -1,0 +1,98 @@
+== no controller
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="Controls"
+        Label value="Turn the wheel or move the stick, press the pedals and buttons: the bars should follow."
+        Label value="No controller found. Plug in a wheel or a pad; it shows up here."
+        Label value="Steer: Left stick"
+        Label value="Gas: RT"
+        Label value="Brake: LT"
+        Label value="Shift up: RB"
+        Label value="Shift down: LB"
+        Label value="View change: Y"
+        Label value="Handbrake: B"
+        Label value="Start: A / START"
+        Label value="Insert coin: BACK"
+        Meter label="Steering" value="0%" level=0
+        Meter label="Gas" value="0%" level=0
+        Meter label="Brake" value="0%" level=0
+        Label value="Shift up: released"
+        Label value="Shift down: released"
+        Label value="View change: released"
+        Label value="Handbrake: released"
+        Label value="Start: released"
+        Label value="Insert coin: released"
+        Label value="Operator test menu: released"
+        Label value="Service: released"
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=True [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: No controller"
+== a pad and a wheel, a game running
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="Controls"
+        Label value="Turn the wheel or move the stick, press the pedals and buttons: the bars should follow."
+        Label value="Pad: Test Pad"
+        Label value="Wheel: Test Wheel (drives the car)"
+        Label value="Steer: Left stick"
+        Label value="Gas: RT"
+        Label value="Brake: LT"
+        Label value="Shift up: RB"
+        Label value="Shift down: LB"
+        Label value="View change: Y"
+        Label value="Handbrake: B"
+        Label value="Start: A / START"
+        Label value="Insert coin: BACK"
+        Meter label="Steering" value="-50%" level=-50
+        Meter label="Gas" value="25%" level=25
+        Meter label="Brake" value="75%" level=75
+        Label value="Shift up: released"
+        Label value="Shift down: released"
+        Label value="View change: released"
+        Label value="Handbrake: released"
+        Label value="Start: pressed"
+        Label value="Insert coin: released"
+        Label value="Operator test menu: released"
+        Label value="Service: released"
+        Label value="A game is running: it reads these controls."
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=True [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: Test Wheel"
+== controllers can't be read
+Window
+  GenericContainer
+    GenericContainer
+      GenericContainer
+        Label value="Controls"
+        Label value="Turn the wheel or move the stick, press the pedals and buttons: the bars should follow."
+        Label value="Controllers can't be read: controllers unavailable: no SDL. Plug the controller in again, then restart the launcher."
+        Label value="Steer: Left stick"
+        Label value="Gas: RT"
+        Label value="Brake: LT"
+        Label value="Shift up: RB"
+        Label value="Shift down: LB"
+        Label value="View change: Y"
+        Label value="Handbrake: B"
+        Label value="Start: A / START"
+        Label value="Insert coin: BACK"
+        Meter label="Steering" value="0%" level=0
+        Meter label="Gas" value="0%" level=0
+        Meter label="Brake" value="0%" level=0
+        Label value="Shift up: released"
+        Label value="Shift down: released"
+        Label value="View change: released"
+        Label value="Handbrake: released"
+        Label value="Start: released"
+        Label value="Insert coin: released"
+        Label value="Operator test menu: released"
+        Label value="Service: released"
+        Tab label="Games" toggled=False [362 19 449 61]
+        Tab label="Controls" toggled=True [457 19 559 61]
+        Tab label="Settings" toggled=False [568 19 668 61]
+        Label value="Controller: Controllers unavailable"

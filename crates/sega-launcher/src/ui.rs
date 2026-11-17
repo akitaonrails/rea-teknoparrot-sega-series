@@ -2615,6 +2615,7 @@ mod tests {
     use rea_launcher_ui::testing::kittest::NodeT as _;
     use rea_launcher_ui::testing::{self, Harness, Queryable};
     use sega_core::settings::{Settings, Size};
+    use std::fmt::Write as _;
     use std::path::Path;
 
     use crate::input::DeviceInfo;
@@ -2630,6 +2631,10 @@ mod tests {
 
     /// A window over an app that has `libraries` saved, with no controllers.
     fn window(paths: &Paths, libraries: &[PathBuf]) -> Harness<'static, App> {
+        window_sized(paths, libraries, SCREEN)
+    }
+
+    fn window_sized(paths: &Paths, libraries: &[PathBuf], size: Vec2) -> Harness<'static, App> {
         let mut config = Config::default();
         for l in libraries {
             config.add_library(l);
@@ -2639,7 +2644,7 @@ mod tests {
         }
         let fonts = paths.fonts();
         let mut h = Harness::builder()
-            .with_size(SCREEN)
+            .with_size(size)
             .with_theme(egui::Theme::Dark)
             .with_context_setup(move |ctx| {
                 theme::install_fonts(ctx, &fonts);
@@ -3470,6 +3475,255 @@ mod tests {
         assert_eq!(typed_path("  /a/b "), PathBuf::from("/a/b"));
         if let Some(home) = std::env::var_os("HOME") {
             assert_eq!(typed_path("~/x"), PathBuf::from(home).join("x"));
+        }
+    }
+
+    // ------------------------------------------------------------ golden dumps
+
+    /// The sizes the golden dumps are taken at: the 720-line layout, and a
+    /// 16:10 screen the window zooms to.
+    const GOLDEN_SIZES: [Vec2; 2] = [vec2(1280.0, 720.0), vec2(1280.0, 800.0)];
+
+    /// The window as assistive technology sees it, one node a line, nested
+    /// by depth: role, label, value, description, disabled, toggled and the
+    /// bounds rounded to whole points. Text runs (glyph rows) are left out.
+    fn dump(h: &Harness<'_, App>) -> String {
+        fn walk(n: testing::kittest::AccessKitNode<'_>, depth: usize, out: &mut String) {
+            if n.role() == Role::TextRun {
+                return;
+            }
+            let _ = write!(out, "{:indent$}{:?}", "", n.role(), indent = depth * 2);
+            if let Some(l) = n.label() {
+                let _ = write!(out, " label={l:?}");
+            }
+            if let Some(v) = n.value() {
+                let _ = write!(out, " value={v:?}");
+            }
+            if let Some(v) = n.numeric_value() {
+                let _ = write!(out, " level={v}");
+            }
+            if let Some(d) = n.description() {
+                let _ = write!(out, " description={d:?}");
+            }
+            if n.is_disabled() {
+                out.push_str(" disabled");
+            }
+            if let Some(t) = n.toggled() {
+                let _ = write!(out, " toggled={t:?}");
+            }
+            if let Some(b) = n.bounding_box() {
+                let _ = write!(
+                    out,
+                    " [{} {} {} {}]",
+                    b.x0.round(),
+                    b.y0.round(),
+                    b.x1.round(),
+                    b.y1.round()
+                );
+            }
+            out.push('\n');
+            for c in n.children() {
+                walk(c, depth + 1, out);
+            }
+        }
+        let mut out = String::new();
+        walk(h.root().accesskit_node(), 0, &mut out);
+        out
+    }
+
+    /// Appends the window's dump under a heading naming its state.
+    fn section(out: &mut String, state: &str, h: &mut Harness<'_, App>) {
+        h.run_steps(3);
+        let _ = writeln!(out, "== {state}");
+        out.push_str(&dump(h));
+    }
+
+    /// Compares with `tests/snapshots/ui/<host>-<w>x<h>/<page>.txt`.
+    fn golden(page: &str, size: Vec2, text: &str) {
+        let host = match Host::current() {
+            Host::Linux => "linux",
+            Host::Windows => "windows",
+        };
+        let name = format!("ui/{host}-{}x{}/{page}.txt", size.x, size.y);
+        rea_launcher::snapshot!(&name, text);
+    }
+
+    /// A game folder as the dumps show it (the same text on every system).
+    fn shown_dir(slug: &str) -> PathBuf {
+        PathBuf::from(format!("/games/{slug}"))
+    }
+
+    /// Every game, found in `/games`.
+    fn every_entry() -> Vec<Entry> {
+        GAMES
+            .iter()
+            .map(|g| fake_entry(g.slug, &shown_dir(g.slug)))
+            .collect()
+    }
+
+    /// A hub at `size` whose library is `/games`, holding every game or none.
+    fn golden_hub(t: &Path, size: Vec2, every_game: bool) -> Harness<'static, App> {
+        let lib = t.join("games");
+        std::fs::create_dir_all(&lib).unwrap();
+        let mut h = window_sized(&paths_in(t), &[lib], size);
+        wait(&mut h, "the scan", |a| a.entries.is_some());
+        let app = h.state_mut();
+        app.config.libraries = vec!["/games".into()];
+        app.entries = Some(if every_game { every_entry() } else { vec![] });
+        h.run_steps(3);
+        h
+    }
+
+    #[test]
+    fn golden_hub_states() {
+        for size in GOLDEN_SIZES {
+            let t = tempfile::tempdir().unwrap();
+            let mut h = golden_hub(t.path(), size, false);
+            let mut out = String::new();
+            h.state_mut().entries = None;
+            section(&mut out, "looking for the games", &mut h);
+            h.state_mut().entries = Some(vec![]);
+            section(&mut out, "no game found", &mut h);
+            h.state_mut().entries = Some(every_entry());
+            for g in GAMES {
+                select(&mut h, g.slug);
+                section(
+                    &mut out,
+                    &format!("every game found, {} selected", g.slug),
+                    &mut h,
+                );
+            }
+            golden("hub", size, &out);
+        }
+    }
+
+    #[test]
+    fn golden_settings_of_every_game_and_look() {
+        for size in GOLDEN_SIZES {
+            let t = tempfile::tempdir().unwrap();
+            let mut h = golden_hub(t.path(), size, true);
+            let mut out = String::new();
+            for g in GAMES {
+                open_tab(&mut h, Tab::Games);
+                select(&mut h, g.slug);
+                open_tab(&mut h, Tab::Settings);
+                section(
+                    &mut out,
+                    &format!("{} settings, first opened", g.slug),
+                    &mut h,
+                );
+            }
+            let last = GAMES[GAMES.len() - 1].slug;
+            for _ in sega_core::settings::Look::ALL {
+                click_button(&mut h, "Look: next");
+                let look = testing::value(&h.get_by_role_and_label(Role::Button, "Look")).unwrap();
+                section(&mut out, &format!("{last} settings, look {look}"), &mut h);
+            }
+            golden("settings", size, &out);
+        }
+    }
+
+    #[test]
+    fn golden_controls_states() {
+        for size in GOLDEN_SIZES {
+            let t = tempfile::tempdir().unwrap();
+            let mut h = golden_hub(t.path(), size, true);
+            let mut out = String::new();
+            open_tab(&mut h, Tab::Controls);
+            section(&mut out, "no controller", &mut h);
+            let mut controls = rea_launcher::wheel::Controls {
+                steer: -0.5,
+                accel: 0.25,
+                brake: 0.75,
+                buttons: 0,
+            };
+            controls.press(Button::Start);
+            h.state_mut().snap = Snapshot {
+                devices: vec![
+                    DeviceInfo {
+                        name: "Test Pad".into(),
+                        kind: Kind::Pad,
+                        haptic: false,
+                    },
+                    DeviceInfo {
+                        name: "Test Wheel".into(),
+                        kind: Kind::Wheel,
+                        haptic: true,
+                    },
+                ],
+                driver: Some(1),
+                controls,
+                feeding: true,
+                error: None,
+            };
+            section(&mut out, "a pad and a wheel, a game running", &mut h);
+            h.state_mut().snap = Snapshot {
+                error: Some("controllers unavailable: no SDL".into()),
+                ..Snapshot::default()
+            };
+            section(&mut out, "controllers can't be read", &mut h);
+            golden("controls", size, &out);
+        }
+    }
+
+    #[test]
+    fn golden_setup_states() {
+        for size in GOLDEN_SIZES {
+            let t = tempfile::tempdir().unwrap();
+            let mut out = String::new();
+            let mut h = window_sized(&paths_in(&t.path().join("first")), &[], size);
+            section(&mut out, "first run", &mut h);
+            click_button(&mut h, "Add folder");
+            section(&mut out, "first run, Add folder with nothing typed", &mut h);
+
+            let mut h = golden_hub(t.path(), size, true);
+            h.state_mut().config.libraries.push("/more games".into());
+            h.state_mut().config.bios = Some("/bios".into());
+            open_tab(&mut h, Tab::Settings);
+            click_button(&mut h, "Folders and BIOS");
+            section(&mut out, "two folders and the BIOS folder", &mut h);
+            click_button(&mut h, "Use BIOS");
+            section(&mut out, "Use BIOS with nothing typed", &mut h);
+            golden("setup", size, &out);
+        }
+    }
+
+    #[test]
+    fn golden_running_overlay_and_messages() {
+        for size in GOLDEN_SIZES {
+            let t = tempfile::tempdir().unwrap();
+            let mut h = golden_hub(t.path(), size, true);
+            let mut out = String::new();
+            select(&mut h, "sr3");
+            let game = sega_core::catalog::by_slug("sr3").unwrap();
+            let log = h.state().paths.log().display().to_string();
+            for started in [false, true] {
+                let (tx, rx) = mpsc::channel();
+                h.state_mut().running = Some(Running {
+                    game,
+                    playing: false,
+                    progress: rx,
+                    stop: Arc::new(AtomicBool::new(false)),
+                });
+                section(&mut out, "getting the game ready", &mut h);
+                if started {
+                    tx.send(Progress::Playing).unwrap();
+                    section(&mut out, "the game running", &mut h);
+                    click_button(&mut h, "Stop");
+                    section(&mut out, "Stop pressed", &mut h);
+                }
+                tx.send(Progress::Ended(Err(
+                    "starting gamescope (is it installed?).".into(),
+                )))
+                .unwrap();
+                h.run_steps(3);
+                // the log's folder is the test's: the dump shows a fixed one
+                let m = h.state_mut().message.as_mut().expect("a message");
+                m.body = m.body.replace(&log, "/data/launcher.log");
+                section(&mut out, &format!("an error, started: {started}"), &mut h);
+                click_button(&mut h, "OK");
+            }
+            golden("overlays", size, &out);
         }
     }
 }
