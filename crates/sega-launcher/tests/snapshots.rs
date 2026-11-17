@@ -9,6 +9,7 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use rea_launcher::linkfarm;
 use sega_core::catalog::{GAMES, Game, Host};
 use sega_core::launch::{self, Components, Places};
 use sega_core::runtime;
@@ -248,9 +249,9 @@ fn runtime_plans_of_every_game() {
         let dump = PathBuf::from("/dump").join(g.slug);
         let src = dump.join(g.source_folder());
         let files = fake_dump(g);
-        let ls = |dir: &Path| -> std::io::Result<Vec<runtime::Item>> {
+        let ls = |dir: &Path| -> std::io::Result<Vec<linkfarm::Item>> {
             let rel = p(dir.strip_prefix(&src).expect("inside the dump"));
-            let mut items: Vec<runtime::Item> = Vec::new();
+            let mut items: Vec<linkfarm::Item> = Vec::new();
             for (f, size) in &files {
                 let below = if rel.is_empty() {
                     Some(f.as_str())
@@ -263,7 +264,7 @@ fn runtime_plans_of_every_game() {
                     None => (below, false),
                 };
                 if !items.iter().any(|i| i.name == name) {
-                    items.push(runtime::Item {
+                    items.push(linkfarm::Item {
                         name: name.into(),
                         dir,
                         size: if dir { 0 } else { *size },
@@ -277,17 +278,18 @@ fn runtime_plans_of_every_game() {
         let _ = writeln!(out, "== {}", g.slug);
         for op in runtime::plan(g, &dump, &rt, &ls).expect("a plan") {
             let _ = match op {
-                runtime::Op::Dir(d) => writeln!(out, "dir {}", p(&d)),
-                runtime::Op::Link { target, at } => {
+                linkfarm::Op::Dir(d) => writeln!(out, "dir {}", p(&d)),
+                linkfarm::Op::Link { target, at } => {
                     writeln!(out, "link {} -> {}", p(&at), p(&target))
                 }
-                runtime::Op::CopyOnce { from, to } => {
+                linkfarm::Op::CopyOnce { from, to } => {
                     writeln!(out, "copy {} -> {}", p(&from), p(&to))
                 }
-                runtime::Op::Archive { files, to } => {
+                linkfarm::Op::Archive { files, to } => {
                     let names: Vec<String> = files.iter().map(|f| p(f)).collect();
                     writeln!(out, "zip {} <- {}", p(&to), names.join(" "))
                 }
+                other => writeln!(out, "{other:?}"),
             };
         }
     }

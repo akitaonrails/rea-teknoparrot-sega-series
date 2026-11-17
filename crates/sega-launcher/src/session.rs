@@ -14,6 +14,7 @@ use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, bail};
 use rea_launcher::library::Entry;
+use rea_launcher::linkfarm::{self, Occupied};
 use sega_core::catalog::{Game, Host, Route, Support};
 use sega_core::input::Cabinet;
 use sega_core::launch::{self, DIRECTX_REDIST, FLYCAST_EXE, FLYCAST_PROGRAM, Places, Plan};
@@ -113,13 +114,14 @@ pub fn prepare(
     check_components(game, paths)?;
     let rt = paths.runtime(game.slug);
     if rt.is_dir() {
-        for d in runtime::dangling(&rt)? {
-            runtime::remove_link(&d)?;
+        for d in linkfarm::dangling(&rt)? {
+            linkfarm::remove_link(&d)?;
         }
     }
-    let ops = runtime::plan(game, &entry.dir, &rt, &runtime::list)
+    let ops = runtime::plan(game, &entry.dir, &rt, &linkfarm::list)
         .with_context(|| format!("reading {}", entry.dir.display()))?;
-    runtime::apply(&ops).with_context(|| format!("building {}", rt.display()))?;
+    linkfarm::apply(&ops, Occupied::Refuse)
+        .with_context(|| format!("building {}", rt.display()))?;
     let config = paths.config();
     let mut bios = Vec::new();
     for name in launch::bios_names(game) {
@@ -177,14 +179,14 @@ pub fn prepare(
     let mut links = Vec::new();
     for (at, target) in &plan.links {
         if let Some(d) = at.parent() {
-            links.push(runtime::Op::Dir(d.to_path_buf()));
+            links.push(linkfarm::Op::Dir(d.to_path_buf()));
         }
-        links.push(runtime::Op::Link {
+        links.push(linkfarm::Op::Link {
             target: target.clone(),
             at: at.clone(),
         });
     }
-    runtime::apply(&links)?;
+    linkfarm::apply(&links, Occupied::Refuse)?;
     Ok(Prepared {
         plan,
         runtime: rt,

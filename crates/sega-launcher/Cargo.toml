@@ -15,7 +15,7 @@ path = "src/main.rs"
 anyhow = "1"
 eframe = { version = "0.37.0", default-features = false, features = ["glow", "default_fonts", "x11", "wayland"] }
 image = { version = "0.25", default-features = false, features = ["jpeg"] }
-rea-launcher.workspace = true
+rea-launcher = { workspace = true, features = ["linkfarm"] }
 rea-launcher-native.workspace = true
 rea-launcher-ui.workspace = true
 # the family's run/audience rules (`report::Run`, `Audience`) build on every system

@@ -2,44 +2,19 @@
 //!
 //! The player's game folder is read-only (it may be on a network share,
 //! and the launcher runs every game with the library bound read-only).
-//! The runtime holds a symlink to each top-level entry of the game folder,
+//! The runtime holds a link to each top-level entry of the game folder,
 //! plus the files the launcher writes and the folders the loaders create
-//! (saves, cabinet drives) as real files. [`plan`] decides from a listing;
-//! [`apply`] carries it out without ever touching the game folder.
-//!
-//! On Windows, where a symlink needs administrator rights or developer
-//! mode, a linked folder is a directory junction (a directory symlink for a
-//! folder on a network share, which a junction cannot reach) and a linked
-//! file is a copy, refreshed when the game folder's file changes.
+//! (saves, cabinet drives) as real files. The SDK's `linkfarm` builds it
+//! (links, junctions on Windows, writable copies); [`Sega`] is what this
+//! launcher knows about each game's folder, and [`plan`] adds F355's
+//! cartridge, packed into one stored zip.
 
-use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use crate::catalog::{Game, Route};
+use rea_launcher::linkfarm::{self, Item, Op, Place, Policy};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Op {
-    Dir(PathBuf),
-    /// Symlink `at` → `target` (replaced when it points elsewhere).
-    Link {
-        target: PathBuf,
-        at: PathBuf,
-    },
-    /// A copy the game owns from then on: made once (replacing a link an
-    /// older launcher left), never overwritten.
-    CopyOnce {
-        from: PathBuf,
-        to: PathBuf,
-    },
-    /// A stored zip of these files ([`crate::zipstore`]), made again only
-    /// when their names, sizes or modification times change (recorded in
-    /// `<to>.sources`).
-    Archive {
-        files: Vec<PathBuf>,
-        to: PathBuf,
-    },
-}
+use crate::catalog::{Game, GameId, Route};
 
 /// Files below this size are copied, not linked: the games write their
 /// logs, settings and saves next to their data (SEGA Rally 3's
@@ -62,33 +37,10 @@ fn copied(route: Route, it: &Item) -> bool {
     !it.dir && it.size < small(route) && !code
 }
 
-/// One entry of the game folder.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Item {
-    pub name: String,
-    pub dir: bool,
-    pub size: u64,
-}
-
-pub fn list(dir: &Path) -> io::Result<Vec<Item>> {
-    let mut v = Vec::new();
-    for e in fs::read_dir(dir)? {
-        let e = e?;
-        let m = fs::metadata(e.path())?;
-        v.push(Item {
-            name: e.file_name().to_string_lossy().into_owned(),
-            dir: m.is_dir(),
-            size: m.len(),
-        });
-    }
-    v.sort_by(|a, b| a.name.cmp(&b.name));
-    Ok(v)
-}
-
-/// Names never linked: files the launcher or the loaders write in the
-/// runtime, and NTFS leftovers in the dumps.
+/// Names at the top of the game folder never linked: files the launcher
+/// or the loaders write in the runtime, and NTFS leftovers in the dumps.
 fn skip(route: Route, name: &str) -> bool {
-    if name == "System Volume Information" || name.starts_with('$') {
+    if linkfarm::ntfs_leftover(name) {
         return true;
     }
     match route {
@@ -107,28 +59,11 @@ fn skip(route: Route, name: &str) -> bool {
     }
 }
 
-/// What an archive was made from: one line per file (name, size,
-/// modification time), so a changed dump makes it again.
-pub fn sources(files: &[PathBuf]) -> io::Result<String> {
-    let mut s = String::new();
-    for f in files {
-        let m = fs::metadata(f)?;
-        let t = m
-            .modified()?
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_secs())
-            .unwrap_or(0);
-        s.push_str(&format!("{}\t{}\t{t}\n", f.display(), m.len()));
-    }
-    Ok(s)
-}
-
 /// Folders of the dump (relative to [`Game::source_folder`]) the game
 /// writes into: the runtime holds them as real folders whose entries are
 /// linked or copied one by one, so the game's writes stay in the runtime.
 /// Every other folder is one link.
 pub fn opened(game: &Game) -> &'static [&'static str] {
-    use crate::catalog::GameId;
     match game.id {
         // config.ini, logs and the arcade database beside the program
         GameId::SegaRally3 => &["Rally", "ShellData", "Shell"],
@@ -149,9 +84,29 @@ pub fn opened(game: &Game) -> &'static [&'static str] {
     }
 }
 
-/// The runtime of a game: every entry of its source folder linked, small
-/// files copied, the folders of [`opened`] made real. `ls` lists a folder
-/// of the dump (the real [`list`], or a fake in tests).
+/// What the launcher knows about one game's folder.
+pub struct Sega<'a>(pub &'a Game);
+
+impl Policy for Sega<'_> {
+    fn place(&self, rel: &str, it: &Item) -> Place {
+        let route = self.0.route;
+        if !rel.contains('/') && skip(route, rel) {
+            Place::Skip
+        } else if it.dir && opened(self.0).iter().any(|o| o.eq_ignore_ascii_case(rel)) {
+            Place::Open
+        } else if copied(route, it) {
+            Place::CopyOnce
+        } else {
+            Place::Link
+        }
+    }
+}
+
+/// The runtime `rt` of a game whose dump is `dump`: every entry of its
+/// source folder linked, small files copied, the folders of [`opened`]
+/// made real; a NAOMI cartridge is its files packed into one archive,
+/// which Flycast reads. `ls` lists a folder of the dump
+/// ([`linkfarm::list`], or a fake in tests).
 pub fn plan(
     game: &Game,
     dump: &Path,
@@ -159,198 +114,31 @@ pub fn plan(
     ls: &dyn Fn(&Path) -> io::Result<Vec<Item>>,
 ) -> io::Result<Vec<Op>> {
     let src = dump.join(game.source_folder());
-    let mut ops = vec![Op::Dir(rt.to_path_buf())];
-    // a NAOMI cartridge: Flycast reads the set from one archive
-    if let Route::Flycast { set } = game.route {
-        let files = ls(&src)?
-            .into_iter()
-            .filter(|it| !it.dir && !skip(game.route, &it.name))
-            .map(|it| src.join(it.name))
-            .collect();
-        ops.push(Op::Archive {
+    let Route::Flycast { set } = game.route else {
+        return linkfarm::plan(&src, rt, &Sega(game), ls);
+    };
+    let files = ls(&src)?
+        .into_iter()
+        .filter(|it| !it.dir && !skip(game.route, &it.name))
+        .map(|it| src.join(it.name))
+        .collect();
+    Ok(vec![
+        Op::Dir(rt.to_path_buf()),
+        Op::Archive {
             files,
             to: rt.join(format!("{set}.zip")),
-        });
-        return Ok(ops);
-    }
-    let open = opened(game);
-    let mut stack = vec![String::new()];
-    while let Some(rel) = stack.pop() {
-        let (from_dir, to_dir) = if rel.is_empty() {
-            (src.clone(), rt.to_path_buf())
-        } else {
-            (src.join(&rel), rt.join(&rel))
-        };
-        if !rel.is_empty() {
-            ops.push(Op::Dir(to_dir.clone()));
-        }
-        for it in ls(&from_dir)? {
-            if rel.is_empty() && skip(game.route, &it.name) {
-                continue;
-            }
-            let child = if rel.is_empty() {
-                it.name.clone()
-            } else {
-                format!("{rel}/{}", it.name)
-            };
-            if it.dir && open.iter().any(|o| o.eq_ignore_ascii_case(&child)) {
-                stack.push(child);
-                continue;
-            }
-            let (from, to) = (from_dir.join(&it.name), to_dir.join(&it.name));
-            if copied(game.route, &it) {
-                ops.push(Op::CopyOnce { from, to });
-            } else {
-                ops.push(Op::Link {
-                    target: from,
-                    at: to,
-                });
-            }
-        }
-    }
-    Ok(ops)
-}
-
-/// Carry out a plan. A link is replaced only when it points elsewhere; a
-/// real file or folder where a link should be is an error (it would be
-/// the player's data), never removed.
-pub fn apply(ops: &[Op]) -> io::Result<()> {
-    for op in ops {
-        match op {
-            Op::Dir(d) => fs::create_dir_all(d)?,
-            Op::Link { target, at } => link(target, at)?,
-            Op::CopyOnce { from, to } => match fs::symlink_metadata(to) {
-                Ok(m) if !m.file_type().is_symlink() => {}
-                found => {
-                    if found.is_ok() {
-                        fs::remove_file(to)?;
-                    }
-                    fs::copy(from, to)?;
-                }
-            },
-            Op::Archive { files, to } => {
-                let record = to.with_extension("sources");
-                let want = sources(files)?;
-                if to.is_file() && fs::read_to_string(&record).ok().as_deref() == Some(&want) {
-                    continue;
-                }
-                // a whole-file swap: a half-written archive never stays
-                let tmp = to.with_extension("partial");
-                crate::zipstore::write(files, &tmp)?;
-                fs::rename(&tmp, to)?;
-                fs::write(&record, want)?;
-            }
-        }
-    }
-    Ok(())
-}
-
-fn real_where_a_link_goes(at: &Path) -> io::Error {
-    io::Error::other(format!(
-        "{} is a real file or folder where the launcher expects a link; move it away",
-        at.display()
-    ))
-}
-
-/// A symlink `at` → `target`, replaced when it points elsewhere.
-#[cfg(unix)]
-fn link(target: &Path, at: &Path) -> io::Result<()> {
-    match fs::symlink_metadata(at) {
-        Ok(m) if m.file_type().is_symlink() => {
-            if fs::read_link(at)? != *target {
-                fs::remove_file(at)?;
-                std::os::unix::fs::symlink(target, at)?;
-            }
-            Ok(())
-        }
-        Ok(_) => Err(real_where_a_link_goes(at)),
-        Err(_) => std::os::unix::fs::symlink(target, at),
-    }
-}
-
-/// Windows: a folder is a directory junction, a file a copy kept in step.
-#[cfg(windows)]
-fn link(target: &Path, at: &Path) -> io::Result<()> {
-    let existing = fs::symlink_metadata(at).ok();
-    if target.is_dir() {
-        match existing {
-            Some(m) if m.file_type().is_symlink() => {
-                if junction::get_target(at).ok().as_deref() == Some(target) {
-                    return Ok(());
-                }
-                remove_link(at)?;
-            }
-            Some(_) => return Err(real_where_a_link_goes(at)),
-            None => {}
-        }
-        junction::create(target, at).or_else(|e| {
-            std::os::windows::fs::symlink_dir(target, at).map_err(|_| {
-                io::Error::new(
-                    e.kind(),
-                    format!(
-                        "cannot link {} into the runtime folder ({e}); a game folder on a \
-                         network share needs Windows developer mode",
-                        target.display()
-                    ),
-                )
-            })
-        })
-    } else {
-        match existing {
-            Some(m) if m.file_type().is_symlink() => remove_link(at)?,
-            Some(m) if m.is_dir() => return Err(real_where_a_link_goes(at)),
-            _ => {}
-        }
-        mirror_file(target, at)
-    }
-}
-
-/// Keeps `at` a copy of `target`: copied when missing or when the size or
-/// modification time differ; the copy gets the source's modification time.
-#[cfg(windows)]
-fn mirror_file(target: &Path, at: &Path) -> io::Result<()> {
-    let src = fs::metadata(target)?;
-    if let Ok(m) = fs::metadata(at)
-        && m.len() == src.len()
-        && m.modified().ok() == src.modified().ok()
-    {
-        return Ok(());
-    }
-    fs::copy(target, at)?;
-    fs::File::options()
-        .write(true)
-        .open(at)?
-        .set_modified(src.modified()?)
-}
-
-/// Removes a link the launcher made (on Windows a junction is a folder).
-pub fn remove_link(at: &Path) -> io::Result<()> {
-    fs::remove_file(at).or_else(|e| fs::remove_dir(at).map_err(|_| e))
-}
-
-/// Links in a runtime folder (and the real folders inside it) whose target
-/// is gone (a dump moved): removed so a re-plan can link the new place.
-pub fn dangling(dir: &Path) -> io::Result<Vec<PathBuf>> {
-    let mut v = Vec::new();
-    for e in fs::read_dir(dir)? {
-        let p = e?.path();
-        let m = fs::symlink_metadata(&p)?;
-        if m.file_type().is_symlink() {
-            if fs::metadata(&p).is_err() {
-                v.push(p);
-            }
-        } else if m.is_dir() {
-            v.extend(dangling(&p)?);
-        }
-    }
-    Ok(v)
+        },
+    ])
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::catalog::{GameId, game};
+    use crate::catalog::game;
+    use rea_launcher::linkfarm::{Occupied, apply, list};
     use std::collections::HashMap;
+    use std::fs;
+    use std::path::PathBuf;
 
     fn item(name: &str, dir: bool, size: u64) -> Item {
         Item {
@@ -513,7 +301,7 @@ mod tests {
         // an older launcher linked the ini: replaced by a copy
         fs::create_dir_all(&rt).unwrap();
         std::os::unix::fs::symlink(src.join("d1a.ini"), rt.join("d1a.ini")).unwrap();
-        apply(&ops).unwrap();
+        apply(&ops, Occupied::Refuse).unwrap();
         let ini = rt.join("d1a.ini");
         assert!(!fs::symlink_metadata(&ini).unwrap().file_type().is_symlink());
         assert!(
@@ -530,72 +318,9 @@ mod tests {
                     .is_symlink()
         );
         fs::write(&ini, b"the game's").unwrap();
-        apply(&ops).unwrap();
+        apply(&ops, Occupied::Refuse).unwrap();
         assert_eq!(fs::read(&ini).unwrap(), b"the game's");
         assert_eq!(fs::read(src.join("d1a.ini")).unwrap(), b"old");
-    }
-
-    #[test]
-    #[cfg(unix)]
-    fn dangling_links_are_found_inside_opened_folders_too() {
-        let t = tempfile::tempdir().unwrap();
-        let rt = t.path().join("rt");
-        fs::create_dir_all(rt.join("Rally")).unwrap();
-        std::os::unix::fs::symlink(t.path().join("gone"), rt.join("Rally/x")).unwrap();
-        std::os::unix::fs::symlink(t.path(), rt.join("ok")).unwrap();
-        assert_eq!(dangling(&rt).unwrap(), [rt.join("Rally/x")]);
-    }
-
-    #[test]
-    fn apply_links_relinks_and_never_replaces_real_files() {
-        let t = tempfile::tempdir().unwrap();
-        let (a, b, rt) = (t.path().join("a"), t.path().join("b"), t.path().join("rt"));
-        fs::create_dir_all(&a).unwrap();
-        fs::create_dir_all(&b).unwrap();
-        let at = rt.join("data");
-        apply(&[
-            Op::Dir(rt.clone()),
-            Op::Link {
-                target: a.clone(),
-                at: at.clone(),
-            },
-        ])
-        .unwrap();
-        apply(&[Op::Link {
-            target: b.clone(),
-            at: at.clone(),
-        }])
-        .unwrap();
-        // the link follows the new target (a symlink, or a junction on Windows)
-        fs::write(b.join("in-b"), b"b").unwrap();
-        assert_eq!(fs::read(at.join("in-b")).unwrap(), b"b");
-        fs::write(rt.join("save.bin"), b"mine").unwrap();
-        let err = apply(&[Op::Link {
-            target: a,
-            at: rt.join("save.bin"),
-        }]);
-        assert!(err.is_err());
-        assert_eq!(fs::read(rt.join("save.bin")).unwrap(), b"mine");
-    }
-
-    /// Windows: a linked file is a copy, refreshed when the game's file
-    /// changes; a copy is never mistaken for the player's file.
-    #[test]
-    #[cfg(windows)]
-    fn on_windows_a_linked_file_is_a_copy_kept_in_step() {
-        let t = tempfile::tempdir().unwrap();
-        let (src, at) = (t.path().join("game.exe"), t.path().join("rt-game.exe"));
-        fs::write(&src, b"v1").unwrap();
-        let op = Op::Link {
-            target: src.clone(),
-            at: at.clone(),
-        };
-        apply(std::slice::from_ref(&op)).unwrap();
-        assert!(!fs::symlink_metadata(&at).unwrap().file_type().is_symlink());
-        assert_eq!(fs::read(&at).unwrap(), b"v1");
-        fs::write(&src, b"v2, longer").unwrap();
-        apply(std::slice::from_ref(&op)).unwrap();
-        assert_eq!(fs::read(&at).unwrap(), b"v2, longer");
     }
 
     #[test]
@@ -622,16 +347,15 @@ mod tests {
                 }
             ]
         );
-        apply(&ops).unwrap();
+        apply(&ops, Occupied::Refuse).unwrap();
         let first = std::fs::metadata(&zip).unwrap().modified().unwrap();
-        assert!(!rt.join("f355twn2.partial").exists());
         // unchanged dump: the archive stays as it is
         std::thread::sleep(std::time::Duration::from_millis(20));
-        apply(&ops).unwrap();
+        apply(&ops, Occupied::Refuse).unwrap();
         assert_eq!(std::fs::metadata(&zip).unwrap().modified().unwrap(), first);
         // a chip replaced by one of another size: made again
         std::fs::write(dump.path().join("epr-23399.ic22"), b"program, v2").unwrap();
-        apply(&ops).unwrap();
+        apply(&ops, Occupied::Refuse).unwrap();
         let bytes = std::fs::read(&zip).unwrap();
         assert!(bytes.windows(11).any(|w| w == b"program, v2"));
         // the dump itself is untouched
