@@ -50,6 +50,9 @@ All notable changes to this launcher. The format follows
 - Every error is also written to `launcher.log`; a game that stopped with
   an error names its own `session.log`; paths are shown with the system's
   separator; `~` works in typed paths on Windows.
+- A picture flag given without `--look` (`--set src --render 1280x720`)
+  makes the look Custom, as changing a picture row in the window does; the
+  old look's name no longer stays with values that don't match it.
 - `--check <game>` reports only that game's unknown builds, and its exit
   code is that game's.
 - `--list` works while the window is open.

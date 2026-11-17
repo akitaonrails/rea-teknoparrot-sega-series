@@ -530,13 +530,20 @@ enum Step {
 #[test]
 fn golden_running_overlay_and_messages() {
     for size in GOLDEN_SIZES {
-        let t = tempfile::tempdir().unwrap();
-        let mut h = hub(t.path(), size, true);
+        // a fixed, relative folder: the messages naming the logs wrap the
+        // same way on every run and machine (a temporary folder's random
+        // name moved the OK button)
+        let t = PathBuf::from(format!(
+            "../../target/golden-overlays-{}x{}",
+            size.x, size.y
+        ));
+        let _ = std::fs::remove_dir_all(&t);
+        let mut h = hub(&t, size, true);
         let mut out = String::new();
         select(&mut h, "sr3");
-        // the log's folder is the test's: the dump shows a fixed one
-        // as the dump spells it (Debug: a Windows `\` is `\\`)
-        let data = format!("{:?}", display_path(&paths_in(t.path()).data));
+        // the dump shows the data folder as /data, spelled as the dump
+        // spells it (Debug: a Windows `\` is `\\`)
+        let data = format!("{:?}", display_path(&paths_in(&t).data));
         let data = data.trim_matches('"').to_string();
         let shown = |out: &mut String, state: &str, h: &mut Hub| {
             let mut s = String::new();

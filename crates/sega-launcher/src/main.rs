@@ -201,8 +201,13 @@ fn configure(paths: &HubPaths, config: &mut HubConfig, inv: &Invocation) -> Resu
 }
 
 /// The options of the command line over `s`: a look first, so the flags
-/// after it win.
+/// after it win; a picture flag without a look makes the look custom, as a
+/// picture row does in the window.
 fn apply_options(inv: &Invocation, s: &mut Settings, game: &Game) {
+    let keys = || inv.options.iter().map(|(k, _)| *k);
+    if !keys().any(|k| k == "look") && keys().any(|k| settings::PICTURE.contains(&k)) {
+        s.look = None;
+    }
     inv.apply_options(settings::OPTIONS, &["look"], |spec, v| match v {
         Value::Choice(key) if spec.key == "look" => {
             if let Some(look) = Look::from_key(key) {
@@ -437,6 +442,24 @@ mod tests {
         for spec in settings::OPTIONS.iter().filter(|s| s.key != "look") {
             assert!(keys.contains(&spec.key), "{} untested", spec.key);
         }
+    }
+
+    #[test]
+    fn a_picture_flag_without_a_look_makes_the_look_custom() {
+        let mut s = Settings::default();
+        Look::Recommended.apply(&mut s, Size::new(1280, 720), None);
+        let inv = parse_v(&["--set", "src", "--render", "1280x720"]);
+        apply_options(&inv, &mut s, game_of("src"));
+        assert_eq!(s.look, None, "the values no longer match the look");
+        assert_eq!(s.render, Some(Size::new(1280, 720)));
+        // a wheel flag leaves the picture, and its look, alone
+        Look::Recommended.apply(&mut s, Size::new(1280, 720), None);
+        apply_options(
+            &parse_v(&["--set", "src", "--deadzone", "3"]),
+            &mut s,
+            game_of("src"),
+        );
+        assert_eq!(s.look, Some(Look::Recommended));
     }
 
     #[test]

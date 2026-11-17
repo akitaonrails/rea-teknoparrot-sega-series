@@ -410,7 +410,7 @@ bios = <tmp>/bios
 # Sets the picture options at once: the cabinet's picture, sharper for your
 # screen, or for the Steam Deck. Options set after it win.
 # Values: original, recommended or steam_deck.
-look = recommended
+#look =
 
 # The size the game draws at, or native for the cabinet's own. Sharper but
 # heavier when larger.

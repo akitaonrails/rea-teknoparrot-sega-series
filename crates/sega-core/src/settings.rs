@@ -31,6 +31,10 @@ pub enum Look {
     SteamDeck,
 }
 
+/// The keys a look sets: one changed by hand (a row, a flag) makes the
+/// look custom.
+pub const PICTURE: [&str; 5] = ["render", "output", "upscaler", "sharpness", "fullscreen"];
+
 pub const LOOKS: &[(&str, &str)] = &[
     ("original", "Original"),
     ("recommended", "Recommended"),

@@ -202,11 +202,7 @@ impl Form {
             }
             Row::Deadzone => s.deadzone = (i32::from(s.deadzone) + d).clamp(0, 30) as u8,
         }
-        if matches!(
-            row,
-            Row::Render | Row::Output | Row::Upscaler | Row::Sharpness | Row::Fullscreen
-        ) && self.settings != before
-        {
+        if settings::PICTURE.contains(&row.key()) && self.settings != before {
             self.settings.look = None;
         }
         self.settings != before

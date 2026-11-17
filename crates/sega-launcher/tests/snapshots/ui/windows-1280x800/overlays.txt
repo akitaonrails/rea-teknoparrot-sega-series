@@ -151,4 +151,4 @@ Window
         Label value="Controller: No controller"
         Label value="SEGA Rally 3 stopped with an error"
         Label value="Starting gamescope (is it installed?).\n\nTry again. If it happens again, the game's log is /data\\runtimes\\sr3\\session.log."
-        Button label="OK" [322 458 478 513]
+        Button label="OK" [322 448 478 503]
