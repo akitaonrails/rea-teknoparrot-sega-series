@@ -16,14 +16,14 @@ $ sega-launcher --library <tmp>/nowhere
 exit 1
 -- stdout
 -- stderr
-Sega Racing Launcher: <tmp>/nowhere is not a folder this computer can open.
+Sega Racing Launcher: <tmp>/nowhere isn't a folder this computer can open. Check the path and try again.
 Report a problem: https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
 
 $ sega-launcher --bios <tmp>/nowhere
 exit 1
 -- stdout
 -- stderr
-Sega Racing Launcher: <tmp>/nowhere is not a folder this computer can open.
+Sega Racing Launcher: <tmp>/nowhere isn't a folder this computer can open. Check the path and try again.
 Report a problem: https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
 
 $ sega-launcher --library <tmp>/games --bios <tmp>/bios
@@ -58,7 +58,6 @@ $ sega-launcher --check sr3
 exit 1
 -- stdout
 sr3     not in your game folders
-unknown epr-23399.ic22 (SHA-256 5d70d26611cd85c98dd76952edc5296bdc36cc48a3e6d470c97a5f65f7dfcc3a) in <tmp>/games/f355: report it at https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
 unknown Rally/Rally.exe (SHA-256 f730c2cd58854202a191be4b166013d5de4ccab58e6ec221ba3937354237e119) in <tmp>/games/rally: report it at https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
 -- stderr
 
@@ -70,13 +69,13 @@ unknown game id9; the games are or2sdx, or2sp, cthr, sr3, src, dcusa, f355
 
 sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
-  sega-launcher                       open the window (games, settings, controls)
-  sega-launcher --library <folder>    add a folder with your games (repeatable)
-  sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)
-  sega-launcher --list                list the games found and their state
-  sega-launcher --check [<game>]      check a game (or all) can start, without starting
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
   sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
-  sega-launcher --set <game> <options>   save options for a game without starting it
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
 
 Options (saved in that game's settings):
   --look original|recommended|steam_deck    Look
@@ -92,10 +91,10 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --input-script <file>    timed inputs
   --seconds <n>            stop the game after n seconds
 
-  sega-launcher --help                this text
+  sega-launcher --help                   this text
 
 
 $ sega-launcher --check --linux
@@ -118,9 +117,40 @@ exit 0
 -- stderr
 
 $ sega-launcher --set src
-exit 0
+exit 2
 -- stdout
 -- stderr
+--set src needs options to save, e.g. --set src --look <value>
+
+sega-launcher — the Sega arcade racers on TeknoParrot dumps
+
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
+  sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
+
+Options (saved in that game's settings):
+  --look original|recommended|steam_deck    Look
+  --render <WxH>                            Game resolution
+  --output <WxH>                            Screen size (Linux helper)
+  --upscaler fsr|nis|linear|nearest         Upscaler (Linux helper)
+  --sharpness <0-20>                        Sharpness (Linux helper)
+  --fullscreen on|off                       Full screen (Linux helper)
+  --steering-lock 180|270|360|540|900|full  Steering lock
+  --force-feedback <0-200>                  Force feedback
+  --deadzone <0-30>                         Stick dead zone
+
+Test options for --play:
+  --headless               run in an invisible display
+  --no-input               no controller input
+  --input-script <file>    timed inputs
+  --seconds <n>            stop the game after n seconds
+
+  sega-launcher --help                   this text
+
 
 $ sega-launcher --play sr3 --headless --seconds 1
 exit 1
@@ -137,13 +167,13 @@ unknown option --frobnicate
 
 sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
-  sega-launcher                       open the window (games, settings, controls)
-  sega-launcher --library <folder>    add a folder with your games (repeatable)
-  sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)
-  sega-launcher --list                list the games found and their state
-  sega-launcher --check [<game>]      check a game (or all) can start, without starting
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
   sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
-  sega-launcher --set <game> <options>   save options for a game without starting it
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
 
 Options (saved in that game's settings):
   --look original|recommended|steam_deck    Look
@@ -159,10 +189,10 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --input-script <file>    timed inputs
   --seconds <n>            stop the game after n seconds
 
-  sega-launcher --help                this text
+  sega-launcher --help                   this text
 
 
 $ sega-launcher --headless
@@ -173,13 +203,13 @@ the test options go with --play <game>
 
 sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
-  sega-launcher                       open the window (games, settings, controls)
-  sega-launcher --library <folder>    add a folder with your games (repeatable)
-  sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)
-  sega-launcher --list                list the games found and their state
-  sega-launcher --check [<game>]      check a game (or all) can start, without starting
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
   sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
-  sega-launcher --set <game> <options>   save options for a game without starting it
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
 
 Options (saved in that game's settings):
   --look original|recommended|steam_deck    Look
@@ -195,10 +225,10 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --input-script <file>    timed inputs
   --seconds <n>            stop the game after n seconds
 
-  sega-launcher --help                this text
+  sega-launcher --help                   this text
 
 
 $ sega-launcher --render 1920x1080
@@ -209,13 +239,13 @@ options need --play <game> or --set <game>
 
 sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
-  sega-launcher                       open the window (games, settings, controls)
-  sega-launcher --library <folder>    add a folder with your games (repeatable)
-  sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)
-  sega-launcher --list                list the games found and their state
-  sega-launcher --check [<game>]      check a game (or all) can start, without starting
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
   sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
-  sega-launcher --set <game> <options>   save options for a game without starting it
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
 
 Options (saved in that game's settings):
   --look original|recommended|steam_deck    Look
@@ -231,10 +261,10 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --input-script <file>    timed inputs
   --seconds <n>            stop the game after n seconds
 
-  sega-launcher --help                this text
+  sega-launcher --help                   this text
 
 
 $ sega-launcher --list --check
@@ -245,13 +275,13 @@ give one of --list, --check, --play or --set
 
 sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
-  sega-launcher                       open the window (games, settings, controls)
-  sega-launcher --library <folder>    add a folder with your games (repeatable)
-  sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)
-  sega-launcher --list                list the games found and their state
-  sega-launcher --check [<game>]      check a game (or all) can start, without starting
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
   sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
-  sega-launcher --set <game> <options>   save options for a game without starting it
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
 
 Options (saved in that game's settings):
   --look original|recommended|steam_deck    Look
@@ -267,27 +297,27 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --input-script <file>    timed inputs
   --seconds <n>            stop the game after n seconds
 
-  sega-launcher --help                this text
+  sega-launcher --help                   this text
 
 
 $ sega-launcher --steering-lock 333 --play sr3
 exit 2
 -- stdout
 -- stderr
-bad value for --steering-lock: 333 (Needs("180, 270, 360, 540, 900 or full"))
+bad value for --steering-lock: 333 (it takes 180, 270, 360, 540, 900 or full)
 
 sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
-  sega-launcher                       open the window (games, settings, controls)
-  sega-launcher --library <folder>    add a folder with your games (repeatable)
-  sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)
-  sega-launcher --list                list the games found and their state
-  sega-launcher --check [<game>]      check a game (or all) can start, without starting
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
   sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
-  sega-launcher --set <game> <options>   save options for a game without starting it
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
 
 Options (saved in that game's settings):
   --look original|recommended|steam_deck    Look
@@ -303,10 +333,10 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --input-script <file>    timed inputs
   --seconds <n>            stop the game after n seconds
 
-  sega-launcher --help                this text
+  sega-launcher --help                   this text
 
 
 $ sega-launcher --seconds soon --play sr3
@@ -317,13 +347,13 @@ exit 2
 
 sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
-  sega-launcher                       open the window (games, settings, controls)
-  sega-launcher --library <folder>    add a folder with your games (repeatable)
-  sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)
-  sega-launcher --list                list the games found and their state
-  sega-launcher --check [<game>]      check a game (or all) can start, without starting
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
   sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
-  sega-launcher --set <game> <options>   save options for a game without starting it
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
 
 Options (saved in that game's settings):
   --look original|recommended|steam_deck    Look
@@ -339,10 +369,10 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --input-script <file>    timed inputs
   --seconds <n>            stop the game after n seconds
 
-  sega-launcher --help                this text
+  sega-launcher --help                   this text
 
 
 $ sega-launcher --set
@@ -353,13 +383,13 @@ exit 2
 
 sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
-  sega-launcher                       open the window (games, settings, controls)
-  sega-launcher --library <folder>    add a folder with your games (repeatable)
-  sega-launcher --bios <folder>       your BIOS folder (Chihiro files, f355bios.zip)
-  sega-launcher --list                list the games found and their state
-  sega-launcher --check [<game>]      check a game (or all) can start, without starting
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
   sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
-  sega-launcher --set <game> <options>   save options for a game without starting it
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
 
 Options (saved in that game's settings):
   --look original|recommended|steam_deck    Look
@@ -375,10 +405,10 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --input-script <file>    timed inputs
   --seconds <n>            stop the game after n seconds
 
-  sega-launcher --help                this text
+  sega-launcher --help                   this text
 
 
 $ sega-launcher --check
@@ -391,8 +421,11 @@ Report a problem: https://github.com/akitaonrails/rea-teknoparrot-sega-series/is
 $ sega-launcher --list
 exit 0
 -- stdout
+unknown epr-23399.ic22 (SHA-256 5d70d26611cd85c98dd76952edc5296bdc36cc48a3e6d470c97a5f65f7dfcc3a): report it at https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
+        <tmp>/games/f355
+unknown Rally/Rally.exe (SHA-256 f730c2cd58854202a191be4b166013d5de4ccab58e6ec221ba3937354237e119): report it at https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
+        <tmp>/games/rally
 -- stderr
-The Sega Racing Launcher is already open.
 
 == launcher.cfg
 # Written by the launcher.

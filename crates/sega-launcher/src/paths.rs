@@ -1,164 +1,77 @@
-//! Where the launcher keeps things.
+//! Where the launcher keeps things (`rea_launcher::hub::HubPaths`).
 //!
 //! - data (`$SEGA_DATA`, else `$XDG_DATA_HOME/rea-sega` or
 //!   `~/.local/share/rea-sega`; on Windows `%LOCALAPPDATA%\rea-sega`):
-//!   `launcher.cfg`, `settings/`,
-//!   `runtimes/` (one per game, saves included), `wal/` (windowsarcadeloader's
-//!   root: its Wine prefix and profile layers), `launcher.log`;
+//!   `launcher.cfg`, `settings/`, `runtimes/` (one per game, saves
+//!   included), `wal/` (windowsarcadeloader's root: its Wine prefix and
+//!   profile layers), `launcher.log`;
 //! - components (`$SEGA_COMPONENTS`, else `components/` beside the
 //!   program): `lindbergh/` (Linux), `wal/`, `runner/`, `winetricks`,
-//!   `directx/` (Linux), `art/`, `fonts/`.
+//!   `directx/` (Linux), `flycast/`, `art/`.
 
 use std::path::{Path, PathBuf};
 
+use rea_launcher::hub::{HubConfig, HubDirs, HubPaths, PathField, PathKind};
 use sega_core::launch::Components;
 
-#[derive(Debug, Clone)]
-pub struct Paths {
-    pub data: PathBuf,
-    pub components: PathBuf,
-}
-
-/// What `launcher.cfg` remembers.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct Config {
-    /// Folders the games are looked for in.
-    pub libraries: Vec<PathBuf>,
-    /// The player's BIOS folder: MAME's `chihiro` files, F355's
-    /// `f355bios.zip` (at the top or in a `chihiro`, `dc` or `naomi`
-    /// folder, as EmuDeck keeps them).
-    pub bios: Option<PathBuf>,
-}
-
-impl Config {
-    pub fn parse(text: &str) -> Self {
-        let mut c = Config::default();
-        for line in text.lines() {
-            let Some((k, v)) = line.split_once('=') else {
-                continue;
-            };
-            let v = v.trim();
-            match k.trim() {
-                "library" if !v.is_empty() => c.libraries.push(v.into()),
-                // `chihiro_bios`: what 0.1.0 wrote
-                "bios" | "chihiro_bios" if !v.is_empty() => c.bios = Some(v.into()),
-                _ => {}
-            }
-        }
-        c
-    }
-
-    pub fn save(&self) -> String {
-        let mut s = String::from("# Written by the launcher.\n");
-        for l in &self.libraries {
-            s.push_str(&format!("library = {}\n", l.display()));
-        }
-        if let Some(b) = &self.bios {
-            s.push_str(&format!("bios = {}\n", b.display()));
-        }
-        s
-    }
-
-    pub fn add_library(&mut self, dir: &Path) {
-        if !self.libraries.iter().any(|l| l == dir) {
-            self.libraries.push(dir.to_path_buf());
-        }
+/// The folders' names.
+pub fn dirs() -> HubDirs {
+    HubDirs {
+        env_prefix: "SEGA",
+        name: "rea-sega",
+        dev_assets: cfg!(debug_assertions)
+            .then_some(concat!(env!("CARGO_MANIFEST_DIR"), "/../../assets")),
     }
 }
 
-impl Paths {
-    pub fn discover() -> Self {
-        let data = std::env::var_os("SEGA_DATA")
-            .map(PathBuf::from)
-            .unwrap_or_else(default_data);
-        let components = std::env::var_os("SEGA_COMPONENTS")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| {
-                std::env::current_exe()
-                    .ok()
-                    .and_then(|e| e.parent().map(|p| p.join("components")))
-                    .unwrap_or_else(|| PathBuf::from("components"))
-            });
-        Self { data, components }
-    }
+/// The player's BIOS folder: MAME's `chihiro` files, F355's
+/// `f355bios.zip` (at the top or in a `chihiro`, `dc` or `naomi` folder, as
+/// EmuDeck keeps them). 0.1.0 called it `chihiro_bios`.
+pub const BIOS: PathField = PathField {
+    key: "bios",
+    aliases: &["chihiro_bios"],
+    kind: PathKind::Folder,
+    flag: "--bios",
+    flag_aliases: &["--chihiro-bios"],
+    help: "your BIOS folder (Chihiro files, f355bios.zip)",
+    heading: "BIOS folder, needed for OutRun 2 SP, Crazy Taxi High Roller and F355 Challenge 2",
+    label: "BIOS folder",
+    placeholder: "/path/to/bios",
+    button: "Use BIOS",
+    empty: "Type the path of your BIOS folder first.",
+    saved: "BIOS folder saved.",
+};
 
-    pub fn config_file(&self) -> PathBuf {
-        self.data.join("launcher.cfg")
-    }
-    pub fn settings(&self, slug: &str) -> PathBuf {
-        self.data.join("settings").join(format!("{slug}.cfg"))
-    }
-    pub fn runtime(&self, slug: &str) -> PathBuf {
-        self.data.join("runtimes").join(slug)
-    }
-    pub fn wal_root(&self) -> PathBuf {
-        self.data.join("wal")
-    }
-    pub fn log(&self) -> PathBuf {
-        self.data.join("launcher.log")
-    }
-    /// A picture of the hub (`<slug>.jpg`, `<slug>-tile.jpg`).
-    pub fn art(&self, name: &str) -> PathBuf {
-        self.asset("art").join(name)
-    }
-    pub fn fonts(&self) -> PathBuf {
-        self.asset("fonts")
-    }
-    /// `components/<dir>`; from a development build also the repository's
-    /// own `assets/<dir>` when the program sits beside no `components/`.
-    fn asset(&self, dir: &str) -> PathBuf {
-        let packaged = self.components.join(dir);
-        if cfg!(debug_assertions) && !packaged.is_dir() {
-            let dev = Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../assets")
-                .join(dir);
-            if dev.is_dir() {
-                return dev;
-            }
-        }
-        packaged
-    }
-    pub fn components(&self) -> Components {
-        Components {
-            lindbergh: self.components.join("lindbergh"),
-            wal: self.components.join("wal"),
-            runner: self.components.join("runner"),
-            winetricks: self.components.join("winetricks"),
-            directx: self.components.join("directx"),
-            flycast: self.components.join("flycast"),
-            // Flycast starts F355's boards through this program
-            launcher: std::env::current_exe().unwrap_or_else(|_| "sega-launcher".into()),
-        }
-    }
+/// The paths `launcher.cfg` keeps besides the library folders.
+pub const FIELDS: &[PathField] = &[BIOS];
 
-    pub fn config(&self) -> Config {
-        Config::parse(&std::fs::read_to_string(self.config_file()).unwrap_or_default())
-    }
-
-    pub fn save_config(&self, c: &Config) -> std::io::Result<()> {
-        let f = self.config_file();
-        std::fs::create_dir_all(&self.data)?;
-        let tmp = f.with_extension("tmp");
-        std::fs::write(&tmp, c.save())?;
-        std::fs::rename(tmp, f)
-    }
+/// The BIOS folder `config` names.
+pub fn bios(config: &HubConfig) -> Option<&Path> {
+    config.paths.first().and_then(Option::as_deref)
 }
 
-#[cfg(windows)]
-fn default_data() -> PathBuf {
-    std::env::var_os("LOCALAPPDATA")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("rea-sega")
+/// windowsarcadeloader's root (every Windows game's prefix and links).
+pub fn wal_root(p: &HubPaths) -> PathBuf {
+    p.data.join("wal")
 }
 
-#[cfg(not(windows))]
-fn default_data() -> PathBuf {
-    std::env::var_os("XDG_DATA_HOME")
-        .map(PathBuf::from)
-        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("rea-sega")
+/// `launcher.cfg`; a file that can't be read is an error.
+pub fn config(p: &HubPaths) -> std::io::Result<HubConfig> {
+    HubConfig::load(&p.config_file(), FIELDS)
+}
+
+pub fn components(p: &HubPaths) -> Components {
+    let c = &p.components;
+    Components {
+        lindbergh: c.join("lindbergh"),
+        wal: c.join("wal"),
+        runner: c.join("runner"),
+        winetricks: c.join("winetricks"),
+        directx: c.join("directx"),
+        flycast: c.join("flycast"),
+        // Flycast starts F355's boards through this program
+        launcher: std::env::current_exe().unwrap_or_else(|_| "sega-launcher".into()),
+    }
 }
 
 #[cfg(test)]
@@ -166,33 +79,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn config_round_trips_several_libraries_and_the_bios() {
-        let mut c = Config::default();
-        c.add_library(Path::new("/roms/TeknoParrot"));
-        c.add_library(Path::new("/roms/arcade"));
-        c.add_library(Path::new("/roms/arcade"));
-        c.bios = Some("/bios".into());
-        assert_eq!(Config::parse(&c.save()), c);
-        assert_eq!(c.libraries.len(), 2);
+    fn components_sit_in_the_components_folder() {
+        let p = HubPaths {
+            data: "/d".into(),
+            components: "/pkg/components".into(),
+            dev_assets: None,
+        };
+        let c = components(&p);
+        assert_eq!(c.lindbergh, Path::new("/pkg/components/lindbergh"));
+        assert_eq!(c.directx, Path::new("/pkg/components/directx"));
+        assert_eq!(wal_root(&p), Path::new("/d/wal"));
     }
 
     #[test]
     fn the_bios_folder_that_0_1_0_saved_still_reads() {
-        let c = Config::parse(
+        let c = HubConfig::parse(
             "# Written by the launcher.\nlibrary = /g\nchihiro_bios = /bios/chihiro\n",
+            FIELDS,
         );
-        assert_eq!(c.bios, Some(PathBuf::from("/bios/chihiro")));
-        assert!(c.save().contains("bios = /bios/chihiro\n"));
-    }
-
-    #[test]
-    fn components_sit_in_the_components_folder() {
-        let p = Paths {
-            data: "/d".into(),
-            components: "/pkg/components".into(),
-        };
-        let c = p.components();
-        assert_eq!(c.lindbergh, Path::new("/pkg/components/lindbergh"));
-        assert_eq!(c.directx, Path::new("/pkg/components/directx"));
+        assert_eq!(bios(&c), Some(Path::new("/bios/chihiro")));
     }
 }

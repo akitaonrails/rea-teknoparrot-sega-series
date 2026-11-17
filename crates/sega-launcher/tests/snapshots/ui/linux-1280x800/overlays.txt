@@ -48,7 +48,7 @@ Window
         Label value="Controller: No controller"
         Label value="SEGA Rally 3 couldn't start"
         Label value="Starting gamescope (is it installed?).\n\nCheck that the game folder is complete, then try again. Details are in /data/launcher.log."
-        Button label="OK" [322 438 478 493]
+        Button label="OK" [322 448 478 503]
 == getting the game ready
 Window
   GenericContainer
@@ -150,5 +150,5 @@ Window
         Tab label="Settings" toggled=False [568 19 668 61]
         Label value="Controller: No controller"
         Label value="SEGA Rally 3 stopped with an error"
-        Label value="Starting gamescope (is it installed?).\n\nTry again. If it happens again: Details are in /data/launcher.log."
-        Button label="OK" [322 438 478 493]
+        Label value="Starting gamescope (is it installed?).\n\nTry again. If it happens again, the game's log is /data/runtimes/sr3/session.log."
+        Button label="OK" [322 448 478 503]

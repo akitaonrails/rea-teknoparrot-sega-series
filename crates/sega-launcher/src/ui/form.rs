@@ -1,12 +1,16 @@
-//! A game's settings page as data: its rows, what each shows, why one is
-//! off, and how the arrows change the [`Settings`] behind it. Labels and
-//! descriptions come from the option table (`sega_core::settings::OPTIONS`),
-//! so the window, `--help` and the settings file say the same thing.
+//! A game's settings page as data (the hub's [`HubForm`]): what each row
+//! shows, why one is off, and how the arrows change the [`Settings`]
+//! behind it. Labels and descriptions come from the option table
+//! (`sega_core::settings::OPTIONS`), which the hub draws the rows from, so
+//! the window, `--help` and the settings file say the same thing.
 
-use rea_launcher::cfg::OptionSpec;
+use std::io;
+use std::path::Path;
+
 use rea_launcher::gamescope::{Size, Upscaler};
+use rea_launcher::hub::{pick, size_name};
 use rea_launcher::wheel::SteeringLock;
-use sega_core::catalog::Host;
+use rea_launcher_ui::hub::HubForm;
 use sega_core::settings::{self, Look, Settings};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,15 +39,6 @@ impl Row {
         Row::Deadzone,
     ];
 
-    /// The rows the settings window shows on `host`: Windows has no
-    /// gamescope, so no screen-size, upscaler or full-screen rows.
-    pub fn shown(host: Host) -> Vec<Row> {
-        match host {
-            Host::Linux => Row::ALL.to_vec(),
-            Host::Windows => Row::ALL.into_iter().filter(|r| !r.spec().helper).collect(),
-        }
-    }
-
     /// The settings key (and command-line option `--<key>`) of this row.
     pub fn key(self) -> &'static str {
         match self {
@@ -59,17 +54,9 @@ impl Row {
         }
     }
 
-    pub fn spec(self) -> &'static OptionSpec {
-        rea_launcher::cfg::spec::find(settings::OPTIONS, self.key())
-            .expect("every row has an option")
-    }
-
-    pub fn label(self) -> &'static str {
-        self.spec().label
-    }
-
-    pub fn description(self) -> &'static str {
-        self.spec().description
+    /// The row of settings key `key`.
+    pub fn of(key: &str) -> Option<Row> {
+        Row::ALL.into_iter().find(|r| r.key() == key)
     }
 }
 
@@ -110,16 +97,6 @@ pub struct Form {
     pub render_fixed: bool,
 }
 
-pub fn size_name(s: Size) -> String {
-    let tag = match (s.w, s.h) {
-        (1920, 1080) => " (1080p)",
-        (2560, 1440) => " (1440p)",
-        (3840, 2160) => " (4K)",
-        _ => "",
-    };
-    format!("{} × {}{tag}", s.w, s.h)
-}
-
 fn area(s: &Size) -> u64 {
     u64::from(s.w) * u64::from(s.h)
 }
@@ -142,22 +119,6 @@ pub fn render_choices(current: Option<Size>) -> Vec<Option<Size>> {
         v[1..].sort_by_key(|s| s.as_ref().map(area));
     }
     v
-}
-
-/// The next item in `all` after `cur`, `d` steps away, clamped at the ends.
-fn step<T: Copy + PartialEq>(all: &[T], cur: T, d: i32) -> T {
-    let i = all.iter().position(|x| *x == cur).unwrap_or(0) as i32;
-    all[(i + d).clamp(0, all.len() as i32 - 1) as usize]
-}
-
-/// [`step`], wrapping around at the ends when `wrap`.
-fn pick<T: Copy + PartialEq>(all: &[T], cur: T, d: i32, wrap: bool) -> T {
-    let next = step(all, cur, d);
-    match (wrap && next == cur, d > 0) {
-        (false, _) => next,
-        (true, true) => all[0],
-        (true, false) => all[all.len() - 1],
-    }
 }
 
 impl Form {
@@ -249,6 +210,26 @@ impl Form {
             self.settings.look = None;
         }
         self.settings != before
+    }
+}
+
+impl HubForm for Form {
+    fn value(&self, key: &str) -> String {
+        Row::of(key).map_or_else(String::new, |r| Form::value(self, r))
+    }
+
+    fn disabled(&self, key: &str) -> Option<String> {
+        Row::of(key)
+            .and_then(|r| Form::disabled(self, r))
+            .map(str::to_string)
+    }
+
+    fn adjust(&mut self, key: &str, d: i32, wrap: bool) -> bool {
+        Row::of(key).is_some_and(|r| Form::adjust(self, r, d, wrap))
+    }
+
+    fn save(&self, file: &Path) -> io::Result<()> {
+        settings::write(file, &self.settings)
     }
 }
 
@@ -366,7 +347,6 @@ mod tests {
     fn every_row_has_words_and_disabled_rows_say_why() {
         let f = form();
         for row in Row::ALL {
-            assert!(!row.label().is_empty() && row.description().ends_with('.'));
             assert!(!f.value(row).is_empty());
         }
         assert!(SHARPNESS_OFF.ends_with('.') && WHEEL_OWN.ends_with('.'));
@@ -391,20 +371,5 @@ mod tests {
         let back = Settings::parse(&text).0;
         assert_eq!(back, f.settings);
         assert!(!path.with_extension("cfg.tmp").exists());
-    }
-
-    #[test]
-    fn windows_leaves_out_the_gamescope_rows() {
-        assert_eq!(Row::shown(Host::Linux), Row::ALL.to_vec());
-        assert_eq!(
-            Row::shown(Host::Windows),
-            vec![
-                Row::Look,
-                Row::Render,
-                Row::SteeringLock,
-                Row::ForceFeedback,
-                Row::Deadzone
-            ]
-        );
     }
 }

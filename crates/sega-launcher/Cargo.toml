@@ -14,7 +14,6 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1"
 eframe = { version = "0.37.0", default-features = false, features = ["glow", "default_fonts", "x11", "wayland"] }
-image = { version = "0.25", default-features = false, features = ["jpeg"] }
 rea-launcher = { workspace = true, features = ["linkfarm"] }
 rea-launcher-native = { workspace = true, features = ["group", "feeder"] }
 rea-launcher-ui.workspace = true

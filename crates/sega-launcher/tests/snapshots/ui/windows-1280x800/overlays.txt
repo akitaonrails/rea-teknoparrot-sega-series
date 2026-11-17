@@ -6,7 +6,7 @@ Window
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
         Label value="Ready"
-        Label value="Folder: /games/sr3"
+        Label value="Folder: \\games\\sr3"
         Button label="Play" disabled [62 504 251 560]
         Button label="Settings" [269 504 458 560]
         Label value="Your games · 7 of 7 found"
@@ -31,7 +31,7 @@ Window
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
         Label value="Ready"
-        Label value="Folder: /games/sr3"
+        Label value="Folder: \\games\\sr3"
         Button label="Play" [62 504 251 560]
         Button label="Settings" [269 504 458 560]
         Label value="Your games · 7 of 7 found"
@@ -47,8 +47,8 @@ Window
         Tab label="Settings" toggled=False [568 19 668 61]
         Label value="Controller: No controller"
         Label value="SEGA Rally 3 couldn't start"
-        Label value="Starting gamescope (is it installed?).\n\nCheck that the game folder is complete, then try again. Details are in /data/launcher.log."
-        Button label="OK" [322 438 478 493]
+        Label value="Starting gamescope (is it installed?).\n\nCheck that the game folder is complete, then try again. Details are in /data\\launcher.log."
+        Button label="OK" [322 448 478 503]
 == getting the game ready
 Window
   GenericContainer
@@ -57,7 +57,7 @@ Window
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
         Label value="Ready"
-        Label value="Folder: /games/sr3"
+        Label value="Folder: \\games\\sr3"
         Button label="Play" disabled [62 504 251 560]
         Button label="Settings" [269 504 458 560]
         Label value="Your games · 7 of 7 found"
@@ -82,7 +82,7 @@ Window
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
         Label value="Ready"
-        Label value="Folder: /games/sr3"
+        Label value="Folder: \\games\\sr3"
         Button label="Play" disabled [62 504 251 560]
         Button label="Settings" [269 504 458 560]
         Label value="Your games · 7 of 7 found"
@@ -108,7 +108,7 @@ Window
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
         Label value="Ready"
-        Label value="Folder: /games/sr3"
+        Label value="Folder: \\games\\sr3"
         Button label="Play" disabled [62 504 251 560]
         Button label="Settings" [269 504 458 560]
         Label value="Your games · 7 of 7 found"
@@ -134,7 +134,7 @@ Window
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
         Label value="Ready"
-        Label value="Folder: /games/sr3"
+        Label value="Folder: \\games\\sr3"
         Button label="Play" [62 504 251 560]
         Button label="Settings" [269 504 458 560]
         Label value="Your games · 7 of 7 found"
@@ -150,5 +150,5 @@ Window
         Tab label="Settings" toggled=False [568 19 668 61]
         Label value="Controller: No controller"
         Label value="SEGA Rally 3 stopped with an error"
-        Label value="Starting gamescope (is it installed?).\n\nTry again. If it happens again: Details are in /data/launcher.log."
-        Button label="OK" [322 438 478 493]
+        Label value="Starting gamescope (is it installed?).\n\nTry again. If it happens again, the game's log is /data\\runtimes\\sr3\\session.log."
+        Button label="OK" [322 458 478 513]

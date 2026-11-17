@@ -1,25 +1,3 @@
-== looking for the games
-Window
-  GenericContainer
-    GenericContainer
-      GenericContainer
-        Label value="OutRun 2 SP SDX"
-        Label value="Sega Lindbergh · 2006"
-        Label value="Looking for your games…"
-        Button label="Play" description="Still looking for your games." disabled [62 504 251 560]
-        Button label="Settings" [269 504 458 560]
-        Label value="Your games · looking…"
-        RadioButton label="OutRun 2 SP SDX" description="2006, Sega Lindbergh, Looking for your games…" toggled=True [62 609 218 696]
-        RadioButton label="OutRun 2 SP Special Tours" description="2004, Sega Chihiro, Not supported yet" toggled=False [229 609 384 696]
-        RadioButton label="Crazy Taxi High Roller" description="2003, Sega Chihiro, Not supported yet" toggled=False [396 609 551 696]
-        RadioButton label="SEGA Rally 3" description="2008, Sega Europa-R, Looking for your games…" toggled=False [562 609 718 696]
-        RadioButton label="SEGA Racing Classic" description="2009, Sega RingWide, Looking for your games…" toggled=False [729 609 884 696]
-        RadioButton label="Daytona Championship USA" description="2017, Sega PC (Shell), Looking for your games…" toggled=False [896 609 1051 696]
-        RadioButton label="F355 Challenge 2" description="2001, Sega NAOMI, Looking for your games…" toggled=False [1062 609 1218 696]
-        Tab label="Games" toggled=True [362 19 449 61]
-        Tab label="Controls" toggled=False [457 19 559 61]
-        Tab label="Settings" toggled=False [568 19 668 61]
-        Label value="Controller: No controller"
 == no game found
 Window
   GenericContainer

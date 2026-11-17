@@ -1011,8 +1011,6 @@ dependencies = [
  "num-traits",
  "png",
  "tiff",
- "zune-core",
- "zune-jpeg",
 ]
 
 [[package]]
@@ -2116,7 +2114,6 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "eframe",
- "image",
  "rea-launcher",
  "rea-launcher-build",
  "rea-launcher-native",
@@ -2125,7 +2122,6 @@ dependencies = [
  "sega-core",
  "signal-hook",
  "tempfile",
- "windows-sys 0.61.2",
 ]
 
 [[package]]

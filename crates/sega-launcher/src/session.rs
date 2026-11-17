@@ -14,6 +14,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result, bail};
 use rea_launcher::cpus;
 use rea_launcher::gamescope::CommandLine;
+use rea_launcher::hub::HubPaths;
 use rea_launcher::library::Entry;
 use rea_launcher::linkfarm::{self, Occupied};
 use rea_launcher::session::{EARLY_END, WindowWatch, default_interface, early_end, strip_ansi};
@@ -33,7 +34,7 @@ use sega_core::runtime;
 use sega_core::settings::Settings;
 
 use crate::input::{self, Stick};
-use crate::paths::Paths;
+use crate::paths;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Display {
@@ -79,8 +80,8 @@ impl Input {
     }
 }
 
-pub fn check_components(game: &Game, p: &Paths) -> Result<()> {
-    let c = p.components();
+pub fn check_components(game: &Game, p: &HubPaths) -> Result<()> {
+    let c = paths::components(p);
     let windows = Host::current() == Host::Windows;
     let need: Vec<PathBuf> = match game.route {
         Route::Lindbergh => vec![
@@ -128,7 +129,8 @@ pub fn which(program: &str) -> Option<PathBuf> {
 
 /// Build the runtime folder and write the game's files.
 pub fn prepare(
-    paths: &Paths,
+    paths: &HubPaths,
+    bios_folder: Option<&Path>,
     game: &Game,
     entry: &Entry<Game>,
     settings: &Settings,
@@ -148,10 +150,9 @@ pub fn prepare(
         .with_context(|| format!("reading {}", entry.dir.display()))?;
     linkfarm::apply(&ops, Occupied::Refuse)
         .with_context(|| format!("building {}", rt.display()))?;
-    let config = paths.config();
     let mut bios = Vec::new();
     for name in launch::bios_names(game) {
-        let found = launch::bios_places(config.bios.as_deref(), &entry.dir)
+        let found = launch::bios_places(bios_folder, &entry.dir)
             .into_iter()
             .map(|d| d.join(name))
             .find(|f| f.is_file());
@@ -184,7 +185,7 @@ pub fn prepare(
             _ => launch::WAL_PORT,
         },
         runtime: rt.clone(),
-        wal_root: paths.wal_root(),
+        wal_root: paths::wal_root(paths),
         // lindbergh-loader reads the wheel itself: tell it which one and how
         wheel: (game.route == Route::Lindbergh && display == Display::Screen)
             .then(input::lindbergh_wheel)
@@ -194,7 +195,7 @@ pub fn prepare(
     let plan = launch::plan(
         game,
         &places,
-        &paths.components(),
+        &paths::components(paths),
         settings,
         &nic,
         display == Display::Headless,
@@ -230,8 +231,8 @@ pub fn prepare(
 /// started again. A game that ended by itself at once didn't start: that
 /// is an error, with the session log's reasons.
 pub fn run(
-    paths: &Paths,
     p: &Prepared,
+    libraries: &[PathBuf],
     input: &Input,
     stop: Arc<AtomicBool>,
 ) -> Result<ExitStatus> {
@@ -244,7 +245,7 @@ pub fn run(
     };
     let mut attempt = 1;
     loop {
-        let (outcome, hung) = run_once(paths, p, input, &stop, &log)?;
+        let (outcome, hung) = run_once(p, libraries, input, &stop, &log)?;
         if let Some(why) = didnt_start(&outcome, &fs::read_to_string(&log_path).unwrap_or_default())
         {
             bail!("{why}");
@@ -295,13 +296,13 @@ fn say(log: &Log, line: &str) {
 
 /// One start of the game; whether its boot hung.
 fn run_once(
-    paths: &Paths,
     p: &Prepared,
+    libraries: &[PathBuf],
     input: &Input,
     stop: &AtomicBool,
     log: &Log,
 ) -> Result<(Outcome, bool)> {
-    let argv = session_argv(&p.plan, &paths.config().libraries);
+    let argv = session_argv(&p.plan, libraries);
     let mut cmd = Command::new(&argv[0]);
     cmd.args(&argv[1..])
         .current_dir(&p.plan.game.cwd)

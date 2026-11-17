@@ -17,7 +17,9 @@ bios = /bios<CR>
 chihiro_bios = /legacy<CR>
 library =<CR>
 -- exit 0, then
-# Written by the launcher.
+<BOM># my notes
+future_key = 1
+library = /first
 library = /second
 library = <tmp>/games
 bios = /legacy

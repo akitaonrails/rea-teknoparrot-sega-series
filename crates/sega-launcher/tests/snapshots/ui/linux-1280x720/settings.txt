@@ -32,6 +32,7 @@ Window
         Label value="7 of 7 games found."
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]
@@ -74,6 +75,7 @@ Window
         Label value="7 of 7 games found."
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]
@@ -116,6 +118,7 @@ Window
         Label value="7 of 7 games found."
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]
@@ -158,6 +161,7 @@ Window
         Label value="7 of 7 games found."
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]
@@ -200,6 +204,7 @@ Window
         Label value="7 of 7 games found."
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]
@@ -240,6 +245,7 @@ Window
         Label value="7 of 7 games found."
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]
@@ -282,6 +288,7 @@ Window
         Label value="7 of 7 games found."
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]
@@ -323,6 +330,7 @@ Window
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
         Label value="Saved. The game uses it the next time you press Play."
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]
@@ -364,6 +372,7 @@ Window
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
         Label value="Saved. The game uses it the next time you press Play."
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]
@@ -405,6 +414,7 @@ Window
         Button label="Rescan" [904 294 1204 340]
         Button label="Folders and BIOS" [904 354 1204 400]
         Label value="Saved. The game uses it the next time you press Play."
+        Label value="Sets the picture options at once: the cabinet's picture, sharper for your screen, or for the Steam Deck. Options set after it win."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=False [412 17 503 55]
         Tab label="Settings" toggled=True [511 17 602 55]

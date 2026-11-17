@@ -34,14 +34,14 @@ Window
       GenericContainer
         Label value="Your game folders"
         Label value="Type the path of a folder that holds your Sega game folders and add it. The launcher looks inside for each game and never changes what's there."
-        Label value="/games"
-        Label value="/more games"
+        Label value="\\games"
+        Label value="\\more games"
         TextInput label="Game folder" value="" [96 256 800 302]
         Button label="Add folder" [816 254 996 304]
         Label value="BIOS folder, needed for OutRun 2 SP, Crazy Taxi High Roller and F355 Challenge 2"
-        TextInput label="BIOS folder" value="/bios" [96 352 800 398]
+        TextInput label="BIOS folder" value="\\bios" [96 352 800 398]
         Button label="Use BIOS" [816 350 996 400]
-        Label value="In use: /bios"
+        Label value="In use: \\bios"
         Button label="Done" [96 444 276 494]
 == Use BIOS with nothing typed
 Window
@@ -50,12 +50,12 @@ Window
       GenericContainer
         Label value="Your game folders"
         Label value="Type the path of a folder that holds your Sega game folders and add it. The launcher looks inside for each game and never changes what's there."
-        Label value="/games"
-        Label value="/more games"
+        Label value="\\games"
+        Label value="\\more games"
         TextInput label="Game folder" value="" [96 256 800 302]
         Button label="Add folder" [816 254 996 304]
         Label value="BIOS folder, needed for OutRun 2 SP, Crazy Taxi High Roller and F355 Challenge 2"
-        TextInput label="BIOS folder" value="/bios" [96 352 800 398]
+        TextInput label="BIOS folder" value="\\bios" [96 352 800 398]
         Button label="Use BIOS" [816 350 996 400]
-        Label value="/bios isn't a folder this computer can open. Check the path and try again."
+        Label value="\\bios isn't a folder this computer can open. Check the path and try again."
         Button label="Done" [96 442 276 492]
