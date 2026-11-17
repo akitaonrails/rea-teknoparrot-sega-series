@@ -22,9 +22,9 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
+use rea_launcher::library::{Found, HashCache, Scan};
 use rea_launcher_win32::report::{Audience, Mode as Says, Run};
 use sega_core::catalog::{self, Game, Host, Route, Support};
-use sega_core::library::{self, Entry, Found, HashCache};
 use sega_core::settings::Settings;
 
 use crate::cli::{Invocation, Mode};
@@ -196,15 +196,20 @@ fn state(game: &Game) -> String {
     }
 }
 
-fn scan(config: &paths::Config) -> Result<Vec<Entry>, String> {
+/// The games in the library folders; what couldn't be read is said on stderr.
+fn scan(config: &paths::Config) -> Result<Scan<Game>, String> {
     if config.libraries.is_empty() {
         return Err("No game folder yet: run with --library <folder>.".into());
     }
-    Ok(library::scan(&config.libraries, &mut HashCache::default()))
+    let scan = catalog::library(HashCache::default()).scan(&config.libraries);
+    for problem in &scan.problems {
+        eprintln!("warning: couldn't read {problem}");
+    }
+    Ok(scan)
 }
 
 fn list(config: &paths::Config) -> Result<u8, String> {
-    for e in scan(config)? {
+    for e in scan(config)?.entries {
         match &e.found {
             Found::Known { game, edition } => println!(
                 "{:<7} {:<30} {:<36} {}\n        {}",
@@ -227,7 +232,7 @@ fn list(config: &paths::Config) -> Result<u8, String> {
 /// known edition, supported here, its components in place.
 fn check(paths: &Paths, config: &paths::Config, only: Option<&str>) -> Result<u8, String> {
     let found = scan(config)?;
-    let by_game = library::by_game(&found);
+    let by_game = found.by_game();
     let mut problems = 0;
     for game in catalog::GAMES
         .iter()
@@ -250,7 +255,7 @@ fn check(paths: &Paths, config: &paths::Config, only: Option<&str>) -> Result<u8
             }
         }
     }
-    for e in &found {
+    for e in &found.entries {
         if let Found::Unknown { file, digest } = &e.found {
             problems += 1;
             println!(
@@ -265,7 +270,8 @@ fn check(paths: &Paths, config: &paths::Config, only: Option<&str>) -> Result<u8
 fn play(paths: &Paths, game: &'static Game, inv: &Invocation) -> Result<u8, String> {
     let config = paths.config();
     let found = scan(&config)?;
-    let entry = library::by_game(&found)
+    let entry = found
+        .by_game()
         .get(&game.id)
         .map(|e| (*e).clone())
         .ok_or_else(|| format!("{} is not in your game folders.", game.title))?;

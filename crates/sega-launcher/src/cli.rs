@@ -71,7 +71,12 @@ impl Invocation {
 
     /// The options applied over `s` (a look first, so the options after it
     /// win), for the game whose cabinet screen is `native`.
-    pub fn apply(&self, s: &mut Settings, native: settings::Size, screen: Option<(u32, u32)>) {
+    pub fn apply(
+        &self,
+        s: &mut Settings,
+        native: rea_launcher::gamescope::Size,
+        screen: Option<(u32, u32)>,
+    ) {
         for (key, value) in &self.options {
             if *key == "look"
                 && let Some(look) = settings::Look::from_key(value)
@@ -219,8 +224,9 @@ pub fn parse(args: impl IntoIterator<Item = String>) -> Result<Invocation, Strin
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rea_launcher::gamescope::{Size, Upscaler};
     use rea_launcher::wheel::SteeringLock;
-    use sega_core::settings::{Look, Size, Upscaler};
+    use sega_core::settings::Look;
 
     fn parse_v(v: &[&str]) -> Result<Invocation, String> {
         parse(v.iter().map(|s| s.to_string()))

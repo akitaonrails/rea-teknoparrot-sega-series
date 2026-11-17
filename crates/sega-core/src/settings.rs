@@ -8,62 +8,13 @@
 //! all come from it. Unknown keys and comments are kept when the launcher
 //! rewrites the file, so a player's notes survive.
 
-use std::fmt;
-
 use rea_launcher::cfg::{self, KeyStyle, Kind, OptionSpec, Rejected, Resolution, Value};
 use rea_launcher::display;
+use rea_launcher::gamescope::{SIZE_MAX, SIZE_MIN, Size, UPSCALERS, Upscaler, fit};
 use rea_launcher::wheel::SteeringLock;
 
 /// Flags spell keys with hyphens: `--steering-lock` is `steering_lock`.
 pub const STYLE: KeyStyle = KeyStyle::Underscore;
-
-/// How gamescope scales the game's picture to the screen.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Upscaler {
-    /// Bilinear, gamescope's default.
-    Linear,
-    /// AMD FidelityFX Super Resolution 1 (spatial; any GPU).
-    Fsr,
-    /// NVIDIA Image Scaling (spatial; any GPU).
-    Nis,
-    /// Sharp pixels.
-    Nearest,
-}
-
-pub const UPSCALERS: &[(&str, &str)] = &[
-    ("fsr", "FSR 1 (sharp upscale)"),
-    ("nis", "NVIDIA Image Scaling"),
-    ("linear", "Smooth"),
-    ("nearest", "Sharp pixels"),
-];
-
-impl Upscaler {
-    pub const ALL: [Upscaler; 4] = [
-        Upscaler::Fsr,
-        Upscaler::Nis,
-        Upscaler::Linear,
-        Upscaler::Nearest,
-    ];
-    pub fn key(self) -> &'static str {
-        match self {
-            Upscaler::Linear => "linear",
-            Upscaler::Fsr => "fsr",
-            Upscaler::Nis => "nis",
-            Upscaler::Nearest => "nearest",
-        }
-    }
-    pub fn label(self) -> &'static str {
-        UPSCALERS
-            .iter()
-            .find(|(k, _)| *k == self.key())
-            .map_or("", |(_, l)| l)
-    }
-    pub fn parse(s: &str) -> Option<Self> {
-        Self::ALL
-            .into_iter()
-            .find(|u| u.key().eq_ignore_ascii_case(s.trim()))
-    }
-}
 
 /// A look: a named set of picture values.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -141,42 +92,6 @@ impl Look {
     }
 }
 
-/// The largest size with `native`'s shape that fits in `screen`.
-pub fn fit(native: Size, screen: Size) -> Size {
-    let by_width = Size::new(screen.w, screen.w * native.h / native.w);
-    if by_width.h <= screen.h {
-        by_width
-    } else {
-        Size::new(screen.h * native.w / native.h, screen.h)
-    }
-}
-
-/// A width × height.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Size {
-    pub w: u32,
-    pub h: u32,
-}
-
-impl Size {
-    pub const fn new(w: u32, h: u32) -> Self {
-        Self { w, h }
-    }
-    pub fn parse(s: &str) -> Option<Self> {
-        let (w, h) = s.trim().split_once(['x', 'X'])?;
-        let (w, h) = (w.trim().parse().ok()?, h.trim().parse().ok()?);
-        (w >= MIN.0 && h >= MIN.1 && w <= MAX.0 && h <= MAX.1).then_some(Self { w, h })
-    }
-}
-
-impl fmt::Display for Size {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}x{}", self.w, self.h)
-    }
-}
-
-const MIN: (u32, u32) = (320, 240);
-const MAX: (u32, u32) = (15360, 8640);
 const NATIVE: &cfg::Aliases = &[("native", Resolution::Original)];
 
 pub const LOCKS: &[(&str, &str)] = &[
@@ -200,8 +115,8 @@ pub const OPTIONS: &[OptionSpec] = &[
     OptionSpec::new(
         "render",
         Kind::Size {
-            min: MIN,
-            max: MAX,
+            min: SIZE_MIN,
+            max: SIZE_MAX,
             aliases: NATIVE,
         },
         "Game resolution",
@@ -212,8 +127,8 @@ pub const OPTIONS: &[OptionSpec] = &[
     OptionSpec::new(
         "output",
         Kind::Size {
-            min: MIN,
-            max: MAX,
+            min: SIZE_MIN,
+            max: SIZE_MAX,
             aliases: cfg::SIZES_ONLY,
         },
         "Screen size",

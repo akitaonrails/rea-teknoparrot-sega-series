@@ -6,9 +6,10 @@
 use std::path::Path;
 
 use rea_launcher::cfg::OptionSpec;
+use rea_launcher::gamescope::{Size, Upscaler};
 use rea_launcher::wheel::SteeringLock;
 use sega_core::catalog::Host;
-use sega_core::settings::{self, Look, Settings, Size, Upscaler};
+use sega_core::settings::{self, Look, Settings};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Row {

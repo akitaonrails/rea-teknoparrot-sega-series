@@ -22,10 +22,10 @@ use eframe::egui::{
     self, Align2, Color32, CornerRadius, CursorIcon, FontId, Id, Mesh, Pos2, Rect, Sense, Shape,
     Stroke, StrokeKind, TextureHandle, Vec2, pos2, vec2,
 };
+use rea_launcher::library::{Entry, Found, HashCache, Scan};
 use rea_launcher::wheel::{Action, Control, Kind};
 use sega_core::catalog::{GAMES, Game, Host, Route, Support};
 use sega_core::input::{Button, default_pad_map};
-use sega_core::library::{self, Entry, Found, HashCache};
 
 use crate::input::{Command, InputService, Snapshot};
 use crate::paths::{Config, Paths};
@@ -102,9 +102,10 @@ struct App {
     snap: Snapshot,
     model: Model,
     /// The last scan; `None` while looking.
-    entries: Option<Vec<Entry>>,
-    scan: Option<Receiver<(Vec<Entry>, HashCache)>>,
-    cache: Option<HashCache>,
+    entries: Option<Vec<Entry<Game>>>,
+    scan: Option<Receiver<Scan<Game>>>,
+    /// Shared by every scan: a rescan during a scan reuses its digests.
+    cache: HashCache,
     form: Option<(usize, Form)>,
     /// The last save: text, and whether it worked.
     note: Note,
@@ -136,7 +137,7 @@ impl App {
             snap: Snapshot::default(),
             entries: None,
             scan: None,
-            cache: Some(HashCache::default()),
+            cache: HashCache::default(),
             form: None,
             note: None,
             heroes: vec![None; GAMES.len()],
@@ -165,13 +166,12 @@ impl App {
             return;
         }
         let roots = self.config.libraries.clone();
-        let mut cache = self.cache.take().unwrap_or_default();
+        let library = sega_core::catalog::library(self.cache.clone());
         let (tx, rx) = mpsc::channel();
         std::thread::Builder::new()
             .name("scan".into())
             .spawn(move || {
-                let found = library::scan(&roots, &mut cache);
-                let _ = tx.send((found, cache));
+                let _ = tx.send(library.scan(&roots));
             })
             .expect("spawn scan thread");
         self.entries = None;
@@ -181,8 +181,11 @@ impl App {
     fn poll_scan(&mut self) {
         let Some(rx) = &self.scan else { return };
         match rx.try_recv() {
-            Ok((found, cache)) => {
-                for e in &found {
+            Ok(found) => {
+                for p in &found.problems {
+                    log_line(&self.paths, &format!("couldn't read {p}"));
+                }
+                for e in &found.entries {
                     if let Found::Unknown { file, digest } = &e.found {
                         log_line(
                             &self.paths,
@@ -190,8 +193,7 @@ impl App {
                         );
                     }
                 }
-                self.entries = Some(found);
-                self.cache = Some(cache);
+                self.entries = Some(found.entries);
                 self.scan = None;
             }
             Err(TryRecvError::Empty) => {}
@@ -213,7 +215,7 @@ impl App {
         }
     }
 
-    fn entry(&self, i: usize) -> Option<&Entry> {
+    fn entry(&self, i: usize) -> Option<&Entry<Game>> {
         self.entries
             .as_ref()?
             .iter()
@@ -2612,9 +2614,10 @@ fn ellipsized_text(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rea_launcher::gamescope::Size;
     use rea_launcher_ui::testing::kittest::NodeT as _;
     use rea_launcher_ui::testing::{self, Harness, Queryable};
-    use sega_core::settings::{Settings, Size};
+    use sega_core::settings::Settings;
     use std::fmt::Write as _;
     use std::path::Path;
 
@@ -2707,10 +2710,11 @@ mod tests {
         game_where("Chihiro", |g| matches!(g.route, Route::Cxbx))
     }
 
-    fn fake_entry(slug: &str, dir: &Path) -> Entry {
+    fn fake_entry(slug: &str, dir: &Path) -> Entry<Game> {
         let game = sega_core::catalog::by_slug(slug).unwrap();
         Entry {
             dir: dir.to_path_buf(),
+            file: dir.join(game.main_file),
             found: Found::Known {
                 game,
                 edition: &game.editions[0],
@@ -2958,7 +2962,7 @@ mod tests {
             (
                 Row::Upscaler,
                 "next",
-                Box::new(|s| s.upscaler = sega_core::settings::Upscaler::Nis),
+                Box::new(|s| s.upscaler = rea_launcher::gamescope::Upscaler::Nis),
             ),
             (Row::Sharpness, "next", Box::new(|s| s.sharpness = 6)),
             (Row::Fullscreen, "next", Box::new(|s| s.fullscreen = false)),
@@ -3095,7 +3099,7 @@ mod tests {
         h.run_steps(3);
         assert_eq!(
             settings_of(&paths, GAMES[0].slug).0.upscaler,
-            sega_core::settings::Upscaler::Nis
+            rea_launcher::gamescope::Upscaler::Nis
         );
         h.get_by_role_and_label(Role::Button, "Upscaler").click();
         h.run_steps(3);
@@ -3110,7 +3114,7 @@ mod tests {
         }
         assert_eq!(
             settings_of(&paths, GAMES[0].slug).0.upscaler,
-            sega_core::settings::Upscaler::Fsr
+            rea_launcher::gamescope::Upscaler::Fsr
         );
         assert!(!testing::disabled(
             &h.get_by_role_and_label(Role::Button, "Sharpness")
@@ -3554,7 +3558,7 @@ mod tests {
     }
 
     /// Every game, found in `/games`.
-    fn every_entry() -> Vec<Entry> {
+    fn every_entry() -> Vec<Entry<Game>> {
         GAMES
             .iter()
             .map(|g| fake_entry(g.slug, &shown_dir(g.slug)))

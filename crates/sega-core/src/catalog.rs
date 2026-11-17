@@ -2,9 +2,14 @@
 //!
 //! An edition is recognised by the SHA-256 of its main file. Only builds
 //! listed here are launched; anything else is reported with its digest so
-//! the player can file it (STANDARDS: "Exact binary identity").
+//! the player can file it (STANDARDS: "Exact binary identity"). The table's
+//! types and the library scan are the SDK's (`rea_launcher::catalog`,
+//! `rea_launcher::library`); the games, their routes and their rules are here.
 
-use crate::settings::Size;
+use rea_launcher::catalog::Title;
+pub use rea_launcher::catalog::{Edition, Host, Support};
+use rea_launcher::gamescope::Size;
+use rea_launcher::library::{HashCache, Library};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum GameId {
@@ -32,41 +37,6 @@ pub enum Route {
     Cxbx,
     /// Sega NAOMI cartridge (a MAME set, here unzipped) in Flycast.
     Flycast { set: &'static str },
-}
-
-/// Whether the launcher can start a game today, and why not.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Support {
-    /// Verified in the real game (a race played), see docs/RUNTIME_NOTES.md.
-    Ready,
-    /// Starts, but no race was verified yet; the text says what is known.
-    Unverified(&'static str),
-    /// Known not to work yet; the text says why, for the player.
-    Blocked(&'static str),
-}
-
-/// The system the launcher runs on: what it can start depends on it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Host {
-    Linux,
-    Windows,
-}
-
-impl Host {
-    pub const fn current() -> Host {
-        if cfg!(windows) {
-            Host::Windows
-        } else {
-            Host::Linux
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Edition {
-    /// SHA-256 of the main file.
-    pub sha256: &'static str,
-    pub label: &'static str,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -140,8 +110,17 @@ impl Game {
     }
 }
 
-const fn sha(d: &'static str, label: &'static str) -> Edition {
-    Edition { sha256: d, label }
+impl Title for Game {
+    type Id = GameId;
+    fn id(&self) -> GameId {
+        self.id
+    }
+    fn main_file(&self) -> &'static str {
+        self.main_file
+    }
+    fn editions(&self) -> &'static [Edition] {
+        self.editions
+    }
 }
 
 pub const GAMES: &[Game] = &[
@@ -154,7 +133,7 @@ pub const GAMES: &[Game] = &[
         board: "Sega Lindbergh",
         route: Route::Lindbergh,
         main_file: "or2g/disk0/Jennifer/Jennifer",
-        editions: &[sha(
+        editions: &[Edition::sha256(
             "f3c4918a268c918b125793bfc1307d6523a8028bda523e8807707229d6bcbff5",
             "1.003 (DVP-0015, TeknoParrot dump)",
         )],
@@ -170,7 +149,7 @@ pub const GAMES: &[Game] = &[
         board: "Sega Chihiro",
         route: Route::Cxbx,
         main_file: "outrun2.xbe",
-        editions: &[sha(
+        editions: &[Edition::sha256(
             "0e177363ae40c8beedcde1f7a7a5ccd75c962f0bd495f44932a9d50683a170a7",
             "Japan (TeknoParrot dump)",
         )],
@@ -186,7 +165,7 @@ pub const GAMES: &[Game] = &[
         board: "Sega Chihiro",
         route: Route::Cxbx,
         main_file: "ctx_ac[r].xbe",
-        editions: &[sha(
+        editions: &[Edition::sha256(
             "fca9dddb942ddb190b2faf5fe58ebdb5a77a570bb235334cc22aee159ed9dc2f",
             "3.000 Japan (TeknoParrot dump)",
         )],
@@ -205,7 +184,7 @@ pub const GAMES: &[Game] = &[
             profile: "sega-rally-3",
         },
         main_file: "Rally/Rally.exe",
-        editions: &[sha(
+        editions: &[Edition::sha256(
             "8eb7bdf01b8dc30ba40a43ac3d4065b9035cc59d58dd01b3c03113a1403171b5",
             "Europa-R (TeknoParrot dump)",
         )],
@@ -224,7 +203,7 @@ pub const GAMES: &[Game] = &[
             profile: "sega-racing-classic",
         },
         main_file: "d1a.exe",
-        editions: &[sha(
+        editions: &[Edition::sha256(
             "0926a4880b386367a2e0902afbcc87d95e1b9ff42b3709c1decbac32f5fd0644",
             "1.01.00 (TeknoParrot dump)",
         )],
@@ -243,7 +222,7 @@ pub const GAMES: &[Game] = &[
             profile: "daytona-championship-usa",
         },
         main_file: "Sega/Daytona/Daytona.exe",
-        editions: &[sha(
+        editions: &[Edition::sha256(
             "8ba4048f9a6920e3ecdc991059301e17c53c3c605c0cc639454c14d2665d379e",
             "New Season Edition (TeknoParrot dump)",
         )],
@@ -259,7 +238,7 @@ pub const GAMES: &[Game] = &[
         board: "Sega NAOMI",
         route: Route::Flycast { set: "f355twn2" },
         main_file: "epr-23399.ic22",
-        editions: &[sha(
+        editions: &[Edition::sha256(
             "a01e88c2621f8a70fe0161ef26fed9d16b0890e038464628e473336af37de9e7",
             "International Course Edition, twin (MAME f355twn2)",
         )],
@@ -283,14 +262,10 @@ pub fn by_slug(slug: &str) -> Option<&'static Game> {
     GAMES.iter().find(|g| g.slug == slug)
 }
 
-/// The game and edition a digest belongs to.
-pub fn identify(digest: &str) -> Option<(&'static Game, &'static Edition)> {
-    GAMES.iter().find_map(|g| {
-        g.editions
-            .iter()
-            .find(|e| e.sha256.eq_ignore_ascii_case(digest))
-            .map(|e| (g, e))
-    })
+/// The library scan over this table: one per launcher, its clones share
+/// `cache` (a rescan reuses the digests).
+pub fn library(cache: HashCache) -> Library<Game> {
+    Library::new(GAMES).with_cache(cache)
 }
 
 #[cfg(test)]
@@ -300,26 +275,30 @@ mod tests {
 
     #[test]
     fn ids_slugs_and_digests_are_unique_and_well_formed() {
-        let ids: HashSet<_> = GAMES.iter().map(|g| g.id).collect();
+        assert_eq!(rea_launcher::catalog::check_table(GAMES), Ok(()));
         let slugs: HashSet<_> = GAMES.iter().map(|g| g.slug).collect();
-        assert_eq!(ids.len(), GAMES.len());
         assert_eq!(slugs.len(), GAMES.len());
-        let mut digests = HashSet::new();
-        for g in GAMES {
-            for e in g.editions {
-                assert_eq!(e.sha256.len(), 64, "{}", g.slug);
-                assert!(e.sha256.chars().all(|c| c.is_ascii_hexdigit()));
-                assert!(digests.insert(e.sha256), "duplicate digest {}", e.sha256);
-            }
-        }
     }
 
     #[test]
     fn identify_finds_the_right_game_in_any_case() {
-        let (g, _) =
-            identify("8EB7BDF01B8DC30BA40A43AC3D4065B9035CC59D58DD01B3C03113A1403171B5").unwrap();
+        let digest = "8EB7BDF01B8DC30BA40A43AC3D4065B9035CC59D58DD01B3C03113A1403171B5";
+        let (g, _) = rea_launcher::catalog::identify(GAMES, digest).unwrap();
         assert_eq!(g.id, GameId::SegaRally3);
-        assert!(identify("00").is_none());
+        assert!(rea_launcher::catalog::identify(GAMES, "00").is_none());
+    }
+
+    /// The owner's real library, when present
+    /// (`SEGA_LIBRARIES=dir1:dir2 cargo test -- --ignored`).
+    #[test]
+    #[ignore]
+    fn real_library_finds_every_game() {
+        let Ok(roots) = std::env::var("SEGA_LIBRARIES") else {
+            return;
+        };
+        let roots: Vec<std::path::PathBuf> = std::env::split_paths(&roots).collect();
+        let scan = library(HashCache::default()).scan(&roots);
+        assert_eq!(scan.by_game().len(), GAMES.len(), "{scan:#?}");
     }
 
     #[test]

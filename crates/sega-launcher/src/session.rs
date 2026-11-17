@@ -13,10 +13,10 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, bail};
+use rea_launcher::library::Entry;
 use sega_core::catalog::{Game, Host, Route, Support};
 use sega_core::input::Cabinet;
 use sega_core::launch::{self, DIRECTX_REDIST, FLYCAST_EXE, FLYCAST_PROGRAM, Places, Plan};
-use sega_core::library::Entry;
 use sega_core::runtime;
 use sega_core::settings::Settings;
 
@@ -103,7 +103,7 @@ pub fn which(program: &str) -> Option<PathBuf> {
 pub fn prepare(
     paths: &Paths,
     game: &Game,
-    entry: &Entry,
+    entry: &Entry<Game>,
     settings: &Settings,
     display: Display,
 ) -> Result<Prepared> {
