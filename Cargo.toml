@@ -22,3 +22,12 @@ opt-level = "s"
 lto = true
 strip = true
 panic = "abort"
+
+# Temporary: the SDK's hub branch, until v0.10.0 is tagged (the lead swaps
+# this for the tag).
+[patch."https://github.com/akitaonrails/rea-launcher-sdk"]
+rea-launcher = { path = "/mnt/data/Projects/rea-launcher-sdk-hub/crates/rea-launcher" }
+rea-launcher-native = { path = "/mnt/data/Projects/rea-launcher-sdk-hub/crates/rea-launcher-native" }
+rea-launcher-ui = { path = "/mnt/data/Projects/rea-launcher-sdk-hub/crates/rea-launcher-ui" }
+rea-launcher-build = { path = "/mnt/data/Projects/rea-launcher-sdk-hub/crates/rea-launcher-build" }
+rea-launcher-win32 = { path = "/mnt/data/Projects/rea-launcher-sdk-hub/crates/rea-launcher-win32" }
