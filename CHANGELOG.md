@@ -6,6 +6,59 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+### Changed
+
+- Updated rea-launcher-sdk to v0.10.0: the window, the command line, the
+  library scan, the runtime folder, the game's processes and the input
+  thread are now the SDK's TeknoParrot hub modules, shared with the
+  Initial D, Nintendo and Wangan launchers. The window looks the same.
+- The Barlow typefaces are inside the program; the packages no longer
+  carry a `components/fonts` folder.
+
+### Added
+
+- A pad works the launcher's window: d-pad or left stick to move, A to
+  choose, B to go back, Start to play, Y for Settings, the shoulder buttons
+  change tabs. While a game runs the pad is the game's.
+- On Windows the Screen size, Upscaler, Sharpness and Full screen rows are
+  shown greyed out with the reason (they are for gamescope on Linux)
+  instead of hidden.
+- A game that closes by itself within seconds of its start says so, with
+  the lines of its log that tell why.
+
+### Fixed
+
+- The recommended look for your screen is decided the first time a game's
+  settings are read, so Play (or `--play`) before ever opening Settings no
+  longer starts at 3840x2160.
+- A setting the launcher can't read (`fullscreen = off # mine`) stays as
+  you wrote it; saving another setting no longer replaces it with the
+  default. A look you moved away from no longer stays in the file. A
+  settings file or `launcher.cfg` that can't be read is never overwritten.
+- `launcher.cfg` starting with a byte-order mark no longer loses its first
+  game folder, and its comments and other lines are kept on save.
+- On Linux a game no longer outlives a launcher that was killed, and the
+  launcher never signals processes that aren't the game's.
+- `--no-input` no longer makes windowsarcadeloader's games quit at once.
+- Each start takes a free block of windowsarcadeloader's ports (from
+  38000): the Initial D launcher's games and these no longer collide.
+- On Windows, a failed hand-over of the game to the launcher's job no
+  longer stops the game, and programs the game starts at once can't escape
+  the job.
+- A read-only file in a game folder no longer breaks the next start on
+  Windows.
+- Every error is also written to `launcher.log`; a game that stopped with
+  an error names its own `session.log`; paths are shown with the system's
+  separator; `~` works in typed paths on Windows.
+- `--check <game>` reports only that game's unknown builds, and its exit
+  code is that game's.
+- `--list` works while the window is open.
+- `--set <game>` without options is refused instead of doing nothing;
+  `--game <game>` works as `--set`'s old name, as the settings files'
+  heading said (the heading now names `--set` and `--play`).
+- A download cut short while building the packages no longer breaks every
+  later build.
+
 ## 0.2.0 - 2026-11-17
 
 ### Added

@@ -87,7 +87,12 @@ F355 Challenge 2 and the Chihiro games, add your BIOS folder under
 - **Settings**: the selected game's picture and wheel options, saved as you
   change them, plus your game folders and BIOS folder.
 
-Everything works with a mouse, the keyboard or a pad.
+Everything works with a mouse, the keyboard or a pad: the d-pad or left
+stick moves, A chooses, B goes back, Start plays, Y opens Settings, the
+shoulder buttons change tabs. While a game runs the pad belongs to the game.
+Options a game can't use here are shown greyed out with the reason (on
+Windows: the screen-size, upscaler, sharpness and full-screen rows, which
+are for gamescope on Linux).
 
 ## Gamepad
 
@@ -112,9 +117,10 @@ settings file and a flag for `--play <game>` or `--set <game>`:
 | Force feedback | `--force-feedback 0-200` | The wheel's force, in percent of the game's |
 | Stick dead zone | `--deadzone 0-30` | How far a stick moves before the car steers |
 
-Other commands: `--list` (what was found), `--check [<game>]` (what could
-start, without starting), `--library <folder>`, `--bios <folder>`,
-`--help`.
+Other commands: `--list` (what was found; works while the window is open),
+`--check [<game>]` (what could start, without starting), `--library
+<folder>`, `--bios <folder>`, `--help`. `--game <game>` is `--set`'s old
+name.
 
 ## Where things live
 
@@ -128,7 +134,9 @@ start, without starting), `--library <folder>`, `--bios <folder>`,
 - **A game says it is not in your folders**: run `sega-launcher --list`. An
   unknown build is listed with its SHA-256; please
   [report it](https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new?template=unknown-edition.yml).
-- **A game stops right away**: its log is `runtimes/<game>/session.log`.
+- **A game stops right away**: the launcher says so, with the lines of the
+  game's log that tell why; the whole log is `runtimes/<game>/session.log`,
+  and every message is also in `launcher.log`.
 - **The wheel turns the wrong way or too far**: set the steering lock in
   Settings, and turn off your wheel software's own lock.
 - Anything else: [open a bug report](https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new?template=bug-report.yml)
@@ -158,10 +166,10 @@ operator settings: copy `runtimes/` first if you want to keep them.
 
 ## For developers
 
-Rust workspace: `crates/sega-core` (catalog, library, runtime folder,
+Rust workspace: `crates/sega-core` (catalog, runtime folder rules,
 option table, launch plans; host-tested) and `crates/sega-launcher` (the
-window, the command line, sessions, SDL input). `AGENTS.md` has the checks
-and the layout.
+hub's backend, the command line, sessions, the input wire). `AGENTS.md` has
+the checks and the layout.
 
 ```sh
 cargo test --workspace
@@ -182,12 +190,16 @@ bubblewrap (the dumps read-only).
 
 ## Built on rea-launcher-sdk
 
-The option table, settings parsing, wheel and pad logic, force feedback,
-SDL devices, messages, single instance and CI come from
-[rea-launcher-sdk](https://github.com/akitaonrails/rea-launcher-sdk), pinned
-by tag in `Cargo.toml` and vendored in `sdk/`. The game catalog, the routes,
-the runtime folders, the hub window and the windowsarcadeloader patches are
-this launcher's own.
+The hub window, the command line, the library scan, the runtime folder of
+links, gamescope's command line, the game's process group and its run, the
+SDL input thread, the option table, settings parsing, wheel and pad logic,
+force feedback, messages, single instance, packaging and CI come from
+[rea-launcher-sdk](https://github.com/akitaonrails/rea-launcher-sdk) (its
+TeknoParrot hub modules, shared with the Initial D, Nintendo and Wangan
+launchers), pinned by tag in `Cargo.toml` and vendored in `sdk/`. The game
+catalog, the routes, what each game's runtime folder holds, F355's boards,
+the cabinets' button layouts, the look and the windowsarcadeloader patches
+are this launcher's own.
 
 ## Contributing
 

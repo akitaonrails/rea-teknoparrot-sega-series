@@ -5,7 +5,7 @@ Sega arcade racers the owner dumped from TeknoParrot: OutRun 2 SP SDX
 (Lindbergh), OutRun 2 SP Special Tours and Crazy Taxi High Roller (Chihiro),
 SEGA Rally 3 (Europa-R), SEGA Racing Classic (RingWide) and Daytona
 Championship USA (Sega PC). Built on
-[rea-launcher-sdk](https://github.com/akitaonrails/rea-launcher-sdk) v0.9.0.
+[rea-launcher-sdk](https://github.com/akitaonrails/rea-launcher-sdk) v0.10.0 (its TeknoParrot hub modules).
 
 **Read `sdk/docs/STANDARDS.md` before any work; the playbooks are in
 `sdk/docs/playbooks/`** (vendored from the SDK at the tag in `sdk/VERSION`).
@@ -48,17 +48,16 @@ Then `docs/RESEARCH.md` (what runs each game and why) and
 
 | Path | What |
 |---|---|
-| `crates/sega-core/src/catalog.rs` | The games, their routes, known builds (SHA-256), support state |
-| `crates/sega-core/src/library.rs` | Finding the games in the player's folders |
-| `crates/sega-core/src/runtime.rs` | The per-game runtime folder (links, copies, opened folders) |
+| `crates/sega-core/src/catalog.rs` | The games (`rea_launcher::catalog::Title`), their routes, known builds (SHA-256), support state; the library scan is `rea_launcher::library` |
+| `crates/sega-core/src/runtime.rs` | What each game's runtime folder holds (a `linkfarm::Policy`: skipped, copied, opened folders) and F355's packed set |
 | `crates/sega-core/src/settings.rs` | The option table: settings files, flags, `--help`, looks |
 | `crates/sega-core/src/launch.rs` | `plan()`: files, links, command, environment per game |
 | `crates/sega-core/src/input.rs` | Cabinet buttons, pad layout, windowsarcadeloader stick layouts |
-| `crates/sega-launcher/src/cli.rs`, `main.rs` | The command line, messages, single instance |
-| `crates/sega-launcher/src/session.rs`, `proc.rs` | One game run: gamescope, bubblewrap, process group, cleanup |
-| `crates/sega-launcher/src/input.rs` | The SDL thread: wheels, pads, force feedback |
-| `crates/sega-launcher/src/ui.rs`, `ui/` | The hub window and its headless tests |
-| `scripts/build-components.sh` | lindbergh-loader, windowsarcadeloader (patched), GE-Proton, winetricks, the DirectX redistributable |
+| `crates/sega-launcher/src/main.rs`, `paths.rs` | The command line (`rea_launcher::hub::cli`), messages (`hub::fatal`), single instance; the folders and the BIOS path field |
+| `crates/sega-launcher/src/session.rs` | One game run: the runtime, the plan's files, the command line, the run (`group` + `supervise`) and F355's watcher (boards, hang, save) |
+| `crates/sega-launcher/src/input.rs` | What the SDK's input thread (`feeder`) gets: the cabinets' stick lines (a `Wire`), the tuning, lindbergh-loader's wheel |
+| `crates/sega-launcher/src/ui.rs`, `ui/` | The hub's backend (`rea_launcher_ui::hub`), its theme, the settings form, and the headless tests and goldens |
+| `scripts/build-components.sh`, `packaging/components.pins` | lindbergh-loader, windowsarcadeloader (patched), and the pinned downloads (GE-Proton, winetricks, the DirectX redistributable, Flycast) through `sdk/packaging/pins.sh` |
 | `patches/wal/` | Our changes to windowsarcadeloader (input pipe, Windows host, profiles) |
 | `docs/RESEARCH.md`, `docs/RUNTIME_NOTES.md`, `docs/CONTRIBUTIONS.md` | Findings, verification, drafts to share |
 
@@ -69,13 +68,21 @@ cargo fmt --all --check
 cargo test --workspace --locked
 cargo clippy --workspace --all-targets --locked -- -D warnings
 sdk/scripts/launcher-check                     # family rules; every error blocks the commit
-# Windows target (MinGW + LLD, in the gaming distrobox):
-scripts/build-launcher.sh windows
+# Windows target (MinGW + LLD, in the gaming distrobox): clippy, and the tests under Wine
+sdk/packaging/build-launcher.sh windows sega-launcher
+CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS="-C link-arg=-fuse-ld=lld -L $(ls -d "$PWD"/dist/sdl2/SDL2-*/x86_64-w64-mingw32)/lib" \
+  WINEPATH="Z:$(printf '%s' "$PWD/dist/sdl2" | tr / '\\')" sdk/scripts/wine-test --target x86_64-pc-windows-gnu --locked --workspace
 ```
 
-Game runs: `.work/probe/one.sh <game> <script|-> <seconds> <name>` inside the
-`gaming` distrobox (`distrobox enter --no-workdir gaming -- sh -c '…'`),
-headless, with screenshots under `.work/out/<name>/`.
+Golden snapshots (`crates/sega-launcher/tests/snapshots/`, the window's in
+`ui/<host>-<size>/`): `REA_UPDATE_SNAPSHOTS=1` rewrites them; read every
+diff and say why in the commit. The Windows ones come from the Wine run.
+
+Game runs: headless in the `gaming` distrobox (`distrobox enter --no-workdir
+gaming -- sh -c '…'`): `sega-launcher --play <game> --headless --seconds N`
+with `SEGA_DATA`/`SEGA_COMPONENTS` set, a private PipeWire null sink, and
+leftovers found by the launcher's own process tree (`ps -o pid,ppid,stat,comm`,
+never other processes' command lines or environments).
 
 Conventional Commits; every behaviour change gets a CHANGELOG "Unreleased"
 entry, and every change that still needs a real-game check a line in

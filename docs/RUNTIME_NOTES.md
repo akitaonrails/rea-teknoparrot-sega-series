@@ -87,7 +87,25 @@ Flycast's Windows build (official `flycast-win64-2.7.zip`) starts its slave boar
 | The launcher stops the game (`--seconds`, the window's Stop: SIGTERM to the session's process group, then SIGKILL after 10 s (8 s until the F355 Windows work), then the session tag sweep) | 0 leftover processes | 0 leftover processes | 0 leftover processes |
 | Quit from the game menu | not applicable: arcade games have no quit; the test menu does not exit | not applicable | not applicable |
 | Window close / Alt+F4 on the game | not verified yet (needs a visible session) | not verified yet | not verified yet |
-| SIGINT/SIGTERM to the launcher (`--play` in a terminal, Ctrl+C) | the same stop path as the first row (signal-hook sets the stop flag); not run separately yet | not run separately yet | not run separately yet |
+| SIGINT/SIGTERM to the launcher (`--play` in a terminal, Ctrl+C) | the same stop path as the first row (signal-hook sets the stop flag): exit 0, 0 leftovers (2026-11-17) | not run separately yet | not run separately yet |
+
+## After the move onto rea-launcher-sdk's hub modules (v0.10.0, 2026-11-17)
+
+The launcher built from `refactor/hub-sdk` against the SDK's `feat/hub`
+(c5a2430), with the v0.2.0 Linux package's components (same pins), the
+owner's library and EmuDeck BIOS folder read-only, headless gamescope,
+a private PipeWire null sink. Leftovers were looked for in the launcher's
+own process tree (`ps -o pid,ppid,stat,comm` every second; after the end,
+any of those pids still running under the same name).
+
+| Run | Result |
+|---|---|
+| F355 Challenge 2, `--seconds 90` (the Stop path) | `taskset -c 8-15,24-31`, one window (the slave's), attract mode and "PRESS START BUTTON / FREE PLAY" at 80 s; at the stop the master was asked alone, "Slave exiting" ~1 s later, `f355twn2.zip.nvmem` written at the stop; launcher done 2–3 s after the stop, 0 leftovers. Run twice. |
+| F355 Challenge 2, gamescope ended at 70 s and 75 s (the game's window closed) | "the game's window closed: stopping", records saved, launcher done 7 s later, 0 leftovers. Run twice. |
+| SEGA Racing Classic, input script, `--seconds 150` | race played (lap 2 of 8, 168 km/h, steering both ways); its layer had `port: 38000`, the free port block; exit 0, 0 leftovers. |
+| SEGA Racing Classic, SIGTERM to the launcher at 120 s (Ctrl+C) | the same stop path: the loader's input closed, exit 0 within 1 s, 0 leftovers (Wine's processes included). |
+| OutRun 2 SP SDX, `--seconds 90` | attract mode ("2 Driver System", FREE PLAY); exit 0, 0 leftovers. |
+| A game that can't start (a probe with a wrong environment) | "the game closed by itself 0 s after starting (exit status: 1)" with the log's reason line, also in `launcher.log`. |
 
 ## Not verified yet
 

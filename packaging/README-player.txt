@@ -1,9 +1,9 @@
 Sega Racing Arcade Series Launcher
 ==================================
 
-One launcher for six Sega arcade racers: OutRun 2 SP SDX, OutRun 2 SP
-Special Tours, Crazy Taxi High Roller, SEGA Rally 3, SEGA Racing Classic and
-Daytona Championship USA. It contains no game files: you need your own
+One launcher for seven Sega arcade racers: OutRun 2 SP SDX, OutRun 2 SP
+Special Tours, Crazy Taxi High Roller, SEGA Rally 3, SEGA Racing Classic,
+Daytona Championship USA and F355 Challenge 2. It contains no game files: you need your own
 TeknoParrot dumps, one folder each.
 
 Start
@@ -35,7 +35,8 @@ Controls
 A wheel or a pad. Pad: triggers are the pedals, the left stick steers,
 the shoulder buttons shift, Y changes the view, B is the handbrake, Start
 starts, Back inserts a coin. Each game's steering lock and force feedback
-strength are in Settings.
+strength are in Settings. A pad also works the launcher's window: d-pad to
+move, A to choose, B to go back, Start to play, Y for Settings.
 
 Where things live
 -----------------
