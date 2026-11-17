@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   ci:
-    uses: akitaonrails/rea-launcher-sdk/.github/workflows/launcher-ci.yml@v0.9.0
+    uses: akitaonrails/rea-launcher-sdk/.github/workflows/launcher-ci.yml@v0.10.0
     with:
       concurrency-key: linux
       rust-target: ""
@@ -50,11 +50,12 @@ jobs:
           rustup default stable
           rustup target add x86_64-pc-windows-gnu
       - name: SDL2 (pinned MinGW package)
-        run: scripts/build-launcher.sh sdl2
+        run: |
+          sdk/packaging/build-launcher.sh sdl2
+          echo "SDL2_LIB=$(ls -d "$PWD"/dist/sdl2/SDL2-*/x86_64-w64-mingw32)/lib" >> "$GITHUB_ENV"
       - name: Clippy (x86_64-pc-windows-gnu)
         run: |
-          sdl="$PWD/dist/sdl2/$(sed -n 's/^dir=//p' packaging/sdl2.pin)/lib"
-          export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS="-C link-arg=-fuse-ld=lld -L $sdl"
+          export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS="-C link-arg=-fuse-ld=lld -L $SDL2_LIB"
           cargo clippy --workspace --all-targets --locked --target x86_64-pc-windows-gnu -- -D warnings
       - name: Wine (GE-Proton, pinned)
         run: |
@@ -62,8 +63,7 @@ jobs:
           echo "$RUNNER_TEMP/c/runner/bin" >> "$GITHUB_PATH"
       - name: Tests under Wine
         run: |
-          sdl="$PWD/dist/sdl2/$(sed -n 's/^dir=//p' packaging/sdl2.pin)/lib"
-          export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS="-C link-arg=-fuse-ld=lld -L $sdl"
+          export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUSTFLAGS="-C link-arg=-fuse-ld=lld -L $SDL2_LIB"
           export CARGO_TARGET_X86_64_PC_WINDOWS_GNU_RUNNER=wine
           export WINEPREFIX="$RUNNER_TEMP/wineprefix" WINEDEBUG=-all
           export WINEPATH="Z:$(printf '%s' "$PWD/dist/sdl2" | tr / '\\')"
@@ -141,7 +141,7 @@ jobs:
           scripts/package.sh linux
       - name: Windows package
         run: |
-          scripts/build-launcher.sh windows
+          sdk/packaging/build-launcher.sh windows sega-launcher
           scripts/package.sh windows
       - name: Contents
         run: |
@@ -169,7 +169,7 @@ jobs:
       contents: write
       id-token: write
       attestations: write
-    uses: akitaonrails/rea-launcher-sdk/.github/workflows/launcher-release.yml@v0.9.0
+    uses: akitaonrails/rea-launcher-sdk/.github/workflows/launcher-release.yml@v0.10.0
     with:
       package: sega-launcher
       artifact-pattern: SegaRacingLauncher-*

@@ -4,13 +4,14 @@
 #   scripts/package.sh linux     dist/pkg/SegaRacingLauncher-<version>-linux-x86_64.tar.gz
 #   scripts/package.sh windows   dist/pkg/SegaRacingLauncher-<version>-windows-x86_64.zip
 #
-# Built pieces (scripts/build-launcher.sh, the release workflow):
+# Built pieces (sdk/packaging/build-launcher.sh, the release workflow):
 #   linux    dist/linux/sega-launcher, dist/linux/lib/libSDL2-2.0.so.0
 #   windows  target/x86_64-pc-windows-gnu/release/sega-launcher.exe, dist/sdl2/SDL2.dll
 # The components are built or fetched once into dist/components with
 # scripts/build-components.sh (windowsarcadeloader from source with
 # patches/wal, both its launchers; GE-Proton and winetricks by SHA-256;
-# the art and fonts), then copied into each package.
+# the art), then copied into each package. The Barlow typefaces are in the
+# program (rea-launcher-ui embeds them); their licence ships in licenses/.
 #
 # The Linux package also carries lindbergh-loader (CC BY-NC-SA 4.0, by
 # owner decision 2026-11-16; built in a container with docker or podman, or
@@ -40,7 +41,7 @@ copy_wal() { # the launcher's own program of windowsarcadeloader
 	cp "$comps/wal/$1" "$out/components/wal/"
 	cp -r "$comps/wal/payloads" "$comps/wal/systemprofiles" "$out/components/wal/"
 	cp "$comps/wal/LICENSE" "$out/licenses/windowsarcadeloader-LICENSE.txt"
-	cp -r "$comps/art" "$comps/fonts" "$out/components/"
+	cp -r "$comps/art" "$out/components/"
 }
 
 if [ "$os" = linux ]; then
@@ -64,12 +65,13 @@ if [ "$os" = linux ]; then
 	mv "$out/components/flycast/LICENSE" "$out/licenses/Flycast-LICENSE.txt"
 else
 	exe=${CARGO_TARGET_DIR:-$root/target}/x86_64-pc-windows-gnu/release/sega-launcher.exe
-	[ -f "$exe" ] || die "missing $exe - run scripts/build-launcher.sh windows"
+	[ -f "$exe" ] || die "missing $exe - run sdk/packaging/build-launcher.sh windows sega-launcher"
 	[ -f "$root/dist/sdl2/SDL2.dll" ] || die "missing dist/sdl2/SDL2.dll"
 	"$root/scripts/build-components.sh" "$comps" wal flycast-win assets
 	cp "$exe" "$root/dist/sdl2/SDL2.dll" "$out/"
-	sdl=$(sed -n 's/^dir=//p' "$root/packaging/sdl2.pin")
-	cp "$root/dist/sdl2/${sdl%/*}/LICENSE.txt" "$out/licenses/SDL2-LICENSE.txt"
+	for l in "$root"/dist/sdl2/SDL2-*/LICENSE.txt; do
+		cp "$l" "$out/licenses/SDL2-LICENSE.txt"
+	done
 	copy_wal arcade-launcher.exe
 	mkdir -p "$out/components/flycast"
 	cp "$comps/flycast-win/flycast.exe" "$out/components/flycast/"

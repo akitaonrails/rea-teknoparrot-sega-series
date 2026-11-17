@@ -7,7 +7,8 @@
 #               arcade-launcher.exe (its Windows build, linked with LLD), payloads/,
 #               systemprofiles/  (needs Rust with the i686/x86_64-pc-windows-gnu targets, MinGW,
 #               LLD and mono's mcs); not rebuilt while its commit and patches are unchanged
-#   runner/     GE-Proton 11-12, checked by SHA-256
+#   runner/     GE-Proton 11-12
+# (every download: packaging/components.pins, fetched and checked by sdk/packaging/pins.sh)
 #   winetricks  pinned, checked by SHA-256 (windowsarcadeloader installs native XAudio with it)
 #   directx/    Microsoft's DirectX June 2010 redistributable, checked by SHA-256: winetricks'
 #               xact verb reads it from here (W_CACHE), so the first start needs no download
@@ -15,7 +16,7 @@
 #               and the libraries it carries), checked by SHA-256, with its licence (F355)
 #   flycast-win/ Flycast 2.7's official Windows build (one flycast.exe), checked by SHA-256,
 #               with its licence: the Windows package's components/flycast
-#   art/ fonts/ the window's original illustrations and the Barlow typefaces (OFL)
+#   art/        the window's original illustrations (the Barlow typefaces are in the program)
 # usage: scripts/build-components.sh <components dir> [lindbergh|wal|runner|winetricks|directx|flycast|flycast-win|assets ...]
 # LAUNCHER_FEATURES: passed to windowsarcadeloader's build (packages: sdl3/build-from-source-static)
 set -eu
@@ -26,26 +27,15 @@ work="$out/.build"; mkdir -p "$work"
 
 LINDBERGH_REPO=https://github.com/lindbergh-loader/lindbergh-loader
 LINDBERGH_COMMIT=0af606d845b70339c335785c0eba68b47b78df3c
-# the licence of the libssl/libcrypto 0.9.7 that lindbergh-loader's libs/ carries
-OPENSSL_LICENSE_URL=https://raw.githubusercontent.com/openssl/openssl/OpenSSL_0_9_7m/LICENSE
-OPENSSL_LICENSE_SHA256=81d5872403d0f080f0e2ba0ff305023eab07245691704e93b6bd1b144a20d9e1
 WAL_REPO=https://github.com/aderumier/windowsarcadeloader
 WAL_COMMIT=4f42c6d86ddaaa9d2e4e8c21e0046bb3027b111d
 RUNNER=GE-Proton11-12-x86_64
-RUNNER_URL=https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-12/$RUNNER.tar.gz
-RUNNER_SHA256=0595159e417c3dbbfb7cc3ae0d3ed15a617cc607aa23ef756ea79029d7af5d70
-WINETRICKS_URL=https://raw.githubusercontent.com/Winetricks/winetricks/20260125/src/winetricks
-WINETRICKS_SHA256=431f82fc74000e6c864409f1d8fb495d696c03928808e3e8acffc45179312a7b
-# winetricks' own mirror and digest: Microsoft's download is re-signed now, and winetricks
-# refuses any file but this one
-DIRECTX_URL=https://files.holarse-linuxgaming.de/mirrors/microsoft/directx_Jun2010_redist.exe
-DIRECTX_SHA256=8746ee1a84a083a90e37899d71d50d5c7c015e69688a466aa80447f011780c0d
-FLYCAST_URL=https://github.com/flyinghead/flycast/releases/download/v2.7/flycast-x86_64-2.7.AppImage
-FLYCAST_SHA256=5b9f8a636a6acb8446bc78fe96650d8cb8233ac9f8ce69665dab3f39a1cbaae1
-FLYCAST_WIN_URL=https://github.com/flyinghead/flycast/releases/download/v2.7/flycast-win64-2.7.zip
-FLYCAST_WIN_SHA256=7edf489ba6b3053703a18ce8233767eb71a2d89e4bda0421b312c2167a739161
-FLYCAST_LICENSE_URL=https://raw.githubusercontent.com/flyinghead/flycast/v2.7/LICENSE
-FLYCAST_LICENSE_SHA256=8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643
+# the downloads, checked by SHA-256 (packaging/components.pins)
+. "$here/sdk/packaging/pins.sh"
+fetch() { # pin dir: the file's path
+  mkdir -p "$2"
+  PIN_FILE="$here/packaging/components.pins" PIN_DIR='' pin_fetch "$1" "$2"
+}
 
 checkout() { # repo commit dir
   [ -d "$3/.git" ] || git clone -q "$1" "$3"
@@ -71,9 +61,7 @@ lindbergh)
   cp "$work/lindbergh-loader/libs/libssl.so.0.9.7" "$work/lindbergh-loader/libs/libcrypto.so.0.9.7" \
      "$work/lindbergh-loader/libs/libopenal.so.0" "$out/lindbergh/"
   cp "$work/lindbergh-loader/LICENSE.md" "$out/lindbergh/LICENSE.md"
-  f="$work/openssl-0.9.7-LICENSE"
-  curl -fsSL -o "$f" "$OPENSSL_LICENSE_URL"
-  echo "$OPENSSL_LICENSE_SHA256  $f" | sha256sum -c -
+  f=$(fetch openssl-license "$work/openssl")
   cp "$f" "$out/lindbergh/notices/OpenSSL-0.9.7-LICENSE.txt"
   echo "$stamp" > "$out/lindbergh/.stamp"
   ;;
@@ -101,53 +89,39 @@ wal)
   echo "$stamp" > "$out/wal/.stamp"
   ;;
 runner)
-  f="$work/$RUNNER.tar.gz"
-  [ -f "$f" ] || curl -fsSL -o "$f" "$RUNNER_URL"
-  echo "$RUNNER_SHA256  $f" | sha256sum -c -
+  f=$(fetch runner "$work")
   tar -xzf "$f" -C "$work"
   rm -rf "$out/runner"; mv "$work/$RUNNER/files" "$out/runner"
   ;;
 winetricks)
-  f="$work/winetricks"
-  [ -f "$f" ] || curl -fsSL -o "$f" "$WINETRICKS_URL"
-  echo "$WINETRICKS_SHA256  $f" | sha256sum -c -
+  f=$(fetch winetricks "$work")
   install -m 755 "$f" "$out/winetricks"
   ;;
 directx)
-  f="$work/directx_Jun2010_redist.exe"
-  [ -f "$f" ] || curl -fsSL -o "$f" "$DIRECTX_URL"
-  echo "$DIRECTX_SHA256  $f" | sha256sum -c -
+  f=$(fetch directx "$work")
   # winetricks' cache layout: <W_CACHE>/directx9/<file>
   mkdir -p "$out/directx/directx9"; cp "$f" "$out/directx/directx9/"
   ;;
 flycast)
-  f="$work/flycast-x86_64-2.7.AppImage"
-  [ -f "$f" ] || curl -fsSL -o "$f" "$FLYCAST_URL"
-  echo "$FLYCAST_SHA256  $f" | sha256sum -c -
+  f=$(fetch flycast "$work")
   # the AppImage unpacks itself (no FUSE needed); its program finds the libraries beside it
   # (RUNPATH $ORIGIN/../lib)
   rm -rf "$work/squashfs-root"; chmod +x "$f"
   (cd "$work" && "$f" --appimage-extract >/dev/null)
   rm -rf "$out/flycast"; mkdir -p "$out/flycast"
   mv "$work/squashfs-root/usr" "$out/flycast/usr"; rm -rf "$work/squashfs-root"
-  l="$work/flycast-LICENSE"
-  [ -f "$l" ] || curl -fsSL -o "$l" "$FLYCAST_LICENSE_URL"
-  echo "$FLYCAST_LICENSE_SHA256  $l" | sha256sum -c -
+  l=$(fetch flycast-license "$work/flycast-license")
   cp "$l" "$out/flycast/LICENSE"
   ;;
 flycast-win)
-  f="$work/flycast-win64-2.7.zip"
-  [ -f "$f" ] || curl -fsSL -o "$f" "$FLYCAST_WIN_URL"
-  echo "$FLYCAST_WIN_SHA256  $f" | sha256sum -c -
+  f=$(fetch flycast-win "$work")
   rm -rf "$out/flycast-win"; mkdir -p "$out/flycast-win"
   unzip -q "$f" flycast.exe -d "$out/flycast-win"
-  l="$work/flycast-LICENSE"
-  [ -f "$l" ] || curl -fsSL -o "$l" "$FLYCAST_LICENSE_URL"
-  echo "$FLYCAST_LICENSE_SHA256  $l" | sha256sum -c -
+  l=$(fetch flycast-license "$work/flycast-license")
   cp "$l" "$out/flycast-win/LICENSE"
   ;;
 assets)
-  rm -rf "$out/art" "$out/fonts"; cp -r "$here/assets/art" "$out/art"; cp -r "$here/assets/fonts" "$out/fonts"
+  rm -rf "$out/art" "$out/fonts"; cp -r "$here/assets/art" "$out/art"
   ;;
 *) echo "unknown part $part" >&2; exit 2;;
 esac; done

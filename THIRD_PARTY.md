@@ -17,7 +17,7 @@ read-only.
 | [GE-Proton](https://github.com/GloriousEggroll/proton-ge-custom) 11-12 | The Wine windowsarcadeloader runs the Windows games with (the runner it is tested on) | BSD-3-Clause / LGPL (Wine) and others, see its `LICENSE` | inside the Linux package (downloaded at build time, checked by SHA-256) | `GE-Proton11-12-x86_64.tar.gz` sha256 `0595159e417c3dbbfb7cc3ae0d3ed15a617cc607aa23ef756ea79029d7af5d70` |
 | Microsoft DirectX XACT / XAudio2 runtime | Installed into the launcher's Wine prefix by winetricks (`xact`): SEGA Racing Classic's sound thread crashes on Wine's own XAudio2 | Microsoft DirectX End-User Runtime redistributable (its EULA allows redistribution with an application) | `directx_Jun2010_redist.exe` inside the Linux package (`components/directx/directx9/`), handed to winetricks through `W_CACHE`, so the first start needs no download | winetricks' own mirror and digest: sha256 `8746ee1a84a083a90e37899d71d50d5c7c015e69688a466aa80447f011780c0d` (Microsoft's current download is re-signed, and winetricks refuses it) |
 | [winetricks](https://github.com/Winetricks/winetricks) | Installs the XACT runtime into the Wine prefix (windowsarcadeloader runs it) | LGPL-2.1 | inside the Linux package | tag `20260125`, sha256 `431f82fc74000e6c864409f1d8fb495d696c03928808e3e8acffc45179312a7b` |
-| SDL 2.32.10 (MinGW) | The Windows launcher's pads and wheels | zlib | `SDL2.dll` inside the Windows package | `packaging/sdl2.pin` |
+| SDL 2.32.10 (MinGW) | The Windows launcher's pads and wheels | zlib | `SDL2.dll` inside the Windows package | `sdk/packaging/sdl2.pins` (the SDK's pin) |
 | gamescope, bubblewrap | Full-screen display, scaling (FSR/NIS); the library bound read-only around every game | BSD-2-Clause, LGPL-2.0 | the player's system | — |
 
 ## Code we wrote on top of others
@@ -35,7 +35,7 @@ read-only.
 | The hub's scenes, `assets/art/*.jpg` (a coast at sunset and at midday, a city avenue, a jungle dirt stage, a speedway by day and by night) | drawn for this launcher from shapes by `scripts/art/scenes.py`; no photos, game files or official art | GPL-3.0-or-later | this repository |
 | README screenshots, `docs/images/launcher-*.jpg` | the launcher's own window, taken headless | GPL-3.0-or-later | this repository |
 | The launcher's icon, `packaging/appimage/sega-launcher.png` | the rea-launcher-sdk template | MIT OR Apache-2.0 | rea-launcher-sdk |
-| Barlow and Barlow Condensed, `assets/fonts/` | Jeremy Tribby | SIL Open Font License 1.1 (`assets/fonts/OFL.txt`) | <https://github.com/jpt/barlow> |
+| Barlow and Barlow Condensed, embedded in the program by rea-launcher-ui | Jeremy Tribby | SIL Open Font License 1.1 (`assets/fonts/OFL.txt`, shipped as `licenses/Barlow-OFL.txt`) | <https://github.com/jpt/barlow> |
 
 ## Code we follow
 
