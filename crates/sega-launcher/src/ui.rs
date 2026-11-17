@@ -11,9 +11,10 @@ use std::path::PathBuf;
 use eframe::egui::Color32;
 use rea_launcher::catalog::Support;
 use rea_launcher::cfg::OptionSpec;
-use rea_launcher::hub::{HubConfig, HubPaths, display_path};
+use rea_launcher::hub::{HubConfig, HubPaths, Input, display_path};
 use rea_launcher::library::{Found as Known, HashCache, Scan};
 use rea_launcher::log::Log;
+use rea_launcher::pad::PadNav;
 use rea_launcher::wheel::{Action, Control};
 use rea_launcher_native::feeder::{Command, InputService, Snapshot};
 use rea_launcher_ui::hub::{
@@ -25,7 +26,7 @@ use sega_core::input::{Button, default_pad_map};
 use sega_core::settings::{self, Settings};
 
 use crate::paths;
-use crate::session::{self, Display, Input};
+use crate::session::{self, Display};
 
 use form::Form;
 
@@ -112,6 +113,8 @@ pub struct Sega {
     cache: HashCache,
     /// Owns SDL; `None` in the headless tests.
     input: Option<InputService>,
+    /// The pads' menu buttons held at the last frame.
+    pad: PadNav,
     /// The tests' controllers and next session.
     #[cfg(test)]
     fake: tests::Fake,
@@ -128,6 +131,7 @@ impl Sega {
                 .collect(),
             cache: HashCache::default(),
             input,
+            pad: PadNav::default(),
             #[cfg(test)]
             fake: tests::Fake::default(),
         }
@@ -168,11 +172,11 @@ impl Sega {
         let paths = self.paths.clone();
         let config = config.clone();
         let input = match (game.route, &self.input) {
-            (Route::Wal { .. }, Some(service)) => Input::Devices {
+            (Route::Wal { .. }, Some(service)) => session::Input::Devices {
                 tx: service.sender(),
                 tuning: crate::input::tuning(&settings),
             },
-            _ => Input::None,
+            _ => session::Input::None,
         };
         Ok(Box::new(move |reporter: &Reporter| {
             let bios = paths::bios(&config);
@@ -329,6 +333,11 @@ impl HubBackend for Sega {
 
     fn controls(&self) -> ControlsView {
         controls_view(&self.snapshot())
+    }
+
+    fn pad(&mut self) -> Vec<Input> {
+        let bits = self.snapshot().nav;
+        Input::from_pad(&mut self.pad, bits)
     }
 }
 

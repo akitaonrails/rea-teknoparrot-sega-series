@@ -282,6 +282,26 @@ fn the_gamescope_rows_are_shown_off_on_windows_not_hidden() {
 // ------------------------------------------------------------ controls
 
 #[test]
+fn the_pad_moves_through_the_hub_once_per_press() {
+    let t = tempfile::tempdir().unwrap();
+    let mut h = hub(t.path(), SIZE_720, true);
+    let pad = |h: &mut Hub, bits: u16| {
+        h.state_mut().backend_mut().fake.snapshot = Some(Snapshot {
+            nav: bits,
+            ..Snapshot::default()
+        });
+        h.run_steps(2);
+    };
+    assert_eq!(h.state().model().selected, 0);
+    pad(&mut h, rea_launcher::pad::DPAD_RIGHT);
+    pad(&mut h, rea_launcher::pad::DPAD_RIGHT);
+    assert_eq!(h.state().model().selected, 1, "held: one step");
+    pad(&mut h, 0);
+    pad(&mut h, rea_launcher::pad::DPAD_RIGHT);
+    assert_eq!(h.state().model().selected, 2);
+}
+
+#[test]
 fn the_controls_page_shows_the_pad_layout_and_the_live_controls() {
     let mut snap = Snapshot {
         devices: vec![DeviceInfo {
