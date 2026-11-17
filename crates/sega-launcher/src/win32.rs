@@ -10,7 +10,9 @@
 
 use std::ffi::c_void;
 
-use windows_sys::Win32::Foundation::{CloseHandle, HWND, INVALID_HANDLE_VALUE, LPARAM, RECT};
+use windows_sys::Win32::Foundation::{
+    CloseHandle, FILETIME, HWND, INVALID_HANDLE_VALUE, LPARAM, RECT,
+};
 use windows_sys::Win32::System::Diagnostics::ToolHelp::{
     CreateToolhelp32Snapshot, PROCESSENTRY32W, Process32FirstW, Process32NextW, TH32CS_SNAPPROCESS,
     TH32CS_SNAPTHREAD, THREADENTRY32, Thread32First, Thread32Next,
@@ -19,7 +21,8 @@ use windows_sys::Win32::System::SystemInformation::{
     GetLogicalProcessorInformationEx, RelationAll,
 };
 use windows_sys::Win32::System::Threading::{
-    OpenProcess, PROCESS_TERMINATE, SetProcessAffinityMask, TerminateProcess,
+    GetProcessTimes, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_TERMINATE,
+    SetProcessAffinityMask, TerminateProcess,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     EnumThreadWindows, GetWindowRect, IsWindowVisible, PostMessageW, SW_HIDE, SetForegroundWindow,
@@ -63,6 +66,24 @@ fn snapshot() -> Snapshot {
         CloseHandle(snap);
     }
     s
+}
+
+/// When a process was created (100 ns since 1601), if it can be read.
+fn created(pid: u32) -> Option<u64> {
+    unsafe {
+        let h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
+        if h.is_null() {
+            return None;
+        }
+        let zero = FILETIME {
+            dwLowDateTime: 0,
+            dwHighDateTime: 0,
+        };
+        let (mut c, mut e, mut k, mut u) = (zero, zero, zero, zero);
+        let ok = GetProcessTimes(h, &mut c, &mut e, &mut k, &mut u) != 0;
+        CloseHandle(h);
+        ok.then_some((c.dwHighDateTime as u64) << 32 | c.dwLowDateTime as u64)
+    }
 }
 
 /// A top-level window of one of the game's processes.
@@ -116,7 +137,7 @@ pub fn close_windows(pid: u32) {
 /// shown windows of the processes it started (the game's; F355's slave).
 pub fn tidy(master: u32) -> Vec<HWND> {
     let snap = snapshot();
-    let children = crate::proc::descendants(&snap.processes, master);
+    let children = crate::proc::descendants(&snap.processes, master, created);
     for w in windows_of(&snap, &[master]).iter().filter(|w| w.visible) {
         unsafe { ShowWindow(w.hwnd, SW_HIDE) };
     }
@@ -127,10 +148,15 @@ pub fn tidy(master: u32) -> Vec<HWND> {
         .collect()
 }
 
+/// Whether processes `pid` started still run.
+pub fn any_descendants(pid: u32) -> bool {
+    !crate::proc::descendants(&snapshot().processes, pid, created).is_empty()
+}
+
 /// Ends the processes `pid` started (what a job object may not hold: Wine
 /// doesn't always put a process's children in its job).
 pub fn end_descendants(pid: u32) {
-    for child in crate::proc::descendants(&snapshot().processes, pid) {
+    for child in crate::proc::descendants(&snapshot().processes, pid, created) {
         unsafe {
             let h = OpenProcess(PROCESS_TERMINATE, 0, child);
             if !h.is_null() {

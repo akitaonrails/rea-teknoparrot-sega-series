@@ -90,7 +90,7 @@ fn every_look_of_every_game() {
                             let _ = writeln!(out, "saved on {m:?}");
                         }
                         if plan.one_window {
-                            let _ = writeln!(out, "one window (the started program's hidden)");
+                            let _ = writeln!(out, "one window (the slave board's)");
                         }
                         for (at, target) in &plan.links {
                             let _ = writeln!(out, "link {} -> {}", p(at), p(target));

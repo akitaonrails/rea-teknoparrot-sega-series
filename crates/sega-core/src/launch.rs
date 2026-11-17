@@ -41,9 +41,12 @@ pub struct Plan {
     /// A line in the game's output that means, once a stop was asked for,
     /// that the game has saved and what's left can be ended.
     pub stopped: Option<&'static str>,
-    /// Windows: the program the session starts opens a window that isn't
-    /// the game's (F355's master board). The session hides it, gives the
-    /// other window the focus, and ends the game when that window closes.
+    /// The game's picture comes from a second process the started one
+    /// launches (F355's slave board), while the started one (the master
+    /// board) runs without a screen of its own and would wait for the other
+    /// forever. The session ends the game, politely, when the second one
+    /// goes (its window closed, or gamescope with it). On Windows it also
+    /// hides the master's window and gives the slave's the focus.
     pub one_window: bool,
 }
 
@@ -653,7 +656,7 @@ pub fn plan(
         boot_hang: flycast.then_some(FLYCAST_BOOT_HANG),
         one_cache: flycast,
         stopped: flycast.then_some(FLYCAST_SAVED),
-        one_window: flycast && host == Host::Windows,
+        one_window: flycast,
     })
 }
 
@@ -883,10 +886,13 @@ mod tests {
             ..Settings::default()
         };
         let p = plan(g, &pl, &comps(), &s, "eth0", false, Host::Linux).unwrap();
-        let rt = PathBuf::from("/d/runtimes/f355");
+        // the runtime as the places give it (Windows joins with `\\`)
+        let rt = pl.runtime.clone();
         assert_eq!(p.game.program, PathBuf::from("/pkg/sega-launcher"));
+        // the paths in the command line, with `/` whatever the host joins with
+        let slash = |s: &str| s.replace('\\', "/");
         assert_eq!(
-            p.game.args,
+            p.game.args.iter().map(|a| slash(a)).collect::<Vec<_>>(),
             vec!["/d/runtimes/f355/f355twn2.zip".to_string()]
         );
         let env = |k: &str| {
@@ -894,7 +900,7 @@ mod tests {
                 .env
                 .iter()
                 .find(|(n, _)| n == k)
-                .map(|(_, v)| v.clone())
+                .map(|(_, v)| slash(v))
         };
         assert_eq!(
             env(FLYCAST_ENV).as_deref(),
@@ -922,7 +928,7 @@ mod tests {
         assert!(p.one_cache);
         assert_eq!(p.stopped, Some(FLYCAST_SAVED));
         assert!(p.input_pipe.is_none());
-        assert!(!p.one_window, "gamescope shows only the slave's window");
+        assert!(p.one_window, "the session watches the slave board");
         assert!(!cfg.contains("LogServer"), "{cfg}");
         let other = plan_for(GameId::SegaRally3, &Settings::default(), false, Host::Linux);
         assert!(other.boot_hang.is_none() && !other.one_cache && other.stopped.is_none());
@@ -1005,7 +1011,8 @@ mod tests {
             .is_err()
         );
         pl.log_port = Some(50123);
-        let rt = PathBuf::from("/d/runtimes/f355");
+        // the runtime as the places give it (Windows joins with `\\`)
+        let rt = pl.runtime.clone();
         let p = plan(
             g,
             &pl,

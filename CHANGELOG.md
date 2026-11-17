@@ -25,6 +25,9 @@ All notable changes to this launcher. The format follows
   window is hidden. Closing the game's window ends both boards, and the
   records are saved first. The Windows version also restarts a hung boot
   and keeps both boards on one group of matching cores.
+- Closing F355's window (or gamescope's) ends the game and saves the
+  records, on both systems. A stop asks the main board first, so it saves
+  before the rest closes.
 
 ### Changed
 

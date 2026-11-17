@@ -361,6 +361,44 @@ fn read_log(socket: &UdpSocket, watch: Watch, done: Arc<AtomicBool>) -> Result<(
     Ok(())
 }
 
+/// Asks the game to stop. Linux, F355: its master board alone, which saves
+/// and then lets the slave go; stopping gamescope with it lets gamescope's
+/// reaper kill the master before it has saved. Otherwise the whole group
+/// (Windows: by the started process's windows, [`proc::Group::terminate`]).
+fn ask_to_stop(group: &proc::Group, plan: &Plan) {
+    #[cfg(unix)]
+    if plan.one_window
+        && let Some(master) = group.boards(&plan.game.args).master
+    {
+        group.terminate_one(master);
+        return;
+    }
+    let _ = plan;
+    group.terminate();
+}
+
+/// Whether the process that saves the game when it quits may still be
+/// running. Linux, F355: its master board (once it is gone, the slave alone
+/// would only sit on Flycast's error screen). Otherwise the session's own
+/// process, which the caller watches.
+fn saver_running(group: &proc::Group, plan: &Plan) -> bool {
+    #[cfg(unix)]
+    if plan.one_window {
+        return group.boards(&plan.game.args).master.is_some();
+    }
+    let _ = (group, plan);
+    true
+}
+
+/// Sets its flag when dropped.
+struct SetOnDrop(Arc<AtomicBool>);
+
+impl Drop for SetOnDrop {
+    fn drop(&mut self) {
+        self.0.store(true, Ordering::SeqCst);
+    }
+}
+
 /// Text without its terminal colour codes (`ESC [ ... m`).
 fn without_colours(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -404,7 +442,8 @@ fn run_once(
     let mut child = cmd
         .spawn()
         .with_context(|| format!("starting {}", argv[0]))?;
-    let group = proc::Group::of(&child, &tag).context("grouping the game's processes")?;
+    let group = proc::Group::of(&child, &tag, p.plan.one_window)
+        .context("grouping the game's processes")?;
     #[cfg(windows)]
     if p.plan.one_cache {
         let on = pin_windows(&child).unwrap_or_else(|| "all".into());
@@ -442,6 +481,8 @@ fn run_once(
     };
     let (hung, saved) = (Arc::clone(&watch.hung), Arc::clone(&watch.saved));
     let log_done = Arc::new(AtomicBool::new(false));
+    // the log reader ends with this run, however it ends
+    let _log_done = SetOnDrop(Arc::clone(&log_done));
     if let Some(socket) = &p.log {
         read_log(socket, watch.clone(), Arc::clone(&log_done))?;
     }
@@ -474,17 +515,28 @@ fn run_once(
     }
     let start = Instant::now();
     let mut last_line = String::new();
-    // Windows, F355: the game's window, once it has opened
-    #[cfg_attr(unix, allow(unused_mut))]
-    let mut window = Windows::default();
+    let mut stopped = false;
+    // F355: the game's window, once it has opened
+    let mut window = GameWindow::default();
     let status = loop {
         if let Some(st) = child.try_wait()? {
             break st;
         }
-        #[cfg(windows)]
         if p.plan.one_window && !window.gone {
-            if let Some(w) = window.look(Instant::now(), || group.game_windows().first().copied()) {
-                crate::win32::focus(w);
+            // Windows: the slave's window (hiding the master's); Linux: the
+            // slave board's process, which ends with gamescope's window
+            #[cfg(windows)]
+            let first = window.look(Instant::now(), || group.game_windows().first().copied());
+            #[cfg(unix)]
+            let first = window.look(Instant::now(), || {
+                let b = group.boards(&p.plan.game.args);
+                // either board gone ends the game: the slave goes with its
+                // window, the master when gamescope's reaper ends it
+                (b.master.is_some() && b.slave.is_some()).then_some(())
+            });
+            if let Some(_w) = first {
+                #[cfg(windows)]
+                crate::win32::focus(_w);
                 writeln!(log.lock().unwrap(), "# the game's window is open")?;
             }
             if window.gone {
@@ -498,15 +550,19 @@ fn run_once(
             if let Some(tx) = &detach {
                 let _ = tx.send(input::Command::Detach);
             }
-            group.terminate();
+            // a "saved" line from before the stop doesn't count
+            saved.store(false, Ordering::SeqCst);
+            ask_to_stop(&group, &p.plan);
             let deadline = Instant::now() + STOP_GRACE;
             while Instant::now() < deadline
                 && !saved.load(Ordering::SeqCst)
                 && child.try_wait()?.is_none()
+                && saver_running(&group, &p.plan)
             {
                 std::thread::sleep(Duration::from_millis(100));
             }
             group.kill();
+            stopped = true;
             break child.wait()?;
         }
         if let Some((sink, cabinet, script)) = script_sink.as_mut() {
@@ -519,38 +575,46 @@ fn run_once(
         std::thread::sleep(Duration::from_millis(10));
     };
     group.terminate();
-    std::thread::sleep(Duration::from_millis(500));
+    if p.plan.stopped.is_some() && !stopped {
+        // the game ended by itself (gamescope closed): what's left of it
+        // still gets its time to save (F355's master board, off screen)
+        let deadline = Instant::now() + STOP_GRACE;
+        while Instant::now() < deadline && !saved.load(Ordering::SeqCst) && group.any_left() {
+            std::thread::sleep(Duration::from_millis(100));
+        }
+    } else {
+        std::thread::sleep(Duration::from_millis(500));
+    }
     group.kill();
-    log_done.store(true, Ordering::SeqCst);
     let left = group.leftovers();
     writeln!(
         log.lock().unwrap(),
-        "# exit: {status}; stopped {left} leftover process(es)"
+        "# exit: {status} after {} s; stopped {left} leftover process(es)",
+        start.elapsed().as_secs()
     )?;
     Ok((status, hung.load(Ordering::SeqCst)))
 }
 
-/// The game's window on Windows ([`Plan::one_window`]): looked at every
-/// 50 ms; once it has been open, it counts as closed after a second
-/// without it (the player closed it, or the slave board quit).
+/// The game's window ([`Plan::one_window`]): looked at every 200 ms; once
+/// it has been open, it counts as closed after a second without it (the
+/// player closed it, or the slave board quit).
 #[derive(Default)]
-struct Windows {
+struct GameWindow {
     seen: bool,
     last_look: Option<Instant>,
     missing_since: Option<Instant>,
     gone: bool,
 }
 
-#[cfg_attr(unix, allow(dead_code))]
-impl Windows {
-    /// One look at `now` (at most every 50 ms; `shown` finds the window).
+impl GameWindow {
+    /// One look at `now` (at most every 200 ms; `shown` finds the window).
     /// Returns the window the first time it is seen, to give it the focus;
     /// sets `gone` once it has been missing for a second.
     fn look<W>(&mut self, now: Instant, shown: impl FnOnce() -> Option<W>) -> Option<W> {
         if self.gone
             || self
                 .last_look
-                .is_some_and(|t| now - t < Duration::from_millis(50))
+                .is_some_and(|t| now - t < Duration::from_millis(200))
         {
             return None;
         }
@@ -579,22 +643,22 @@ mod window_tests {
     fn the_game_window_is_focused_once_and_closed_after_a_second_away() {
         let t0 = Instant::now();
         let ms = |n: u64| t0 + Duration::from_millis(n);
-        let mut w = Windows::default();
+        let mut w = GameWindow::default();
         // the boards start: no window yet, for as long as it takes
         assert_eq!(w.look(ms(0), || None::<u8>), None);
         assert_eq!(w.look(ms(5000), || None::<u8>), None);
         assert!(!w.gone);
         // it opens: focused once
-        assert_eq!(w.look(ms(5100), || Some(7)), Some(7));
-        assert_eq!(w.look(ms(5200), || Some(7)), None);
+        assert_eq!(w.look(ms(5300), || Some(7)), Some(7));
+        assert_eq!(w.look(ms(5500), || Some(7)), None);
         // too soon to look again
         assert_eq!(
-            w.look(ms(5210), || panic!("looked within 50 ms")),
+            w.look(ms(5600), || panic!("looked within 200 ms")),
             None::<u8>
         );
         // a blink (a window recreated) doesn't end the game
-        w.look(ms(5300), || None::<u8>);
-        w.look(ms(5800), || Some(7));
+        w.look(ms(5800), || None::<u8>);
+        w.look(ms(6200), || Some(7));
         w.look(ms(6900), || None::<u8>);
         assert!(!w.gone);
         // closed for a second: the game ends

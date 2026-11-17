@@ -430,6 +430,7 @@ input None
 restart on "TRAP #50"
 one cache domain
 saved on "Slave exiting"
+one window (the slave board's)
 link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/config/flycast/emu.cfg
 # Written by the launcher before every start.
@@ -453,6 +454,7 @@ input None
 restart on "TRAP #50"
 one cache domain
 saved on "Slave exiting"
+one window (the slave board's)
 link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/config/flycast/emu.cfg
 # Written by the launcher before every start.
@@ -476,6 +478,7 @@ input None
 restart on "TRAP #50"
 one cache domain
 saved on "Slave exiting"
+one window (the slave board's)
 link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/config/flycast/emu.cfg
 # Written by the launcher before every start.
@@ -890,7 +893,7 @@ input None
 restart on "TRAP #50"
 one cache domain
 saved on "Slave exiting"
-one window (the started program's hidden)
+one window (the slave board's)
 link /d/runtimes/f355/flycast/flycast.exe -> /c/flycast/flycast.exe
 link /d/runtimes/f355/flycast/data/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/emu.cfg
@@ -917,7 +920,7 @@ input None
 restart on "TRAP #50"
 one cache domain
 saved on "Slave exiting"
-one window (the started program's hidden)
+one window (the slave board's)
 link /d/runtimes/f355/flycast/flycast.exe -> /c/flycast/flycast.exe
 link /d/runtimes/f355/flycast/data/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/emu.cfg
@@ -944,7 +947,7 @@ input None
 restart on "TRAP #50"
 one cache domain
 saved on "Slave exiting"
-one window (the started program's hidden)
+one window (the slave board's)
 link /d/runtimes/f355/flycast/flycast.exe -> /c/flycast/flycast.exe
 link /d/runtimes/f355/flycast/data/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/emu.cfg
