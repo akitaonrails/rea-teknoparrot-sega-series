@@ -119,7 +119,15 @@ pub struct Places {
     /// Windows: the local UDP port the session reads Flycast's log on
     /// (its `LogServer`; the Windows build has no output to read).
     pub log_port: Option<u16>,
+    /// windowsarcadeloader's first port this start
+    /// (`rea_launcher::wal::free_port_block(WAL_PORT)`).
+    pub wal_port: u16,
 }
+
+/// Where the free block of windowsarcadeloader's ports is looked for
+/// from: above the blocks the Initial D and Nintendo launchers try (from
+/// 33700 and 33790), so two hubs' games never start on the same ports.
+pub const WAL_PORT: u16 = 38000;
 
 /// The size the game draws at: the setting, within what the game can do.
 /// SEGA Rally 3 draws at 1280x720 (the cabinet's) or 1920x1080
@@ -224,7 +232,7 @@ pub fn lindbergh_controls(wheel: Option<&LindberghWheel>) -> String {
 /// the runner, a prefix with native XACT (the RingEdge games' sound thread
 /// crashes on Wine's own), no ReShade or gamescope of its own (the launcher
 /// wraps the game), and the render size.
-pub fn wal_layer(game: &Game, size: Size, ffb: u8) -> String {
+pub fn wal_layer(game: &Game, size: Size, ffb: u8, port: u16) -> String {
     let mut env = Vec::new();
     match game.route {
         Route::Wal {
@@ -249,6 +257,7 @@ pub fn wal_layer(game: &Game, size: Size, ffb: u8) -> String {
          runner: runner\nprefix: wine-prefix/sega\nprefix_tricks: [xact]\nreshade: false\n\
          gamescope:\n  enabled: false\n",
     );
+    out.push_str(&format!("port: {port}\n"));
     if !env.is_empty() {
         out.push_str("env:\n");
         for (k, v) in env {
@@ -386,7 +395,10 @@ pub fn plan(
                 format!("{}\n", game.loader_path()),
             ));
             let layer = root.join(format!("layer-{}.yaml", game.slug));
-            files.push((layer.clone(), wal_layer(game, size, s.force_feedback)));
+            files.push((
+                layer.clone(),
+                wal_layer(game, size, s.force_feedback, places.wal_port),
+            ));
             links.push((root.join("systemprofiles"), c.wal.join("systemprofiles")));
             links.push((root.join("dist/payloads"), c.wal.join("payloads")));
             if host == Host::Linux {
@@ -537,6 +549,7 @@ mod tests {
             wheel: None,
             bios: vec![],
             log_port: None,
+            wal_port: WAL_PORT,
         }
     }
 
@@ -568,6 +581,8 @@ mod tests {
             "{layer}"
         );
         assert!(layer.contains("prefix_tricks: [xact]"));
+        // the session's free block of ports, never the loader's default 33700
+        assert!(layer.contains("\nport: 38000\n"), "{layer}");
         assert_eq!(arg_after(&p.gamescope, "-w").as_deref(), Some("3840"));
         assert_eq!(p.input_pipe, Some(StickLayout::HPattern4));
         assert!(p.game.args.contains(&"--input-pipe".to_string()));

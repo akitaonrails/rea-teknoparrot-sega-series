@@ -11,11 +11,8 @@ mod board;
 mod cli;
 mod input;
 mod paths;
-mod proc;
 mod session;
 mod ui;
-#[cfg(windows)]
-mod win32;
 
 use std::process::ExitCode;
 use std::sync::Arc;
@@ -23,13 +20,15 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use rea_launcher::library::{Found, HashCache, Scan};
+use rea_launcher::wheel::Script;
 use rea_launcher_win32::report::{Audience, Mode as Says, Run};
 use sega_core::catalog::{self, Game, Host, Route, Support};
+use sega_core::input::Button;
 use sega_core::settings::{self, Settings};
 
 use crate::cli::{Invocation, Mode};
 use crate::paths::Paths;
-use crate::session::{Display, Feed};
+use crate::session::{Display, Input};
 
 /// The window's title; it differs from every game's (STANDARDS "One instance").
 pub const WINDOW_TITLE: &str = "Sega Racing Launcher";
@@ -305,22 +304,23 @@ fn play(paths: &Paths, game: &'static Game, inv: &Invocation) -> Result<u8, Stri
             stop.store(true, Ordering::SeqCst);
         });
     }
-    let input = (!inv.test.no_input
+    let devices = (!inv.test.no_input
         && inv.test.script.is_none()
         && matches!(game.route, Route::Wal { .. }))
-    .then(input::InputService::start);
+    .then(input::service);
     let feed = if let Some(f) = &inv.test.script {
         let text = std::fs::read_to_string(f).map_err(|e| format!("{}: {e}", f.display()))?;
-        Feed::Script(input::Script::parse(&text).map_err(|e| format!("{}: {e}", f.display()))?)
-    } else if let Some(i) = &input {
-        Feed::Devices {
+        let script = Script::parse::<Button>(&text).map_err(|e| format!("{}: {e}", f.display()))?;
+        Input::Script(script)
+    } else if let Some(i) = &devices {
+        Input::Devices {
             tx: i.sender(),
-            tuning: input::Tuning::of(&settings),
+            tuning: input::tuning(&settings),
         }
     } else {
-        Feed::None
+        Input::None
     };
-    let status = session::run(paths, &prepared, feed, stop).map_err(|e| format!("{e:#}"))?;
+    let status = session::run(paths, &prepared, &feed, stop).map_err(|e| format!("{e:#}"))?;
     eprintln!(
         "{} ended ({status}); log: {}",
         game.title,

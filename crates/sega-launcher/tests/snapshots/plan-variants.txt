@@ -79,6 +79,7 @@ prefix_tricks: [xact]
 reshade: false
 gamescope:
   enabled: false
+port: 38000
 env:
   WAL_EUROPAR_RESOLUTION: "1280x720"
   WAL_EUROPAR_FREEPLAY: "1"
@@ -104,6 +105,7 @@ prefix_tricks: [xact]
 reshade: false
 gamescope:
   enabled: false
+port: 38000
 env:
   WAL_RINGEDGE_GL_SCALE: "1280x720"
 
@@ -127,6 +129,7 @@ prefix_tricks: [xact]
 reshade: false
 gamescope:
   enabled: false
+port: 38000
 env:
   WAL_SEGASHELL_FFB: "100"
 
@@ -302,6 +305,7 @@ prefix_tricks: [xact]
 reshade: false
 gamescope:
   enabled: false
+port: 38000
 env:
   WAL_EUROPAR_RESOLUTION: "1280x720"
   WAL_EUROPAR_FREEPLAY: "1"
@@ -324,6 +328,7 @@ prefix_tricks: [xact]
 reshade: false
 gamescope:
   enabled: false
+port: 38000
 env:
   WAL_RINGEDGE_GL_SCALE: "1280x720"
 
@@ -344,6 +349,7 @@ prefix_tricks: [xact]
 reshade: false
 gamescope:
   enabled: false
+port: 38000
 env:
   WAL_SEGASHELL_FFB: "100"
 

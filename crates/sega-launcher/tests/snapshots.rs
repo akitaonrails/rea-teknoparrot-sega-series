@@ -116,6 +116,7 @@ fn places(g: &Game) -> Places {
             .collect(),
         // the port the Windows session opens for Flycast's log
         log_port: Some(50123),
+        wal_port: launch::WAL_PORT,
     }
 }
 

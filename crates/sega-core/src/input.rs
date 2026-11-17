@@ -8,6 +8,7 @@
 //! `native_map` and `gamepad` sections at the pinned commit) and the state
 //! a sequential shift needs to drive an H-pattern lever.
 
+use rea_launcher::wal::{Stick, button as wal};
 use rea_launcher::wheel::{Action, Control, Controls as Read, PadInput, PadMap};
 
 /// The buttons of the Sega cabinets here (besides wheel and pedals). A
@@ -85,22 +86,6 @@ pub fn default_pad_map() -> PadMap<Button> {
         ),
         (Action::Press(Button::Coin), &[PadInput::Back]),
     ])
-}
-
-/// windowsarcadeloader's virtual stick bits (`wal_protocol::button`).
-pub mod wal {
-    pub const UP: u32 = 1 << 0;
-    pub const DOWN: u32 = 1 << 1;
-    pub const LEFT: u32 = 1 << 2;
-    pub const RIGHT: u32 = 1 << 3;
-    pub const B1: u32 = 1 << 4;
-    pub const B2: u32 = 1 << 5;
-    pub const B3: u32 = 1 << 6;
-    pub const B4: u32 = 1 << 7;
-    pub const START: u32 = 1 << 12;
-    pub const COIN: u32 = 1 << 13;
-    pub const SERVICE: u32 = 1 << 14;
-    pub const TEST: u32 = 1 << 15;
 }
 
 /// Which cabinet a windowsarcadeloader game has.
@@ -217,15 +202,7 @@ impl Cabinet {
     /// Player 1's line for `arcade-launcher --input-pipe`
     /// (`p1 <buttons hex> <lx> <ly> <rx> <ry> <accel> <brake>`).
     pub fn pipe_line(&mut self, r: &Read) -> String {
-        let buttons = self.buttons(r);
-        let axis = |v: f32| (v.clamp(-1.0, 1.0) * 32767.0).round() as i32;
-        let pedal = |v: f32| (v.clamp(0.0, 1.0) * 32767.0).round() as i32;
-        format!(
-            "p1 {buttons:x} {} 0 0 0 {} {}",
-            axis(r.steer),
-            pedal(r.accel),
-            pedal(r.brake)
-        )
+        Stick::driving(self.buttons(r), r).line()
     }
 }
 

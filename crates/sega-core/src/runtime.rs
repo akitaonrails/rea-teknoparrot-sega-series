@@ -328,9 +328,9 @@ mod tests {
         let dump = tempfile::tempdir().unwrap();
         let rt = tempfile::tempdir().unwrap();
         let rt = rt.path().join("f355");
-        std::fs::write(dump.path().join("epr-23399.ic22"), b"program").unwrap();
-        std::fs::write(dump.path().join("f355twn2-key.bin"), b"key!").unwrap();
-        std::fs::create_dir(dump.path().join("notes")).unwrap();
+        fs::write(dump.path().join("epr-23399.ic22"), b"program").unwrap();
+        fs::write(dump.path().join("f355twn2-key.bin"), b"key!").unwrap();
+        fs::create_dir(dump.path().join("notes")).unwrap();
         let g = game(GameId::F355Challenge2);
         let ops = plan(g, dump.path(), &rt, &list).unwrap();
         let zip = rt.join("f355twn2.zip");
@@ -348,17 +348,17 @@ mod tests {
             ]
         );
         apply(&ops, Occupied::Refuse).unwrap();
-        let first = std::fs::metadata(&zip).unwrap().modified().unwrap();
+        let first = fs::metadata(&zip).unwrap().modified().unwrap();
         // unchanged dump: the archive stays as it is
         std::thread::sleep(std::time::Duration::from_millis(20));
         apply(&ops, Occupied::Refuse).unwrap();
-        assert_eq!(std::fs::metadata(&zip).unwrap().modified().unwrap(), first);
+        assert_eq!(fs::metadata(&zip).unwrap().modified().unwrap(), first);
         // a chip replaced by one of another size: made again
-        std::fs::write(dump.path().join("epr-23399.ic22"), b"program, v2").unwrap();
+        fs::write(dump.path().join("epr-23399.ic22"), b"program, v2").unwrap();
         apply(&ops, Occupied::Refuse).unwrap();
-        let bytes = std::fs::read(&zip).unwrap();
+        let bytes = fs::read(&zip).unwrap();
         assert!(bytes.windows(11).any(|w| w == b"program, v2"));
         // the dump itself is untouched
-        assert_eq!(std::fs::read_dir(dump.path()).unwrap().count(), 3);
+        assert_eq!(fs::read_dir(dump.path()).unwrap().count(), 3);
     }
 }

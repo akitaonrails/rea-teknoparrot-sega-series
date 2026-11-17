@@ -27,9 +27,9 @@ use rea_launcher::wheel::{Action, Control, Kind};
 use sega_core::catalog::{GAMES, Game, Host, Route, Support};
 use sega_core::input::{Button, default_pad_map};
 
-use crate::input::{Command, InputService, Snapshot};
 use crate::paths::{Config, Paths};
-use crate::session::{self, Display, Feed};
+use crate::session::{self, Display};
+use rea_launcher_native::feeder::{Command, InputService, Snapshot};
 
 use form::{Form, Row};
 use model::{Effect, Focus, Input, Item, Model, Page, Tab, TileState, World};
@@ -57,7 +57,7 @@ pub fn run(paths: Paths) -> anyhow::Result<()> {
         Box::new(move |cc| {
             theme::install_fonts(&cc.egui_ctx, &paths.fonts());
             theme::install_style(&cc.egui_ctx);
-            Ok(Box::new(App::new(paths, Some(InputService::start()))))
+            Ok(Box::new(App::new(paths, Some(crate::input::service()))))
         }),
     )
     .map_err(|e| anyhow::anyhow!("the window could not open: {e}"))
@@ -477,13 +477,13 @@ impl App {
                     };
                 let _ = tx.send(Progress::Playing);
                 let feed = match (game.route, sender) {
-                    (Route::Wal { .. }, Some(tx)) => Feed::Devices {
+                    (Route::Wal { .. }, Some(tx)) => session::Input::Devices {
                         tx,
-                        tuning: crate::input::Tuning::of(&settings),
+                        tuning: crate::input::tuning(&settings),
                     },
-                    _ => Feed::None,
+                    _ => session::Input::None,
                 };
-                let r = session::run(&paths, &prepared, feed, stop_for_session)
+                let r = session::run(&paths, &prepared, &feed, stop_for_session)
                     .map(|_| ())
                     .map_err(|e| format!("{e:#}"));
                 let _ = tx.send(Progress::Ended(r));
@@ -2622,7 +2622,7 @@ mod tests {
     use std::fmt::Write as _;
     use std::path::Path;
 
-    use crate::input::DeviceInfo;
+    use rea_launcher_native::feeder::DeviceInfo;
 
     const SCREEN: Vec2 = vec2(1280.0, 720.0);
 
@@ -3317,6 +3317,7 @@ mod tests {
         };
         controls.press(Button::Start);
         h.state_mut().snap = Snapshot {
+            wheel: None,
             devices: vec![
                 DeviceInfo {
                     name: "Test Pad".into(),
@@ -3644,6 +3645,7 @@ mod tests {
             };
             controls.press(Button::Start);
             h.state_mut().snap = Snapshot {
+                wheel: None,
                 devices: vec![
                     DeviceInfo {
                         name: "Test Pad".into(),
@@ -3663,6 +3665,7 @@ mod tests {
             };
             section(&mut out, "a pad and a wheel, a game running", &mut h);
             h.state_mut().snap = Snapshot {
+                wheel: None,
                 error: Some("controllers unavailable: no SDL".into()),
                 ..Snapshot::default()
             };
