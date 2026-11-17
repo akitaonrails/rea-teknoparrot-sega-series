@@ -6,6 +6,8 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+## 0.2.0 - 2026-11-17
+
 ### Added
 
 - F355 Challenge 2 (twin) starts on Linux in Flycast 2.7, which the Linux

@@ -151,6 +151,8 @@ jobs:
           tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -v "/components/runner/" | sort
           tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -q "components/lindbergh/lindbergh.so"
           tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -q "components/directx/directx9/directx_Jun2010_redist.exe"
+          tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -q "components/flycast/usr/bin/flycast"
+          unzip -l SegaRacingLauncher-*-windows-x86_64.zip | grep -q "components/flycast/flycast.exe"
       - uses: actions/upload-artifact@v4
         with:
           name: SegaRacingLauncher-packages
