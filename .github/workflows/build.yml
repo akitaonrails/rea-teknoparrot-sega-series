@@ -153,6 +153,9 @@ jobs:
           tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -q "components/directx/directx9/directx_Jun2010_redist.exe"
           tar -tzf SegaRacingLauncher-*-linux-x86_64.tar.gz | grep -q "components/flycast/usr/bin/flycast"
           unzip -l SegaRacingLauncher-*-windows-x86_64.zip | grep -q "components/flycast/flycast.exe"
+          # every file is on the package's allowlist (no game file, no stray build output)
+          sh ../../sdk/packaging/smoke-package.sh SegaRacingLauncher-*-linux-x86_64/ ../../packaging/allowlist-linux.txt
+          sh ../../sdk/packaging/smoke-package.sh SegaRacingLauncher-*-windows-x86_64.zip ../../packaging/allowlist-windows.txt
       - uses: actions/upload-artifact@v4
         with:
           name: SegaRacingLauncher-packages

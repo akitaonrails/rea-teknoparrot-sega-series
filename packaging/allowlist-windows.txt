@@ -1,0 +1,10 @@
+# Every file of the Windows package (sdk/packaging/smoke-package.sh).
+sega-launcher.exe
+SDL2.dll
+README.txt
+licenses/*
+components/art/*.jpg
+components/wal/arcade-launcher.exe
+components/wal/payloads/*
+components/wal/systemprofiles/*
+components/flycast/flycast.exe

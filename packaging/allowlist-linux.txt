@@ -1,0 +1,18 @@
+# Every file of the Linux package (sdk/packaging/smoke-package.sh): anything
+# else fails the check, so no game file or stray build output can ship.
+sega-launcher x
+lib/libSDL2-2.0.so.0
+README.txt
+SDL2-copyright.txt optional
+licenses/*
+components/art/*.jpg
+components/wal/arcade-launcher x
+components/wal/payloads/*
+components/wal/systemprofiles/*
+components/runner/*
+components/winetricks x
+components/lindbergh/lindbergh x
+components/lindbergh/lindbergh.so
+components/lindbergh/lib*.so*
+components/directx/directx9/directx_Jun2010_redist.exe
+components/flycast/usr/*

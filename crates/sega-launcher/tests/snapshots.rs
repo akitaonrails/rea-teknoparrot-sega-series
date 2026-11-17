@@ -25,6 +25,8 @@ fn help() {
     let out = Command::new(env!("CARGO_BIN_EXE_sega-launcher"))
         .arg("--help")
         .env("SEGA_DATA", env!("CARGO_TARGET_TMPDIR"))
+        .env_remove("DISPLAY")
+        .env_remove("WAYLAND_DISPLAY")
         .output()
         .expect("run the launcher");
     assert!(out.status.success());
