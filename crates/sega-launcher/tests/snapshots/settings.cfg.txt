@@ -1,6 +1,6 @@
 # Settings for one game of the Sega racing launcher.
-# Every key is also a command-line flag with --game <id>: steering_lock =
-# 540 is --steering-lock 540.
+# Every key is also a command-line flag with --set <id> or --play <id>:
+# steering_lock = 540 is --steering-lock 540.
 
 # Sets the picture options at once: the cabinet's picture, sharper for your
 # screen, or for the Steam Deck. Options set after it win.

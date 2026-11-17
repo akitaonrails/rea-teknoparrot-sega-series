@@ -401,13 +401,13 @@ bios = <tmp>/bios
 
 == settings/sr3.cfg
 # Settings for one game of the Sega racing launcher.
-# Every key is also a command-line flag with --game <id>: steering_lock =
-# 540 is --steering-lock 540.
+# Every key is also a command-line flag with --set <id> or --play <id>:
+# steering_lock = 540 is --steering-lock 540.
 
 # Sets the picture options at once: the cabinet's picture, sharper for your
 # screen, or for the Steam Deck. Options set after it win.
 # Values: original, recommended or steam_deck.
-#look =
+look = recommended
 
 # The size the game draws at, or native for the cabinet's own. Sharper but
 # heavier when larger.
@@ -416,7 +416,7 @@ render = 1920x1080
 
 # The size the picture is shown at on your screen (Linux).
 # Values: WIDTHxHEIGHT.
-output = 3840x2160
+output = 1920x1080
 
 # How the picture is enlarged to the screen size (Linux).
 # Values: fsr, nis, linear or nearest.

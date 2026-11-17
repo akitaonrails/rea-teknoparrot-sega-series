@@ -20,8 +20,8 @@ Settings {
 }
 -- saved unchanged
 # Settings for one game of the Sega racing launcher.
-# Every key is also a command-line flag with --game <id>: steering_lock =
-# 540 is --steering-lock 540.
+# Every key is also a command-line flag with --set <id> or --play <id>:
+# steering_lock = 540 is --steering-lock 540.
 
 # Sets the picture options at once: the cabinet's picture, sharper for your
 # screen, or for the Steam Deck. Options set after it win.
@@ -66,8 +66,8 @@ deadzone = 5
 
 -- saved with steering_lock 900, look steam_deck, render native
 # Settings for one game of the Sega racing launcher.
-# Every key is also a command-line flag with --game <id>: steering_lock =
-# 540 is --steering-lock 540.
+# Every key is also a command-line flag with --set <id> or --play <id>:
+# steering_lock = 540 is --steering-lock 540.
 
 # Sets the picture options at once: the cabinet's picture, sharper for your
 # screen, or for the Steam Deck. Options set after it win.
@@ -152,12 +152,12 @@ Settings {
 <BOM># my notes<CR>
 upscaler = nis<CR>
 future_key = 7<CR>
-sharpness = 5<CR>
-render = 640x480<CR>
+sharpness = 99<CR>
+render = 1920x1080<CR>
 render = 640x480<CR>
 [section]<CR>
-fullscreen = on<CR>
-steering_lock = 270<CR>
+fullscreen = off # trailing<CR>
+steering_lock = 333<CR>
 output = 3840x2160<CR>
 force_feedback = 100<CR>
 deadzone = 5<CR>
@@ -166,11 +166,11 @@ deadzone = 5<CR>
 <BOM># my notes<CR>
 upscaler = nis<CR>
 future_key = 7<CR>
-sharpness = 5<CR>
+sharpness = 99<CR>
 render = native<CR>
 render = native<CR>
 [section]<CR>
-fullscreen = on<CR>
+fullscreen = off # trailing<CR>
 steering_lock = 900<CR>
 look = steam_deck<CR>
 output = 3840x2160<CR>
@@ -179,8 +179,8 @@ deadzone = 5<CR>
 
 == template
 # Settings for one game of the Sega racing launcher.
-# Every key is also a command-line flag with --game <id>: steering_lock =
-# 540 is --steering-lock 540.
+# Every key is also a command-line flag with --set <id> or --play <id>:
+# steering_lock = 540 is --steering-lock 540.
 
 # Sets the picture options at once: the cabinet's picture, sharper for your
 # screen, or for the Steam Deck. Options set after it win.
@@ -243,8 +243,8 @@ Settings {
 }
 -- saved unchanged
 # Settings for one game of the Sega racing launcher.
-# Every key is also a command-line flag with --game <id>: steering_lock =
-# 540 is --steering-lock 540.
+# Every key is also a command-line flag with --set <id> or --play <id>:
+# steering_lock = 540 is --steering-lock 540.
 
 # Sets the picture options at once: the cabinet's picture, sharper for your
 # screen, or for the Steam Deck. Options set after it win.
@@ -289,8 +289,8 @@ deadzone = 5
 
 -- saved with steering_lock 900, look steam_deck, render native
 # Settings for one game of the Sega racing launcher.
-# Every key is also a command-line flag with --game <id>: steering_lock =
-# 540 is --steering-lock 540.
+# Every key is also a command-line flag with --set <id> or --play <id>:
+# steering_lock = 540 is --steering-lock 540.
 
 # Sets the picture options at once: the cabinet's picture, sharper for your
 # screen, or for the Steam Deck. Options set after it win.

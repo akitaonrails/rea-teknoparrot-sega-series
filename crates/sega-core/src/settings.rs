@@ -8,10 +8,15 @@
 //! all come from it. Unknown keys and comments are kept when the launcher
 //! rewrites the file, so a player's notes survive.
 
+use std::io;
+use std::path::Path;
+
 use rea_launcher::cfg::{self, KeyStyle, Kind, OptionSpec, Rejected, Resolution, Value};
 use rea_launcher::display;
 use rea_launcher::gamescope::{SIZE_MAX, SIZE_MIN, Size, UPSCALERS, Upscaler, fit};
 use rea_launcher::wheel::SteeringLock;
+
+use crate::catalog::Game;
 
 /// Flags spell keys with hyphens: `--steering-lock` is `steering_lock`.
 pub const STYLE: KeyStyle = KeyStyle::Underscore;
@@ -268,17 +273,30 @@ impl Settings {
         })
     }
 
-    /// Rewrite `existing` with these settings' values, keeping comments and
-    /// unknown keys in place and adding missing keys.
+    /// Rewrite `existing` with these settings, keeping comments and
+    /// unknown keys in place: a key is written when its value differs from
+    /// what `existing` says, or `existing` doesn't have it. A line the
+    /// launcher couldn't read (`fullscreen = off # mine`) stays as the
+    /// player wrote it unless that setting is changed; a look no longer in
+    /// use is cleared.
     pub fn save(&self, existing: &str) -> String {
-        let mut out = if existing.trim().is_empty() {
-            cfg::spec::template(HEADING, OPTIONS)
-        } else {
-            existing.to_string()
-        };
+        if existing.trim().is_empty() {
+            let mut out = cfg::spec::template(HEADING, OPTIONS);
+            for spec in OPTIONS {
+                if let Some(v) = self.value(spec.key) {
+                    out = cfg::spec::set_key(&out, spec, &v);
+                }
+            }
+            return out;
+        }
+        let (was, _) = Settings::parse(existing);
+        let mut out = existing.to_string();
         for spec in OPTIONS {
-            if let Some(v) = self.value(spec.key) {
-                out = cfg::spec::set_key(&out, spec, &v);
+            let has_line = cfg::entries(existing).any(|e| spec.answers_to(e.key));
+            match (self.value(spec.key), was.value(spec.key)) {
+                (now, then) if now == then && has_line => {}
+                (Some(v), _) => out = cfg::spec::set_key(&out, spec, &v),
+                (None, _) => out = cfg::clear_key(&out, spec.key),
             }
         }
         out
@@ -295,10 +313,51 @@ impl Settings {
     }
 }
 
+/// A game's settings file and the lines it couldn't read (`None`: no file
+/// yet). An unreadable file is an error, never defaults a later save would
+/// write over it.
+pub fn read(file: &Path) -> io::Result<Option<(Settings, Vec<String>)>> {
+    Ok(cfg::read_file(file)?.map(|text| Settings::parse(&text)))
+}
+
+/// Writes `s` into `file` ([`Settings::save`]) as a whole-file swap; a
+/// file that can't be read is left alone and the error returned.
+pub fn write(file: &Path, s: &Settings) -> io::Result<()> {
+    let existing = cfg::read_file(file)?.unwrap_or_default();
+    rea_launcher::fsx::write_atomic(file, s.save(&existing))
+}
+
+/// A game's settings for a start or its settings page, and the lines its
+/// file couldn't read. The first time (no file yet) the recommended look
+/// for `screen` is decided and saved, so a Play or `--play` before the
+/// settings page ever opened uses it too.
+pub fn load(
+    file: &Path,
+    game: &Game,
+    screen: Option<(u32, u32)>,
+) -> io::Result<(Settings, Vec<String>)> {
+    if let Some(read) = read(file)? {
+        return Ok(read);
+    }
+    let mut s = Settings::default();
+    Look::recommended(screen).apply(&mut s, game.native, screen);
+    if game.render_fixed() {
+        s.render = None;
+    }
+    let problems = match write(file, &s) {
+        Ok(()) => Vec::new(),
+        Err(e) => vec![format!(
+            "couldn't save the recommended look to {}: {e}",
+            file.display()
+        )],
+    };
+    Ok((s, problems))
+}
+
 /// Comment lines at the top of a new settings file.
 pub const HEADING: &str = "Settings for one game of the Sega racing launcher.\n\
-    Every key is also a command-line flag with --game <id>: steering_lock = 540 is \
-    --steering-lock 540.";
+    Every key is also a command-line flag with --set <id> or --play <id>: steering_lock = 540 \
+    is --steering-lock 540.";
 
 /// The template a new settings file starts from (also `--help`'s source).
 pub fn template() -> String {
@@ -367,6 +426,72 @@ mod tests {
         assert_eq!(s.render, None);
         assert_eq!(s.output, Size::new(2560, 1440));
         assert_eq!(s.upscaler, Upscaler::Linear);
+    }
+
+    #[test]
+    fn a_line_the_launcher_cant_read_stays_until_that_setting_changes() {
+        let text = "fullscreen = off # trailing\nsharpness = 99\nupscaler = nis\n";
+        let (mut s, problems) = Settings::parse(text);
+        assert_eq!(problems.len(), 2, "{problems:?}");
+        let saved = s.save(text);
+        assert!(
+            saved.starts_with(text),
+            "never replaced by the default: {saved}"
+        );
+        s.sharpness = 3;
+        let saved = s.save(text);
+        assert!(
+            saved.contains("sharpness = 3\n") && saved.contains("fullscreen = off # trailing\n")
+        );
+    }
+
+    #[test]
+    fn a_look_given_up_is_cleared_from_the_file() {
+        let mut s = Settings::default();
+        Look::Original.apply(&mut s, Size::new(1280, 720), None);
+        let text = s.save("");
+        assert!(text.contains("look = original\n"), "{text}");
+        s.look = None;
+        s.upscaler = Upscaler::Nis;
+        assert_eq!(Settings::parse(&s.save(&text)).0, s);
+    }
+
+    #[test]
+    fn an_unreadable_file_is_never_written_over() {
+        let t = tempfile::tempdir().unwrap();
+        let file = t.path().join("sr3.cfg");
+        std::fs::create_dir(&file).unwrap();
+        assert!(read(&file).is_err());
+        assert!(write(&file, &Settings::default()).is_err());
+        assert!(file.is_dir());
+        std::fs::remove_dir(&file).unwrap();
+        // Latin-1 notes keep their letters
+        std::fs::write(&file, b"# a\xe7\xe3o\nupscaler = nis\n").unwrap();
+        let (mut s, _) = read(&file).unwrap().unwrap();
+        s.deadzone = 9;
+        write(&file, &s).unwrap();
+        let text = std::fs::read_to_string(&file).unwrap();
+        assert!(
+            text.starts_with("# a\u{e7}\u{e3}o\nupscaler = nis\n"),
+            "{text}"
+        );
+    }
+
+    #[test]
+    fn the_first_load_decides_the_recommended_look_and_saves_it() {
+        let t = tempfile::tempdir().unwrap();
+        let file = t.path().join("settings/src.cfg");
+        let src = crate::catalog::by_slug("src").unwrap();
+        let (s, problems) = load(&file, src, Some((1280, 800))).unwrap();
+        assert!(problems.is_empty());
+        assert_eq!(s.look, Some(Look::SteamDeck));
+        assert_eq!(s.output, Size::new(1280, 800));
+        assert_eq!(read(&file).unwrap().unwrap().0, s, "saved");
+        // a second load reads the file, whatever the screen
+        assert_eq!(load(&file, src, Some((3840, 2160))).unwrap().0, s);
+        let dcusa = crate::catalog::by_slug("dcusa").unwrap();
+        let (s, _) = load(&t.path().join("dcusa.cfg"), dcusa, None).unwrap();
+        assert_eq!((s.look, s.render), (Some(Look::Recommended), None));
     }
 
     #[test]

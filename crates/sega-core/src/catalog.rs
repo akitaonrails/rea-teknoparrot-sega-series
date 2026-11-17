@@ -70,6 +70,11 @@ impl Game {
         }
     }
 
+    /// The game draws at one size only: its render setting does nothing.
+    pub fn render_fixed(&self) -> bool {
+        self.id == GameId::Daytona
+    }
+
     /// The folder of the dump whose entries make up the runtime, relative
     /// to the game folder. OutRun 2 SP SDX's dump is the cabinet's disks:
     /// the game reads `/home/disk0`, which lindbergh-loader turns into

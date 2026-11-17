@@ -3,8 +3,6 @@
 //! descriptions come from the option table (`sega_core::settings::OPTIONS`),
 //! so the window, `--help` and the settings file say the same thing.
 
-use std::path::Path;
-
 use rea_launcher::cfg::OptionSpec;
 use rea_launcher::gamescope::{Size, Upscaler};
 use rea_launcher::wheel::SteeringLock;
@@ -254,18 +252,6 @@ impl Form {
     }
 }
 
-/// Write `settings` into the file at `path`, keeping the player's comments
-/// and unknown keys; atomically (temporary file, then rename).
-pub fn save(path: &Path, settings: &Settings) -> std::io::Result<()> {
-    let existing = std::fs::read_to_string(path).unwrap_or_default();
-    if let Some(p) = path.parent() {
-        std::fs::create_dir_all(p)?;
-    }
-    let tmp = path.with_extension("cfg.tmp");
-    std::fs::write(&tmp, settings.save(&existing))?;
-    std::fs::rename(tmp, path)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -398,7 +384,7 @@ mod tests {
         );
         f.adjust(Row::Output, -2, false);
         f.adjust(Row::SteeringLock, 2, false);
-        save(&path, &f.settings).unwrap();
+        settings::write(&path, &f.settings).unwrap();
         let text = std::fs::read_to_string(&path).unwrap();
         assert!(text.starts_with("# my notes\nfuture = 1\n"), "{text}");
         assert!(text.contains("steering_lock = 540"));

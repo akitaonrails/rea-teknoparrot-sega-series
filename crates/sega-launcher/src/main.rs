@@ -25,7 +25,7 @@ use std::time::Duration;
 use rea_launcher::library::{Found, HashCache, Scan};
 use rea_launcher_win32::report::{Audience, Mode as Says, Run};
 use sega_core::catalog::{self, Game, Host, Route, Support};
-use sega_core::settings::Settings;
+use sega_core::settings::{self, Settings};
 
 use crate::cli::{Invocation, Mode};
 use crate::paths::Paths;
@@ -38,14 +38,19 @@ const INSTANCE: &str = "rea-sega-launcher";
 const ISSUES: &str =
     "https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose";
 
-fn load_settings(paths: &Paths, slug: &str) -> Settings {
-    let text = std::fs::read_to_string(paths.settings(slug)).unwrap_or_default();
-    Settings::parse(&text).0
-}
-
-/// Write `settings` to a game's settings file, keeping the player's lines.
-fn save_settings(paths: &Paths, slug: &str, settings: &Settings) -> std::io::Result<()> {
-    ui::form::save(&paths.settings(slug), settings)
+/// A game's settings ([`settings::load`]: the first time, the recommended
+/// look for `screen`); each line its file couldn't read goes to `warn`.
+fn load_settings(
+    paths: &Paths,
+    game: &Game,
+    screen: Option<(u32, u32)>,
+    warn: impl Fn(&str),
+) -> Result<Settings, String> {
+    let file = paths.settings(game.slug);
+    let (s, problems) = settings::load(&file, game, screen)
+        .map_err(|e| format!("couldn't read {}: {e}", file.display()))?;
+    problems.iter().for_each(|p| warn(p));
+    Ok(s)
 }
 
 /// Where messages go: stderr always, a message window when the run's
@@ -183,9 +188,15 @@ fn set(paths: &Paths, game: &Game, inv: &Invocation) -> Result<(), String> {
     if inv.options.is_empty() {
         return Ok(());
     }
-    let mut s = load_settings(paths, game.slug);
+    let mut s = load_settings(paths, game, None, warn)?;
     inv.apply(&mut s, game.native, None);
-    save_settings(paths, game.slug, &s).map_err(|e| format!("Could not save the options: {e}"))
+    settings::write(&paths.settings(game.slug), &s)
+        .map_err(|e| format!("Could not save the options: {e}"))
+}
+
+/// A warning of the command line, on stderr.
+fn warn(text: &str) {
+    eprintln!("warning: {text}");
 }
 
 fn state(game: &Game) -> String {
@@ -275,7 +286,7 @@ fn play(paths: &Paths, game: &'static Game, inv: &Invocation) -> Result<u8, Stri
         .get(&game.id)
         .map(|e| (*e).clone())
         .ok_or_else(|| format!("{} is not in your game folders.", game.title))?;
-    let settings = load_settings(paths, game.slug);
+    let settings = load_settings(paths, game, None, warn)?;
     let display = if inv.test.headless {
         Display::Headless
     } else {

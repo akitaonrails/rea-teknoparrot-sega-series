@@ -247,25 +247,15 @@ impl App {
         let i = self.model.selected;
         if self.form.as_ref().map(|(at, _)| *at) != Some(i) {
             let g = &GAMES[i];
-            let mut form = Form::new(crate::load_settings(&self.paths, g.slug), g.native);
+            let settings = crate::load_settings(&self.paths, g, self.screen, |w| {
+                log_line(&self.paths, &format!("warning: {w}"))
+            })
+            .unwrap_or_default();
+            let mut form = Form::new(settings, g.native);
             // lindbergh-loader reads the wheel itself (no lock or strength from us)
             form.feeds_input = !matches!(g.route, Route::Lindbergh);
-            form.render_fixed = g.id == sega_core::catalog::GameId::Daytona;
+            form.render_fixed = g.render_fixed();
             form.screen = self.screen;
-            // the first time: the recommended look for this screen, saved
-            // (STANDARDS: the first run saves the recommended look's values)
-            let file = self.paths.settings(g.slug);
-            if !file.exists() {
-                sega_core::settings::Look::recommended(self.screen).apply(
-                    &mut form.settings,
-                    g.native,
-                    self.screen,
-                );
-                if form.render_fixed {
-                    form.settings.render = None;
-                }
-                let _ = form::save(&file, &form.settings);
-            }
             self.form = Some((i, form));
             self.note = None;
         }
@@ -371,7 +361,7 @@ impl App {
             return;
         }
         let path = self.paths.settings(GAMES[*i].slug);
-        self.note = Some(match form::save(&path, &f.settings) {
+        self.note = Some(match sega_core::settings::write(&path, &f.settings) {
             Ok(()) => (
                 "Saved. The game uses it the next time you press Play.".to_string(),
                 true,
@@ -457,7 +447,18 @@ impl App {
             return;
         };
         let game = &GAMES[i];
-        let settings = crate::load_settings(&self.paths, game.slug);
+        let settings = match crate::load_settings(&self.paths, game, self.screen, |w| {
+            log_line(&self.paths, &format!("warning: {w}"))
+        }) {
+            Ok(s) => s,
+            Err(e) => {
+                self.message = Some(Message {
+                    title: format!("{} couldn't start", game.title),
+                    body: format!("{}.", sentence(&e)),
+                });
+                return;
+            }
+        };
         let paths = self.paths.clone();
         let sender = self.input.as_ref().map(InputService::sender);
         let stop = Arc::new(AtomicBool::new(false));
