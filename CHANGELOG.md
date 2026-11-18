@@ -44,6 +44,11 @@ All notable changes to this launcher. The format follows
 - On Linux a game no longer outlives a launcher that was killed, and the
   launcher never signals processes that aren't the game's.
 - `--no-input` no longer makes windowsarcadeloader's games quit at once.
+- A game folder in your list that isn't there (an unplugged drive) no
+  longer stops the games; a library folder that holds the launcher's own
+  data folder (`--library ~`) no longer makes the game's saves and the
+  Wine prefix read-only.
+- On Windows, Stop asks every window of the game's processes to close.
 - Each start takes a free block of windowsarcadeloader's ports (from
   38000): the Initial D launcher's games and these no longer collide.
 - On Windows, a failed hand-over of the game to the launcher's job no

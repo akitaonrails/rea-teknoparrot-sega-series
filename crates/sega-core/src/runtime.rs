@@ -301,7 +301,7 @@ mod tests {
         // an older launcher linked the ini: replaced by a copy
         fs::create_dir_all(&rt).unwrap();
         std::os::unix::fs::symlink(src.join("d1a.ini"), rt.join("d1a.ini")).unwrap();
-        apply(&ops, Occupied::Refuse).unwrap();
+        apply(&rt, &ops, Occupied::Refuse).unwrap();
         let ini = rt.join("d1a.ini");
         assert!(!fs::symlink_metadata(&ini).unwrap().file_type().is_symlink());
         assert!(
@@ -318,7 +318,7 @@ mod tests {
                     .is_symlink()
         );
         fs::write(&ini, b"the game's").unwrap();
-        apply(&ops, Occupied::Refuse).unwrap();
+        apply(&rt, &ops, Occupied::Refuse).unwrap();
         assert_eq!(fs::read(&ini).unwrap(), b"the game's");
         assert_eq!(fs::read(src.join("d1a.ini")).unwrap(), b"old");
     }
@@ -347,15 +347,15 @@ mod tests {
                 }
             ]
         );
-        apply(&ops, Occupied::Refuse).unwrap();
+        apply(&rt, &ops, Occupied::Refuse).unwrap();
         let first = fs::metadata(&zip).unwrap().modified().unwrap();
         // unchanged dump: the archive stays as it is
         std::thread::sleep(std::time::Duration::from_millis(20));
-        apply(&ops, Occupied::Refuse).unwrap();
+        apply(&rt, &ops, Occupied::Refuse).unwrap();
         assert_eq!(fs::metadata(&zip).unwrap().modified().unwrap(), first);
         // a chip replaced by one of another size: made again
         fs::write(dump.path().join("epr-23399.ic22"), b"program, v2").unwrap();
-        apply(&ops, Occupied::Refuse).unwrap();
+        apply(&rt, &ops, Occupied::Refuse).unwrap();
         let bytes = fs::read(&zip).unwrap();
         assert!(bytes.windows(11).any(|w| w == b"program, v2"));
         // the dump itself is untouched

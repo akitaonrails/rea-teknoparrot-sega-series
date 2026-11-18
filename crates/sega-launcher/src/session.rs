@@ -47,6 +47,9 @@ pub enum Display {
 pub struct Prepared {
     pub plan: Plan,
     pub runtime: PathBuf,
+    /// The launcher's data folder (runtimes, windowsarcadeloader's prefix):
+    /// the game writes there, even when a library folder holds it.
+    pub data: PathBuf,
     /// Where Flycast's Windows build sends its log ([`Places::log_port`]).
     pub log: Option<UdpSocket>,
 }
@@ -149,7 +152,7 @@ pub fn prepare(
     }
     let ops = runtime::plan(game, &entry.dir, &rt, &linkfarm::list)
         .with_context(|| format!("reading {}", entry.dir.display()))?;
-    linkfarm::apply(&ops, Occupied::Refuse)
+    linkfarm::apply(&rt, &ops, Occupied::Refuse)
         .with_context(|| format!("building {}", rt.display()))?;
     let mut bios = Vec::new();
     for name in launch::bios_names(game) {
@@ -206,20 +209,25 @@ pub fn prepare(
     for (file, text) in &plan.files {
         fsx::write_atomic(file, text).with_context(|| format!("writing {}", file.display()))?;
     }
-    let mut links = Vec::new();
-    for (at, target) in &plan.links {
-        if let Some(d) = at.parent() {
-            links.push(linkfarm::Op::Dir(d.to_path_buf()));
+    // the plan's links: in the runtime (Flycast's), or in
+    // windowsarcadeloader's root (its components and runner)
+    for root in [&rt, &places.wal_root] {
+        let mut links = Vec::new();
+        for (at, target) in plan.links.iter().filter(|(at, _)| at.starts_with(root)) {
+            if let Some(d) = at.parent() {
+                links.push(linkfarm::Op::Dir(d.to_path_buf()));
+            }
+            links.push(linkfarm::Op::Link {
+                target: target.clone(),
+                at: at.clone(),
+            });
         }
-        links.push(linkfarm::Op::Link {
-            target: target.clone(),
-            at: at.clone(),
-        });
+        linkfarm::apply(root, &links, Occupied::Refuse)?;
     }
-    linkfarm::apply(&links, Occupied::Refuse)?;
     Ok(Prepared {
         plan,
         runtime: rt,
+        data: paths.data.clone(),
         log,
     })
 }
@@ -300,7 +308,7 @@ fn run_once(
     stop: &AtomicBool,
     log: &Log,
 ) -> Result<(Outcome, bool)> {
-    let argv = session_argv(&p.plan, libraries);
+    let argv = session_argv(&p.plan, libraries, &p.data);
     let mut cmd = Command::new(&argv[0]);
     cmd.args(&argv[1..])
         .current_dir(&p.plan.game.cwd)
@@ -560,7 +568,7 @@ fn read_log(socket: &UdpSocket) -> Result<Receiver<String>> {
 /// player's dumps), then the game on one cache domain when it wants one
 /// (F355's boards); on Windows the game's own (the CPUs are set on the
 /// process once started, [`pin_windows`]).
-fn session_argv(plan: &Plan, libraries: &[PathBuf]) -> Vec<String> {
+fn session_argv(plan: &Plan, libraries: &[PathBuf], data: &Path) -> Vec<String> {
     if Host::current() == Host::Windows {
         return std::iter::once(plan.game.program.to_string_lossy().into_owned())
             .chain(plan.game.args.iter().cloned())
@@ -572,13 +580,16 @@ fn session_argv(plan: &Plan, libraries: &[PathBuf]) -> Vec<String> {
             cpus::uniform_cpus(&all, core.as_deref())
         })
         .flatten();
-    command_line(plan, libraries, which("bwrap").is_some(), cpus)
+    command_line(plan, libraries, data, which("bwrap").is_some(), cpus)
 }
 
-/// [`session_argv`] on Linux, with what this machine has decided.
+/// [`session_argv`] on Linux, with what this machine has decided: the
+/// library read-only (each folder only if it is there), the data folder
+/// writable again when a library holds it (`--library ~`).
 fn command_line(
     plan: &Plan,
     libraries: &[PathBuf],
+    data: &Path,
     bwrap: bool,
     cpus: Option<Vec<u32>>,
 ) -> Vec<String> {
@@ -586,6 +597,7 @@ fn command_line(
         gamescope: plan.gamescope.clone(),
         homes: None,
         read_only: bwrap.then(|| libraries.to_vec()),
+        writable: vec![data.to_path_buf()],
         cpus: cpus.map(|set| cpus::taskset_list(&set)),
     }
     .argv(&plan.game.program, &plan.game.args)
@@ -827,14 +839,34 @@ mod tests {
         let plan_with =
             |s: &Settings| launch::plan(g, &places, &c, s, "eth0", true, Host::Linux).unwrap();
         let plan = plan_with(&Settings::default());
-        let v = command_line(&plan, &["/lib".into(), "/more".into()], true, None);
+        let v = command_line(
+            &plan,
+            &["/lib".into(), "/more".into()],
+            Path::new("/d"),
+            true,
+            None,
+        );
         let s = v.join(" ");
         assert!(s.starts_with("gamescope -w 1280 -h 720 "), "{s}");
-        assert!(s.contains(" -- bwrap --dev-bind / / --ro-bind /lib /lib --ro-bind /more /more /c/wal/arcade-launcher run "), "{s}");
-        let plain = command_line(&plan, &["/lib".into()], false, None);
+        assert!(s.contains(" -- bwrap --dev-bind / / --ro-bind-try /lib /lib --ro-bind-try /more /more /c/wal/arcade-launcher run "), "{s}");
+        // `--library ~`: the data folder inside it is bound back writable
+        let home = command_line(
+            &plan,
+            &["/home/p".into()],
+            Path::new("/home/p/.local/share/rea-sega"),
+            true,
+            None,
+        )
+        .join(" ");
+        assert!(
+            home.contains("--ro-bind-try /home/p /home/p --bind /home/p/.local/share/rea-sega /home/p/.local/share/rea-sega "),
+            "{home}"
+        );
+        let plain = command_line(&plan, &["/lib".into()], Path::new("/d"), false, None);
         assert!(!plain.join(" ").contains("bwrap"));
         // F355's boards on one cache domain
-        let pinned = command_line(&plan, &[], false, Some(vec![8, 9, 10, 11])).join(" ");
+        let pinned =
+            command_line(&plan, &[], Path::new("/d"), false, Some(vec![8, 9, 10, 11])).join(" ");
         assert!(
             pinned.contains(" -- taskset -c 8,9,10,11 /c/wal/arcade-launcher run "),
             "{pinned}"
@@ -879,7 +911,7 @@ mod tests {
                     out.push_str(&format!(
                         "== {} headless {headless} bwrap {bwrap} cpus {shown:?}\n{:?}\n",
                         g.slug,
-                        command_line(&plan, &libraries, bwrap, set)
+                        command_line(&plan, &libraries, Path::new("/d"), bwrap, set)
                     ));
                 }
             }

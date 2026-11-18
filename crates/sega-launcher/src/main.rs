@@ -20,7 +20,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use rea_launcher::cfg::Value;
-use rea_launcher::hub::cli::{self, BAD_COMMAND_LINE, CliSpec, Invocation, Mode, OK, REFUSED};
+use rea_launcher::hub::cli::{
+    self, BAD_COMMAND_LINE, CliSpec, Invocation, Mode, OK, REFUSED, TestOption,
+};
 use rea_launcher::hub::{HubConfig, HubPaths, display_path, typed_path};
 use rea_launcher::library::{Found, HashCache, Scan};
 use rea_launcher::log::Log;
@@ -60,6 +62,11 @@ const CLI: CliSpec = CliSpec {
     style: settings::STYLE,
     paths: paths::FIELDS,
     offers: None,
+    test_options: &[TestOption {
+        flag: "--input-script",
+        help: "timed inputs (windowsarcadeloader games)",
+        refuses: Some(script_refused),
+    }],
 };
 
 /// A game's settings ([`settings::load`]: the first time, the recommended
@@ -106,16 +113,12 @@ fn main() -> ExitCode {
     let inv = match cli::parse(&CLI, args.iter().cloned()) {
         Ok(inv) => inv,
         Err(e) => {
-            eprintln!("{e}\n\n{}", usage());
+            eprintln!("{e}\n\n{}", cli::usage(&CLI));
             return ExitCode::from(BAD_COMMAND_LINE);
         }
     };
-    if let Some(e) = script_refused(&inv) {
-        eprintln!("{e}\n\n{}", usage());
-        return ExitCode::from(BAD_COMMAND_LINE);
-    }
     if inv.mode == Mode::Help {
-        print!("{}", usage());
+        print!("{}", cli::usage(&CLI));
         return ExitCode::from(OK);
     }
     let paths = HubPaths::discover(&paths::dirs());
@@ -250,20 +253,12 @@ fn set(paths: &HubPaths, game: &Game, inv: &Invocation) -> Result<(), String> {
         .map_err(|e| format!("Could not save the options: {e}"))
 }
 
-/// Why `--input-script` can't go with this run: only windowsarcadeloader's
+/// Why game `id` doesn't take `--input-script`: only windowsarcadeloader's
 /// games read the launcher's input; the others read the controls
-/// themselves.
-fn script_refused(inv: &Invocation) -> Option<String> {
-    let Mode::Play(slug) = &inv.mode else {
-        return None;
-    };
-    let game = game_of(slug);
-    (inv.test.script.is_some() && !matches!(game.route, Route::Wal { .. })).then(|| {
-        format!(
-            "--input-script feeds windowsarcadeloader games; {} reads its controls itself",
-            game.title
-        )
-    })
+/// themselves (the script would be ignored).
+fn script_refused(id: &str) -> Option<&'static str> {
+    let wal = catalog::by_slug(id).is_some_and(|g| matches!(g.route, Route::Wal { .. }));
+    (!wal).then_some("it reads its controls itself (the script feeds windowsarcadeloader games)")
 }
 
 /// Whether this run saves library folders or paths in `launcher.cfg`.
@@ -276,14 +271,6 @@ fn writes(inv: &Invocation) -> bool {
 /// window is open).
 fn needs_lock(inv: &Invocation) -> bool {
     inv.mode != Mode::List || writes(inv)
-}
-
-/// `--help`, with what the test options feed.
-fn usage() -> String {
-    cli::usage(&CLI).replace(
-        "--input-script <file>    timed inputs",
-        "--input-script <file>    timed inputs (windowsarcadeloader games)",
-    )
 }
 
 fn state(game: &Game) -> String {
@@ -533,14 +520,23 @@ mod tests {
 
     #[test]
     fn an_input_script_is_refused_for_a_game_that_reads_its_controls_itself() {
-        let script = |g: &str| parse_v(&["--play", g, "--input-script", "s.txt"]);
-        assert!(script_refused(&script("src")).is_none());
+        let script = |g: &str| {
+            cli::parse(
+                &CLI,
+                ["--play", g, "--input-script", "s.txt"].map(String::from),
+            )
+        };
+        assert!(script("src").is_ok());
         for g in ["or2sdx", "f355"] {
-            let why = script_refused(&script(g)).unwrap();
-            assert!(why.contains("windowsarcadeloader"), "{why}");
+            let why = script(g).unwrap_err();
+            assert!(
+                why.contains("--input-script") && why.contains("windowsarcadeloader"),
+                "{why}"
+            );
         }
         assert!(
-            usage().contains("--input-script <file>    timed inputs (windowsarcadeloader games)")
+            cli::usage(&CLI)
+                .contains("--input-script <file>    timed inputs (windowsarcadeloader games)")
         );
     }
 
@@ -555,7 +551,7 @@ mod tests {
 
     #[test]
     fn the_settings_heading_names_commands_the_usage_has() {
-        let usage = usage();
+        let usage = cli::usage(&CLI);
         let words: Vec<&str> = settings::HEADING.split_whitespace().collect();
         let named: Vec<&str> = words
             .windows(2)
@@ -570,7 +566,7 @@ mod tests {
 
     #[test]
     fn the_usage_lists_every_game_the_bios_and_every_option() {
-        let u = usage();
+        let u = cli::usage(&CLI);
         for g in GAMES {
             assert!(u.contains(g.slug));
         }

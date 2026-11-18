@@ -401,7 +401,7 @@ $ sega-launcher --play f355 --input-script <tmp>/s.txt
 exit 2
 -- stdout
 -- stderr
---input-script feeds windowsarcadeloader games; F355 Challenge 2 reads its controls itself
+f355 doesn't take --input-script: it reads its controls itself (the script feeds windowsarcadeloader games)
 
 sega-launcher — the Sega arcade racers on TeknoParrot dumps
 
