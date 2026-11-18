@@ -107,6 +107,20 @@ any of those pids still running under the same name).
 | OutRun 2 SP SDX, `--seconds 90` | attract mode ("2 Driver System", FREE PLAY); exit 0, 0 leftovers. |
 | A game that can't start (a probe with a wrong environment) | "the game closed by itself 0 s after starting (exit status: 1)" with the log's reason line, also in `launcher.log`. |
 
+Again with the SDK at 860e4da (the library bound `--ro-bind-try`, the
+session's sentinel), 2026-11-17; the games' sound checked on the private
+server (`pactl list short sink-inputs`: F355's two boards and SEGA Racing
+Classic's Wine stream on its null sink, none on the desktop's):
+
+| Run | Result |
+|---|---|
+| F355, Stop (`--seconds 90`) | attract mode, master asked alone, records saved; 0 leftovers |
+| F355, the launcher killed (SIGKILL) at 70 s | the session's sentinel ended both boards and gamescope; 0 leftovers |
+| SEGA Racing Classic, input script, Stop at 120 s | race played; exit 0; 0 leftovers |
+| SEGA Racing Classic, the launcher killed at 90 s | Wine, the loader and gamescope ended with it; 0 leftovers |
+| OutRun 2 SP SDX, Stop at 80 s | attract mode; the game crashed on the stop's SIGTERM (exit SIGSEGV; the earlier run exited 0); 0 leftovers |
+| OutRun 2 SP SDX, the launcher killed at 60 s | 0 leftovers |
+
 ## Not verified yet
 
 - F355 Challenge 2 played with controls: a pad (Flycast's own layout, read by the master board off screen) and the keyboard (the slave forwards it); wheels aren't mapped for Flycast yet. A visible window, closing it, and render sizes above 640x480 (the launcher keeps the cabinet's size for now).
