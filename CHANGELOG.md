@@ -6,6 +6,8 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+## 0.3.0 - 2026-11-18
+
 ### Fixed
 
 - Play before ever opening Settings no longer starts the game at
