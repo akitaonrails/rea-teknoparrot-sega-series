@@ -414,12 +414,14 @@ fn command_line_runs() {
     run(&["--steering-lock", "333", "--play", "sr3"]);
     run(&["--seconds", "soon", "--play", "sr3"]);
     run(&["--set"]);
+    run(&["--play", "f355", "--input-script", "<tmp>/s.txt"]);
     #[cfg(unix)]
     {
         let lock = root.join("run/rea-launcher-rea-sega-launcher.lock");
         let _held = rea_launcher::instance::single_at(&lock).expect("the lock");
         run(&["--check"]);
         run(&["--list"]);
+        run(&["--list", "--library", "<tmp>/games"]);
     }
     for f in ["launcher.cfg", "settings/sr3.cfg", "settings/src.cfg"] {
         let text = std::fs::read_to_string(data.join(f)).unwrap_or_else(|_| "(none)\n".into());

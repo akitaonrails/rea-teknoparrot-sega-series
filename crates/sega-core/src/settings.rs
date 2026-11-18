@@ -278,27 +278,25 @@ impl Settings {
     }
 
     /// Rewrite `existing` with these settings, keeping comments and
-    /// unknown keys in place: a key is written when its value differs from
-    /// what `existing` says, or `existing` doesn't have it. A line the
-    /// launcher couldn't read (`fullscreen = off # mine`) stays as the
-    /// player wrote it unless that setting is changed; a look no longer in
-    /// use is cleared.
+    /// unknown keys in place ([`Settings::save_over`] what `existing` says).
     pub fn save(&self, existing: &str) -> String {
-        if existing.trim().is_empty() {
-            let mut out = cfg::spec::template(HEADING, OPTIONS);
-            for spec in OPTIONS {
-                if let Some(v) = self.value(spec.key) {
-                    out = cfg::spec::set_key(&out, spec, &v);
-                }
-            }
-            return out;
-        }
-        let (was, _) = Settings::parse(existing);
-        let mut out = existing.to_string();
+        self.save_over(existing, &Settings::parse(existing).0, &[])
+    }
+
+    /// Rewrite `existing` (or a new file's template) with the keys whose
+    /// value differs from `base`, what the launcher took the file to mean,
+    /// and the keys in `given` (the player's own flags): a line it couldn't
+    /// read (`fullscreen = off # mine`) stays as the player wrote it unless
+    /// that setting is changed; a look no longer in use is cleared.
+    pub fn save_over(&self, existing: &str, base: &Settings, given: &[&str]) -> String {
+        let mut out = if existing.trim().is_empty() {
+            cfg::spec::template(HEADING, OPTIONS)
+        } else {
+            existing.to_string()
+        };
         for spec in OPTIONS {
-            let has_line = cfg::entries(existing).any(|e| spec.answers_to(e.key));
-            match (self.value(spec.key), was.value(spec.key)) {
-                (now, then) if now == then && has_line => {}
+            match (self.value(spec.key), base.value(spec.key)) {
+                (now, then) if now == then && !given.contains(&spec.key) => {}
                 (Some(v), _) => out = cfg::spec::set_key(&out, spec, &v),
                 (None, _) => out = cfg::clear_key(&out, spec.key),
             }
@@ -331,30 +329,44 @@ pub fn write(file: &Path, s: &Settings) -> io::Result<()> {
     rea_launcher::fsx::write_atomic(file, s.save(&existing))
 }
 
+/// [`write`] of the keys that differ from `base`, what [`load`] gave (a
+/// look decided for this run only stays out of the file), and of the keys
+/// in `given`, the player's own flags.
+pub fn write_over(file: &Path, s: &Settings, base: &Settings, given: &[&str]) -> io::Result<()> {
+    let existing = cfg::read_file(file)?.unwrap_or_default();
+    rea_launcher::fsx::write_atomic(file, s.save_over(&existing, base, given))
+}
+
 /// A game's settings for a start or its settings page, and the lines its
-/// file couldn't read. The first time (no file yet) the recommended look
-/// for `screen` is decided and saved, so a Play or `--play` before the
-/// settings page ever opened uses it too.
+/// file couldn't read. While the player chose no picture (no file yet, or
+/// no look and no picture key in it) the recommended look for `screen` is
+/// decided: saved when the screen is known, so a Play or `--play` before
+/// the settings page uses it too; for this run only when it isn't (the
+/// command line on Linux), so the window decides it later from the real
+/// screen.
 pub fn load(
     file: &Path,
     game: &Game,
     screen: Option<(u32, u32)>,
 ) -> io::Result<(Settings, Vec<String>)> {
-    if let Some(read) = read(file)? {
-        return Ok(read);
+    let text = cfg::read_file(file)?.unwrap_or_default();
+    let (mut s, mut problems) = Settings::parse(&text);
+    let chosen = cfg::entries(&text).any(|e| e.key == "look" || PICTURE.contains(&e.key));
+    if chosen {
+        return Ok((s, problems));
     }
-    let mut s = Settings::default();
     Look::recommended(screen).apply(&mut s, game.native, screen);
     if game.render_fixed() {
         s.render = None;
     }
-    let problems = match write(file, &s) {
-        Ok(()) => Vec::new(),
-        Err(e) => vec![format!(
+    if screen.is_some()
+        && let Err(e) = write(file, &s)
+    {
+        problems.push(format!(
             "couldn't save the recommended look to {}: {e}",
             file.display()
-        )],
-    };
+        ));
+    }
     Ok((s, problems))
 }
 
@@ -392,7 +404,7 @@ mod tests {
             saved.starts_with("# my notes\nupscaler = nis\nfuture_key = 7\n"),
             "{saved}"
         );
-        assert!(saved.contains("render = native"));
+        assert_eq!(saved, text, "nothing changed, nothing written");
         assert_eq!(Settings::parse(&saved).0, s);
     }
 
@@ -496,6 +508,38 @@ mod tests {
         let dcusa = crate::catalog::by_slug("dcusa").unwrap();
         let (s, _) = load(&t.path().join("dcusa.cfg"), dcusa, None).unwrap();
         assert_eq!((s.look, s.render), (Some(Look::Recommended), None));
+    }
+
+    #[test]
+    fn without_a_screen_the_look_is_used_but_not_saved_and_decided_later() {
+        let t = tempfile::tempdir().unwrap();
+        let file = t.path().join("settings/src.cfg");
+        let src = crate::catalog::by_slug("src").unwrap();
+        // the command line on Linux: 1920x1080 for this run, nothing saved
+        let (s, _) = load(&file, src, None).unwrap();
+        assert_eq!(s.look, Some(Look::Recommended));
+        assert_eq!(s.output, Size::new(1920, 1080));
+        assert!(!file.exists());
+        // --set saves only its own key, on top of that run's values
+        let mut set = s.clone();
+        set.steering_lock = SteeringLock::Degrees(540);
+        set.deadzone = 5; // given, though it is the value already
+        write_over(&file, &set, &s, &["steering_lock", "deadzone"]).unwrap();
+        let text = std::fs::read_to_string(&file).unwrap();
+        assert!(text.contains("\nsteering_lock = 540\n"), "{text}");
+        assert!(
+            text.contains("\ndeadzone = 5\n"),
+            "a flag is always saved: {text}"
+        );
+        assert!(
+            !text.contains("\nlook =") && !text.contains("\noutput ="),
+            "{text}"
+        );
+        // the window, with the real screen, decides and saves the look then
+        let (w, _) = load(&file, src, Some((1280, 800))).unwrap();
+        assert_eq!(w.look, Some(Look::SteamDeck));
+        assert_eq!(w.steering_lock, SteeringLock::Degrees(540));
+        assert_eq!(read(&file).unwrap().unwrap().0, w);
     }
 
     #[test]

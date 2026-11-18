@@ -29,8 +29,12 @@ All notable changes to this launcher. The format follows
 ### Fixed
 
 - The recommended look for your screen is decided the first time a game's
-  settings are read, so Play (or `--play`) before ever opening Settings no
-  longer starts at 3840x2160.
+  settings are read, so Play before ever opening Settings no longer starts
+  at 3840x2160. On the command line on Linux, where the screen isn't
+  known, `--play` uses the look for 1920x1080 for that run without saving
+  it, and `--set` saves only the options you gave, so the window still
+  decides the look from your real screen; on Windows the command line asks
+  Windows for the screen.
 - A setting the launcher can't read (`fullscreen = off # mine`) stays as
   you wrote it; saving another setting no longer replaces it with the
   default. A look you moved away from no longer stays in the file. A
@@ -50,9 +54,24 @@ All notable changes to this launcher. The format follows
 - Every error is also written to `launcher.log`; a game that stopped with
   an error names its own `session.log`; paths are shown with the system's
   separator; `~` works in typed paths on Windows.
-- A picture flag given without `--look` (`--set src --render 1280x720`)
+- A picture flag (`--set src --render 1280x720`, also after `--look`)
   makes the look Custom, as changing a picture row in the window does; the
   old look's name no longer stays with values that don't match it.
+- Saving settings writes only what changed: a new settings file holds the
+  options you set, the others stay commented with their defaults.
+- `--input-script` is refused for OutRun 2 SP SDX and F355 Challenge 2,
+  which read their controls themselves (it was ignored); `--help` says it
+  is for the windowsarcadeloader games.
+- `--list --library <folder>` (or `--bios`) takes the single-instance
+  lock like any command that saves: while the window is open it is
+  refused instead of writing `launcher.cfg` under it. `--list` alone still
+  works while the window is open.
+- The loader's files in the runtime (`lindbergh.ini`, the profile layer,
+  Flycast's `emu.cfg`) are written as whole-file swaps: a crash never
+  leaves half a file.
+- On Windows, a real file in a game's runtime folder that differs from the
+  game folder's and wasn't copied there by the launcher (the game wrote
+  it) is now refused with a message instead of overwritten.
 - `--check <game>` reports only that game's unknown builds, and its exit
   code is that game's.
 - `--list` works while the window is open.

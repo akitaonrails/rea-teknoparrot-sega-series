@@ -13,6 +13,7 @@ use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, bail};
 use rea_launcher::cpus;
+use rea_launcher::fsx;
 use rea_launcher::gamescope::CommandLine;
 use rea_launcher::hub::HubPaths;
 use rea_launcher::library::Entry;
@@ -203,10 +204,7 @@ pub fn prepare(
     )
     .map_err(anyhow::Error::msg)?;
     for (file, text) in &plan.files {
-        if let Some(d) = file.parent() {
-            fs::create_dir_all(d)?;
-        }
-        fs::write(file, text).with_context(|| format!("writing {}", file.display()))?;
+        fsx::write_atomic(file, text).with_context(|| format!("writing {}", file.display()))?;
     }
     let mut links = Vec::new();
     for (at, target) in &plan.links {

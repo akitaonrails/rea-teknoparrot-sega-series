@@ -103,7 +103,11 @@ inserts a coin. On a wheel, the paddles shift.
 ## Options
 
 Each game keeps its own options. Every option is a line in that game's
-settings file and a flag for `--play <game>` or `--set <game>`:
+settings file and a flag for `--play <game>` or `--set <game>`. A game's
+look is decided for your screen the first time its settings are read
+(the window knows the screen; the command line on Linux doesn't, so it
+uses the 1920×1080 look for that run without saving it). `--look` comes
+first and the other flags win; any picture flag makes the look Custom.
 
 | Option | Flag | What it changes |
 | --- | --- | --- |

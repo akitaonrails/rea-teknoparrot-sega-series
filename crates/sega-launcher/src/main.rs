@@ -106,12 +106,16 @@ fn main() -> ExitCode {
     let inv = match cli::parse(&CLI, args.iter().cloned()) {
         Ok(inv) => inv,
         Err(e) => {
-            eprintln!("{e}\n\n{}", cli::usage(&CLI));
+            eprintln!("{e}\n\n{}", usage());
             return ExitCode::from(BAD_COMMAND_LINE);
         }
     };
+    if let Some(e) = script_refused(&inv) {
+        eprintln!("{e}\n\n{}", usage());
+        return ExitCode::from(BAD_COMMAND_LINE);
+    }
     if inv.mode == Mode::Help {
-        print!("{}", cli::usage(&CLI));
+        print!("{}", usage());
         return ExitCode::from(OK);
     }
     let paths = HubPaths::discover(&paths::dirs());
@@ -127,13 +131,12 @@ fn main() -> ExitCode {
         };
         rea_launcher_ui::hub::fatal(&ui::THEME, &log, text, Some(link), says);
     };
-    // --list only reads: it works while the window is open
-    let _instance = if inv.mode == Mode::List {
+    let _instance = if !needs_lock(&inv) {
         None
     } else {
         match rea_launcher::instance::single(INSTANCE) {
             Ok(guard) => Some(guard),
-            Err(running) if inv.is_action() => {
+            Err(running) if inv.is_action() || writes(&inv) => {
                 fail("The Sega Racing Launcher is already open. Close it first, then try again.");
                 return ExitCode::from(running.exit_code() as u8);
             }
@@ -155,7 +158,7 @@ fn main() -> ExitCode {
 fn run_mode(paths: &HubPaths, inv: &Invocation) -> Result<u8, String> {
     let mut config = paths::config(paths)
         .map_err(|e| format!("couldn't read {}: {e}", display_path(&paths.config_file())))?;
-    if !inv.libraries.is_empty() || inv.paths.iter().any(Option::is_some) {
+    if writes(inv) {
         configure(paths, &mut config, inv)?;
     }
     match &inv.mode {
@@ -200,35 +203,87 @@ fn configure(paths: &HubPaths, config: &mut HubConfig, inv: &Invocation) -> Resu
         .map_err(|e| format!("Could not save the settings: {e}"))
 }
 
-/// The options of the command line over `s`: a look first, so the flags
-/// after it win; a picture flag without a look makes the look custom, as a
-/// picture row does in the window.
-fn apply_options(inv: &Invocation, s: &mut Settings, game: &Game) {
-    let keys = || inv.options.iter().map(|(k, _)| *k);
-    if !keys().any(|k| k == "look") && keys().any(|k| settings::PICTURE.contains(&k)) {
-        s.look = None;
-    }
+/// The options of the command line over `s`: a look first (for
+/// `screen`), so the flags after it win; a picture flag makes the look
+/// custom, as a picture row does in the window.
+fn apply_options(inv: &Invocation, s: &mut Settings, game: &Game, screen: Option<(u32, u32)>) {
     inv.apply_options(settings::OPTIONS, &["look"], |spec, v| match v {
         Value::Choice(key) if spec.key == "look" => {
             if let Some(look) = Look::from_key(key) {
-                look.apply(s, game.native, None);
+                look.apply(s, game.native, screen);
             }
         }
         v => {
             let _ = s.apply(spec.key, v);
         }
     });
+    if inv
+        .options
+        .iter()
+        .any(|(k, _)| settings::PICTURE.contains(k))
+    {
+        s.look = None;
+    }
 }
 
-/// The options of the command line saved into the game's settings.
+/// The screen the command line knows: Windows asks the system; on Linux
+/// it is unknown (no window, maybe no display), and a look decided for it
+/// is used for that run only.
+fn screen() -> Option<(u32, u32)> {
+    #[cfg(windows)]
+    return rea_launcher_win32::display::screen_size();
+    #[cfg(not(windows))]
+    None
+}
+
+/// The options of the command line saved into the game's settings: the
+/// keys they changed (a look decided for this run only stays out).
 fn set(paths: &HubPaths, game: &Game, inv: &Invocation) -> Result<(), String> {
     if inv.options.is_empty() {
         return Ok(());
     }
-    let mut s = load_settings(paths, game, None, warn)?;
-    apply_options(inv, &mut s, game);
-    settings::write(&paths.settings(game.slug), &s)
+    let base = load_settings(paths, game, screen(), warn)?;
+    let mut s = base.clone();
+    apply_options(inv, &mut s, game, screen());
+    let given: Vec<&str> = inv.options.iter().map(|(k, _)| *k).collect();
+    settings::write_over(&paths.settings(game.slug), &s, &base, &given)
         .map_err(|e| format!("Could not save the options: {e}"))
+}
+
+/// Why `--input-script` can't go with this run: only windowsarcadeloader's
+/// games read the launcher's input; the others read the controls
+/// themselves.
+fn script_refused(inv: &Invocation) -> Option<String> {
+    let Mode::Play(slug) = &inv.mode else {
+        return None;
+    };
+    let game = game_of(slug);
+    (inv.test.script.is_some() && !matches!(game.route, Route::Wal { .. })).then(|| {
+        format!(
+            "--input-script feeds windowsarcadeloader games; {} reads its controls itself",
+            game.title
+        )
+    })
+}
+
+/// Whether this run saves library folders or paths in `launcher.cfg`.
+fn writes(inv: &Invocation) -> bool {
+    !inv.libraries.is_empty() || inv.paths.iter().any(Option::is_some)
+}
+
+/// Whether this run takes the single-instance lock: everything but a
+/// `--list` that writes nothing (it only reads, so it works while the
+/// window is open).
+fn needs_lock(inv: &Invocation) -> bool {
+    inv.mode != Mode::List || writes(inv)
+}
+
+/// `--help`, with what the test options feed.
+fn usage() -> String {
+    cli::usage(&CLI).replace(
+        "--input-script <file>    timed inputs",
+        "--input-script <file>    timed inputs (windowsarcadeloader games)",
+    )
 }
 
 fn state(game: &Game) -> String {
@@ -322,7 +377,7 @@ fn play(
         .get(&game.id)
         .map(|e| (*e).clone())
         .ok_or_else(|| format!("{} is not in your game folders.", game.title))?;
-    let settings = load_settings(paths, game, None, warn)?;
+    let settings = load_settings(paths, game, screen(), warn)?;
     let display = if inv.test.headless {
         Display::Headless
     } else {
@@ -429,7 +484,7 @@ mod tests {
             "9",
         ]);
         let mut s = Settings::default();
-        apply_options(&inv, &mut s, game_of("sr3"));
+        apply_options(&inv, &mut s, game_of("sr3"), None);
         assert_eq!(s.render, Some(Size::new(1920, 1080)));
         assert_eq!(s.output, Size::new(2560, 1440));
         assert_eq!(s.upscaler, Upscaler::Nis);
@@ -449,7 +504,7 @@ mod tests {
         let mut s = Settings::default();
         Look::Recommended.apply(&mut s, Size::new(1280, 720), None);
         let inv = parse_v(&["--set", "src", "--render", "1280x720"]);
-        apply_options(&inv, &mut s, game_of("src"));
+        apply_options(&inv, &mut s, game_of("src"), None);
         assert_eq!(s.look, None, "the values no longer match the look");
         assert_eq!(s.render, Some(Size::new(1280, 720)));
         // a wheel flag leaves the picture, and its look, alone
@@ -458,23 +513,49 @@ mod tests {
             &parse_v(&["--set", "src", "--deadzone", "3"]),
             &mut s,
             game_of("src"),
+            None,
         );
         assert_eq!(s.look, Some(Look::Recommended));
     }
 
     #[test]
-    fn a_look_sets_its_values_and_later_flags_win() {
-        let inv = parse_v(&["--play", "src", "--upscaler=fsr", "--look", "steam_deck"]);
+    fn a_look_sets_its_values_and_a_picture_flag_after_it_makes_it_custom() {
+        let inv = parse_v(&["--play", "src", "--look", "steam_deck", "--deadzone", "3"]);
         let mut s = Settings::default();
-        apply_options(&inv, &mut s, game_of("src"));
+        apply_options(&inv, &mut s, game_of("src"), None);
         assert_eq!(s.look, Some(Look::SteamDeck));
         assert_eq!(s.output, Size::new(1280, 800));
+        let inv = parse_v(&["--play", "src", "--look", "steam_deck", "--upscaler=fsr"]);
+        apply_options(&inv, &mut s, game_of("src"), None);
         assert_eq!(s.upscaler, Upscaler::Fsr, "the flag wins over the look");
+        assert_eq!(s.look, None, "and the look is custom, as in the window");
+    }
+
+    #[test]
+    fn an_input_script_is_refused_for_a_game_that_reads_its_controls_itself() {
+        let script = |g: &str| parse_v(&["--play", g, "--input-script", "s.txt"]);
+        assert!(script_refused(&script("src")).is_none());
+        for g in ["or2sdx", "f355"] {
+            let why = script_refused(&script(g)).unwrap();
+            assert!(why.contains("windowsarcadeloader"), "{why}");
+        }
+        assert!(
+            usage().contains("--input-script <file>    timed inputs (windowsarcadeloader games)")
+        );
+    }
+
+    #[test]
+    fn only_a_list_that_writes_nothing_goes_without_the_lock() {
+        assert!(!needs_lock(&parse_v(&["--list"])));
+        assert!(needs_lock(&parse_v(&["--list", "--library", "/games"])));
+        assert!(needs_lock(&parse_v(&["--list", "--bios", "/bios"])));
+        assert!(needs_lock(&parse_v(&["--check"])));
+        assert!(needs_lock(&parse_v(&[])));
     }
 
     #[test]
     fn the_settings_heading_names_commands_the_usage_has() {
-        let usage = cli::usage(&CLI);
+        let usage = usage();
         let words: Vec<&str> = settings::HEADING.split_whitespace().collect();
         let named: Vec<&str> = words
             .windows(2)
@@ -489,7 +570,7 @@ mod tests {
 
     #[test]
     fn the_usage_lists_every_game_the_bios_and_every_option() {
-        let u = cli::usage(&CLI);
+        let u = usage();
         for g in GAMES {
             assert!(u.contains(g.slug));
         }

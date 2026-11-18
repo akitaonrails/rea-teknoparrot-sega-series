@@ -22,7 +22,7 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text

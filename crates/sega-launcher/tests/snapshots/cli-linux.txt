@@ -91,7 +91,7 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text
@@ -146,7 +146,7 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text
@@ -189,7 +189,7 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text
@@ -225,7 +225,7 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text
@@ -261,7 +261,7 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text
@@ -297,7 +297,7 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text
@@ -333,7 +333,7 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text
@@ -369,7 +369,7 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text
@@ -405,7 +405,43 @@ Options (saved in that game's settings):
 Test options for --play:
   --headless               run in an invisible display
   --no-input               no controller input
-  --input-script <file>    timed inputs
+  --input-script <file>    timed inputs (windowsarcadeloader games)
+  --seconds <n>            stop the game after n seconds
+
+  sega-launcher --help                   this text
+
+
+$ sega-launcher --play f355 --input-script <tmp>/s.txt
+exit 2
+-- stdout
+-- stderr
+--input-script feeds windowsarcadeloader games; F355 Challenge 2 reads its controls itself
+
+sega-launcher — the Sega arcade racers on TeknoParrot dumps
+
+  sega-launcher                          open the window (games, settings, controls)
+  sega-launcher --library <folder>       add a folder with your games (repeatable)
+  sega-launcher --bios <folder>          your BIOS folder (Chihiro files, f355bios.zip)
+  sega-launcher --list                   list the games found and their state
+  sega-launcher --check [<game>]         check a game (or all) can start, without starting
+  sega-launcher --play <game> [options]  start a game (or2sdx, or2sp, cthr, sr3, src, dcusa, f355)
+  sega-launcher --set <game> <options>   save options for a game without starting it (also --game)
+
+Options (saved in that game's settings):
+  --look original|recommended|steam_deck    Look
+  --render <WxH>                            Game resolution
+  --output <WxH>                            Screen size (Linux helper)
+  --upscaler fsr|nis|linear|nearest         Upscaler (Linux helper)
+  --sharpness <0-20>                        Sharpness (Linux helper)
+  --fullscreen on|off                       Full screen (Linux helper)
+  --steering-lock 180|270|360|540|900|full  Steering lock
+  --force-feedback <0-200>                  Force feedback
+  --deadzone <0-30>                         Stick dead zone
+
+Test options for --play:
+  --headless               run in an invisible display
+  --no-input               no controller input
+  --input-script <file>    timed inputs (windowsarcadeloader games)
   --seconds <n>            stop the game after n seconds
 
   sega-launcher --help                   this text
@@ -426,6 +462,13 @@ unknown epr-23399.ic22 (SHA-256 5d70d26611cd85c98dd76952edc5296bdc36cc48a3e6d470
 unknown Rally/Rally.exe (SHA-256 f730c2cd58854202a191be4b166013d5de4ccab58e6ec221ba3937354237e119): report it at https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
         <tmp>/games/rally
 -- stderr
+
+$ sega-launcher --list --library <tmp>/games
+exit 5
+-- stdout
+-- stderr
+Sega Racing Launcher: The Sega Racing Launcher is already open. Close it first, then try again.
+Report a problem: https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
 
 == launcher.cfg
 # Written by the launcher.
@@ -449,20 +492,20 @@ render = 1920x1080
 
 # The size the picture is shown at on your screen (Linux).
 # Values: WIDTHxHEIGHT.
-output = 1920x1080
+#output = 3840x2160
 
 # How the picture is enlarged to the screen size (Linux).
 # Values: fsr, nis, linear or nearest.
-upscaler = fsr
+#upscaler =
 
 # How sharp FSR and NVIDIA Image Scaling make the picture; 0 is sharpest
 # (Linux).
 # Values: 0 to 20.
-sharpness = 5
+#sharpness =
 
 # Fills the screen; off shows the game in a window (Linux).
 # Values: on or off.
-fullscreen = on
+#fullscreen =
 
 # How far your wheel turns from full left to full right in the game; the
 # cabinets turned 270°.
@@ -472,11 +515,11 @@ steering_lock = 900
 # The strength of the wheel's force feedback, in percent of the game's; 0
 # turns it off.
 # Values: 0 to 200.
-force_feedback = 100
+#force_feedback =
 
 # How far, in percent, a pad's stick moves before the car steers.
 # Values: 0 to 30.
-deadzone = 5
+#deadzone =
 
 == settings/src.cfg
 (none)
