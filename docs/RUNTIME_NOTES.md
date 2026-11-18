@@ -118,7 +118,7 @@ Classic's Wine stream on its null sink, none on the desktop's):
 | F355, the launcher killed (SIGKILL) at 70 s | the session's sentinel ended both boards and gamescope; 0 leftovers |
 | SEGA Racing Classic, input script, Stop at 120 s | race played; exit 0; 0 leftovers |
 | SEGA Racing Classic, the launcher killed at 90 s | Wine, the loader and gamescope ended with it; 0 leftovers |
-| OutRun 2 SP SDX, Stop at 80 s | attract mode; the game crashed on the stop's SIGTERM (exit SIGSEGV; the earlier run exited 0); 0 leftovers |
+| OutRun 2 SP SDX, Stop at 80 s | attract mode; the game crashed on the stop's SIGTERM (exit SIGSEGV); 0 leftovers. The game's own exit: Stop at 80 s, three times each, crashed 3 of 3 on this build, 3 of 3 on the SDK at a7bb340 and 2 of 3 with the released 0.2.0 launcher (its own process code). Its SRAM (`Jennifer/sram.bin`, the operator settings and records) is written at the stop, a second before the crash. |
 | OutRun 2 SP SDX, the launcher killed at 60 s | 0 leftovers |
 
 ## Not verified yet
