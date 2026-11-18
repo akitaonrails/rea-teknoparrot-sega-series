@@ -6,14 +6,55 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
-### Changed
+### Fixed
 
-- Updated rea-launcher-sdk to v0.10.0: the window, the command line, the
-  library scan, the runtime folder, the game's processes and the input
-  thread are now the SDK's TeknoParrot hub modules, shared with the
-  Initial D, Nintendo and Wangan launchers. The window looks the same.
-- The Barlow typefaces are inside the program; the packages no longer
-  carry a `components/fonts` folder.
+- Play before ever opening Settings no longer starts the game at
+  3840x2160: the recommended look for your screen is decided the first
+  time a game's settings are read. On the command line on Linux, where the
+  screen isn't known, `--play` uses the look for 1920x1080 for that run
+  without saving it, and `--set` saves only the options you gave, so the
+  window still decides the look from your real screen; on Windows the
+  command line asks Windows for the screen.
+- A setting the launcher can't read (`fullscreen = off # mine`) stays as
+  you wrote it; saving another setting no longer replaces it with the
+  default. A look you moved away from no longer stays in the file, and a
+  picture flag (`--set src --render 1280x720`, also after `--look`) makes
+  the look Custom, as a picture row in the window does. A settings file or
+  `launcher.cfg` that can't be read is never overwritten, and saving writes
+  only what changed.
+- `launcher.cfg` starting with a byte-order mark no longer loses its first
+  game folder; its comments and other lines are kept on save.
+- On Linux a game no longer outlives a launcher that was killed, and the
+  launcher never signals processes that aren't the game's.
+- A game folder in your list that isn't there (an unplugged drive) no
+  longer stops the games; a library folder that holds the launcher's own
+  data folder (`--library ~`) no longer makes the games' saves and the
+  Wine prefix read-only.
+- Each start takes a free block of windowsarcadeloader's ports (from
+  38000): the Initial D launcher's games and these no longer collide.
+- `--no-input` no longer makes windowsarcadeloader's games quit at once.
+- Windows: Stop asks every window of the game's processes to close; a
+  failed hand-over of the game to the launcher's job no longer stops the
+  game, and programs it starts at once can't escape the job; a read-only
+  file in a game folder no longer breaks the next start; a real file the
+  game wrote in its runtime folder is refused with a message instead of
+  overwritten.
+- Every error is also written to `launcher.log`; a game that stopped with
+  an error names its own `session.log`; paths are shown with the system's
+  separator; `~` works in typed paths on Windows.
+- The loader's files in the runtime (`lindbergh.ini`, the profile layer,
+  Flycast's `emu.cfg`) are written as whole-file swaps: a crash never
+  leaves half a file.
+- Command line: `--check <game>` reports only that game (its unknown
+  builds, its exit code); `--list` works while the window is open, and
+  `--list --library <folder>` takes the lock like any command that saves;
+  `--set <game>` without options is refused instead of doing nothing;
+  `--game <game>` works as `--set`'s old name, as the settings files'
+  heading said (it now names `--set` and `--play`); `--input-script` is
+  refused for OutRun 2 SP SDX and F355 Challenge 2, which read their
+  controls themselves.
+- A download cut short while building the packages no longer breaks every
+  later build.
 
 ### Added
 
@@ -26,65 +67,14 @@ All notable changes to this launcher. The format follows
 - A game that closes by itself within seconds of its start says so, with
   the lines of its log that tell why.
 
-### Fixed
+### Changed
 
-- The recommended look for your screen is decided the first time a game's
-  settings are read, so Play before ever opening Settings no longer starts
-  at 3840x2160. On the command line on Linux, where the screen isn't
-  known, `--play` uses the look for 1920x1080 for that run without saving
-  it, and `--set` saves only the options you gave, so the window still
-  decides the look from your real screen; on Windows the command line asks
-  Windows for the screen.
-- A setting the launcher can't read (`fullscreen = off # mine`) stays as
-  you wrote it; saving another setting no longer replaces it with the
-  default. A look you moved away from no longer stays in the file. A
-  settings file or `launcher.cfg` that can't be read is never overwritten.
-- `launcher.cfg` starting with a byte-order mark no longer loses its first
-  game folder, and its comments and other lines are kept on save.
-- On Linux a game no longer outlives a launcher that was killed, and the
-  launcher never signals processes that aren't the game's.
-- `--no-input` no longer makes windowsarcadeloader's games quit at once.
-- A game folder in your list that isn't there (an unplugged drive) no
-  longer stops the games; a library folder that holds the launcher's own
-  data folder (`--library ~`) no longer makes the game's saves and the
-  Wine prefix read-only.
-- On Windows, Stop asks every window of the game's processes to close.
-- Each start takes a free block of windowsarcadeloader's ports (from
-  38000): the Initial D launcher's games and these no longer collide.
-- On Windows, a failed hand-over of the game to the launcher's job no
-  longer stops the game, and programs the game starts at once can't escape
-  the job.
-- A read-only file in a game folder no longer breaks the next start on
-  Windows.
-- Every error is also written to `launcher.log`; a game that stopped with
-  an error names its own `session.log`; paths are shown with the system's
-  separator; `~` works in typed paths on Windows.
-- A picture flag (`--set src --render 1280x720`, also after `--look`)
-  makes the look Custom, as changing a picture row in the window does; the
-  old look's name no longer stays with values that don't match it.
-- Saving settings writes only what changed: a new settings file holds the
-  options you set, the others stay commented with their defaults.
-- `--input-script` is refused for OutRun 2 SP SDX and F355 Challenge 2,
-  which read their controls themselves (it was ignored); `--help` says it
-  is for the windowsarcadeloader games.
-- `--list --library <folder>` (or `--bios`) takes the single-instance
-  lock like any command that saves: while the window is open it is
-  refused instead of writing `launcher.cfg` under it. `--list` alone still
-  works while the window is open.
-- The loader's files in the runtime (`lindbergh.ini`, the profile layer,
-  Flycast's `emu.cfg`) are written as whole-file swaps: a crash never
-  leaves half a file.
-- On Windows, a real file in a game's runtime folder that differs from the
-  game folder's and wasn't copied there by the launcher (the game wrote
-  it) is now refused with a message instead of overwritten.
-- `--check <game>` reports only that game's unknown builds, and its exit
-  code is that game's.
-- `--list` works while the window is open.
-- `--set <game>` without options is refused instead of doing nothing;
-  `--game <game>` works as `--set`'s old name, as the settings files'
-  heading said (the heading now names `--set` and `--play`).
-- A download cut short while building the packages no longer breaks every
-  later build.
+- Updated rea-launcher-sdk to v0.10.0: the window, the command line, the
+  library scan, the runtime folder, the game's processes and the input
+  thread are now the SDK's TeknoParrot hub modules, shared with the
+  Initial D, Nintendo and Wangan launchers. The window looks the same.
+- The Barlow typefaces are inside the program; the packages no longer
+  carry a `components/fonts` folder.
 
 ## 0.2.0 - 2026-11-17
 
