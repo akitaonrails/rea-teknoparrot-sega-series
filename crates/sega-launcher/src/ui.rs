@@ -11,11 +11,12 @@ use std::path::PathBuf;
 use eframe::egui::Color32;
 use rea_launcher::catalog::Support;
 use rea_launcher::cfg::OptionSpec;
+use rea_launcher::hub::bindings::Bindings;
 use rea_launcher::hub::{HubConfig, HubPaths, Input, display_path};
 use rea_launcher::library::{Found as Known, HashCache, Scan};
 use rea_launcher::log::Log;
 use rea_launcher::pad::PadNav;
-use rea_launcher::wheel::{Action, Control};
+use rea_launcher::wheel::{Control, PadInput};
 use rea_launcher_native::feeder::{Command, InputService, Snapshot};
 use rea_launcher_ui::hub::{
     self, ButtonView, ControlsView, Device, Found, HubBackend, HubGame, HubLayout, HubSpec,
@@ -78,7 +79,10 @@ pub fn spec(paths: HubPaths) -> HubSpec {
 
 /// Opens the window.
 pub fn run(paths: HubPaths) -> Result<(), String> {
-    let backend = Sega::new(paths.clone(), Some(crate::input::service()));
+    let log = Log::new(paths.log());
+    let bindings = crate::input::bindings(&paths, |w| log.warn(w));
+    let mut backend = Sega::new(paths.clone(), Some(crate::input::service(&bindings)));
+    backend.bindings = bindings;
     hub::run(spec(paths), backend)
 }
 
@@ -115,6 +119,8 @@ pub struct Sega {
     input: Option<InputService>,
     /// The pads' menu buttons held at the last frame.
     pad: PadNav,
+    /// The player's pad layout (`controls.cfg`).
+    bindings: Bindings<Button>,
     /// The tests' controllers and next session.
     #[cfg(test)]
     fake: tests::Fake,
@@ -132,8 +138,24 @@ impl Sega {
             cache: HashCache::default(),
             input,
             pad: PadNav::default(),
+            bindings: Bindings::new(default_pad_map()),
             #[cfg(test)]
             fake: tests::Fake::default(),
+        }
+    }
+
+    /// Hands the changed pad layout to the input thread; what the
+    /// Controls page says (a save that failed also goes to `launcher.log`).
+    fn bindings_changed(&self, done: Result<String, String>) -> Note {
+        if let Some(i) = &self.input {
+            i.set_pad_map(self.bindings.map().clone());
+        }
+        match done {
+            Ok(said) => Note::ok(said),
+            Err(e) => {
+                self.log.error(&e);
+                Note::error(e)
+            }
         }
     }
 
@@ -190,25 +212,8 @@ impl Sega {
     }
 }
 
-/// The pad layout the Controls page lists.
-fn pad_layout() -> Vec<(String, String)> {
-    let map = default_pad_map();
-    let mut rows: Vec<(String, String)> = vec![
-        ("Steer".into(), "Left stick".into()),
-        ("Gas".into(), map.describe(Action::Accelerate)),
-        ("Brake".into(), map.describe(Action::Brake)),
-    ];
-    for b in Button::ALL {
-        let keys = map.describe(Action::Press(*b));
-        if keys != "-" {
-            rows.push((b.label().to_string(), keys));
-        }
-    }
-    rows
-}
-
 /// What the Controls page shows of the input thread's `snap`.
-fn controls_view(snap: &Snapshot) -> ControlsView {
+fn controls_view(snap: &Snapshot, bindings: &Bindings<Button>) -> ControlsView {
     let c = snap.controls;
     ControlsView {
         error: snap.error.clone(),
@@ -221,7 +226,7 @@ fn controls_view(snap: &Snapshot) -> ControlsView {
             })
             .collect(),
         driver: snap.driver,
-        layout: pad_layout(),
+        layout: bindings.layout(),
         layout_note: "A wheel steers with its wheel and pedals, and its paddles shift.".into(),
         steer: c.steer,
         accel: c.accel,
@@ -336,12 +341,33 @@ impl HubBackend for Sega {
     }
 
     fn controls(&self) -> ControlsView {
-        controls_view(&self.snapshot())
+        controls_view(&self.snapshot(), &self.bindings)
     }
 
     fn pad(&mut self) -> Vec<Input> {
         let bits = self.snapshot().nav;
         Input::from_pad(&mut self.pad, bits)
+    }
+
+    fn pad_now(&self) -> Option<(u16, Option<PadInput>)> {
+        let snap = self.snapshot();
+        Some((snap.nav, snap.held))
+    }
+
+    fn rebindable(&self) -> Vec<usize> {
+        self.bindings.rebindable()
+    }
+
+    fn rebind(&mut self, row: usize, input: PadInput) -> Note {
+        let file = self.paths.controls_file();
+        let done = self.bindings.rebind_saved(row, input, &file);
+        self.bindings_changed(done)
+    }
+
+    fn reset_bindings(&mut self) -> Note {
+        let file = self.paths.controls_file();
+        let done = self.bindings.reset_saved(&file);
+        self.bindings_changed(done)
     }
 }
 

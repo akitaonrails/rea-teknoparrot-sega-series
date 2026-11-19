@@ -351,7 +351,8 @@ fn the_controls_page_shows_the_pad_layout_and_the_live_controls() {
     };
     snap.controls.steer = -0.5;
     snap.controls.buttons = Button::View.bit();
-    let v = controls_view(&snap);
+    let bindings = Bindings::new(sega_core::input::default_pad_map());
+    let v = controls_view(&snap, &bindings);
     assert_eq!(v.devices[0].name, "Test Wheel");
     assert!(
         v.layout.contains(&("View change".into(), "Y".into())),
@@ -628,4 +629,44 @@ fn settle(h: &mut Hub) {
         h.run_steps(1);
         std::thread::sleep(std::time::Duration::from_millis(10));
     }
+}
+
+#[test]
+fn the_controls_page_tests_the_pad_and_saves_a_changed_button() {
+    use rea_launcher::wheel::PadInput;
+    let t = tempfile::tempdir().unwrap();
+    let mut h = hub(t.path(), SIZE_720, true);
+    open_tab(&mut h, Tab::Controls);
+    h.run_steps(2);
+    assert!(says(&h, "only light up here"));
+    // RB and B try the buttons there: the page stays
+    for bits in [
+        rea_launcher::pad::RIGHT_SHOULDER,
+        0,
+        rea_launcher::pad::B,
+        0,
+    ] {
+        h.state_mut().backend_mut().fake.snapshot = Some(Snapshot {
+            nav: bits,
+            ..Snapshot::default()
+        });
+        h.run_steps(2);
+    }
+    assert!(
+        says(&h, "only light up here"),
+        "the pad left the Controls page"
+    );
+    click_button(&mut h, "Gas: RT. Change");
+    h.state_mut().backend_mut().fake.snapshot = Some(Snapshot {
+        held: Some(PadInput::B),
+        ..Snapshot::default()
+    });
+    h.run_steps(2);
+    h.state_mut().backend_mut().fake.snapshot = Some(Snapshot::default());
+    h.run_steps(2);
+    let paths = paths_in(t.path());
+    let text = std::fs::read_to_string(paths.controls_file()).unwrap();
+    assert!(text.contains("pad_accel = b"), "{text}");
+    let next = crate::input::bindings(&paths, |w| panic!("{w}"));
+    assert_eq!(next.layout()[1], ("Gas".to_string(), "B".to_string()));
 }

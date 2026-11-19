@@ -4,15 +4,35 @@
 //! options ([`tuning`]), and the wheel lindbergh-loader reads itself
 //! ([`lindbergh_wheel`]).
 
+use rea_launcher::hub::HubPaths;
+use rea_launcher::hub::bindings::Bindings;
 use rea_launcher::wheel::PedalAxis;
 use rea_launcher_native::feeder::{self, Frame, InputService, Tuning, Wire};
 use sega_core::input::{Button, Cabinet, StickLayout, default_pad_map};
 use sega_core::launch::LindberghWheel;
 use sega_core::settings::Settings;
 
-/// The input thread with the cabinets' pad layout; a wheel's paddles shift.
-pub fn service() -> InputService {
-    InputService::start(default_pad_map(), Some((Button::GearUp, Button::GearDown)))
+/// The player's pad layout: the cabinets', with the changes saved in the
+/// data folder's `controls.cfg`. A file that can't be read leaves the
+/// cabinets' layout, and `warn` hears why.
+pub fn bindings(paths: &HubPaths, warn: impl FnOnce(&str)) -> Bindings<Button> {
+    let file = paths.controls_file();
+    Bindings::load(&file, default_pad_map()).unwrap_or_else(|e| {
+        warn(&format!(
+            "{}: {e}; the default pad layout is used",
+            file.display()
+        ));
+        Bindings::new(default_pad_map())
+    })
+}
+
+/// The input thread with the player's pad layout `bindings`; a wheel's
+/// paddles shift.
+pub fn service(bindings: &Bindings<Button>) -> InputService {
+    InputService::start(
+        bindings.map().clone(),
+        Some((Button::GearUp, Button::GearDown)),
+    )
 }
 
 /// A windowsarcadeloader game's input: one `p1` line per change.

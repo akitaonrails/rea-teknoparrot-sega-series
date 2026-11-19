@@ -7,14 +7,15 @@ Window
         Label value="Turn the wheel or move the stick, press the pedals and buttons: the bars should follow."
         Label value="No controller found. Plug in a wheel or a pad; it shows up here."
         Label value="Steer: Left stick"
-        Label value="Gas: RT"
-        Label value="Brake: LT"
-        Label value="Shift up: RB"
-        Label value="Shift down: LB"
-        Label value="View change: Y"
-        Label value="Handbrake: B"
-        Label value="Start: A / START"
-        Label value="Insert coin: BACK"
+        Button label="Gas: RT. Change" [76 460 307 484]
+        Button label="Brake: LT. Change" [76 488 307 512]
+        Button label="Shift up: RB. Change" [76 516 307 540]
+        Button label="Shift down: LB. Change" [76 544 307 568]
+        Button label="View change: Y. Change" [76 572 307 596]
+        Button label="Handbrake: B. Change" [319 432 550 456]
+        Button label="Start: A / START. Change" [319 460 550 484]
+        Button label="Insert coin: BACK. Change" [319 488 550 512]
+        Button label="Reset" [442 598 562 636]
         Meter label="Steering" value="0%" level=0
         Meter label="Gas" value="0%" level=0
         Meter label="Brake" value="0%" level=0
@@ -26,6 +27,8 @@ Window
         Label value="Insert coin: released"
         Label value="Operator test menu: released"
         Label value="Service: released"
+        Button label="Test the pad" description="The pad is being tested." disabled [626 598 816 636]
+        Label value="Your pad's buttons only light up here now. Press Back and Start together to move through the menu with it."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=True [412 17 503 55]
         Tab label="Settings" toggled=False [511 17 602 55]
@@ -40,14 +43,15 @@ Window
         Label value="Pad: Test Pad"
         Label value="Wheel: Test Wheel (drives the car)"
         Label value="Steer: Left stick"
-        Label value="Gas: RT"
-        Label value="Brake: LT"
-        Label value="Shift up: RB"
-        Label value="Shift down: LB"
-        Label value="View change: Y"
-        Label value="Handbrake: B"
-        Label value="Start: A / START"
-        Label value="Insert coin: BACK"
+        Button label="Gas: RT. Change" [76 460 307 484]
+        Button label="Brake: LT. Change" [76 488 307 512]
+        Button label="Shift up: RB. Change" [76 516 307 540]
+        Button label="Shift down: LB. Change" [76 544 307 568]
+        Button label="View change: Y. Change" [76 572 307 596]
+        Button label="Handbrake: B. Change" [319 432 550 456]
+        Button label="Start: A / START. Change" [319 460 550 484]
+        Button label="Insert coin: BACK. Change" [319 488 550 512]
+        Button label="Reset" [442 598 562 636]
         Meter label="Steering" value="-50%" level=-50
         Meter label="Gas" value="25%" level=25
         Meter label="Brake" value="75%" level=75
@@ -60,6 +64,8 @@ Window
         Label value="Operator test menu: released"
         Label value="Service: released"
         Label value="A game is running: it reads these controls."
+        Button label="Test the pad" description="The pad is being tested." disabled [626 598 816 636]
+        Label value="Your pad's buttons only light up here now. Press Back and Start together to move through the menu with it."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=True [412 17 503 55]
         Tab label="Settings" toggled=False [511 17 602 55]
@@ -73,14 +79,15 @@ Window
         Label value="Turn the wheel or move the stick, press the pedals and buttons: the bars should follow."
         Label value="Controllers can't be read: controllers unavailable: no SDL. Plug the controller in again, then restart the launcher."
         Label value="Steer: Left stick"
-        Label value="Gas: RT"
-        Label value="Brake: LT"
-        Label value="Shift up: RB"
-        Label value="Shift down: LB"
-        Label value="View change: Y"
-        Label value="Handbrake: B"
-        Label value="Start: A / START"
-        Label value="Insert coin: BACK"
+        Button label="Gas: RT. Change" [76 460 307 484]
+        Button label="Brake: LT. Change" [76 488 307 512]
+        Button label="Shift up: RB. Change" [76 516 307 540]
+        Button label="Shift down: LB. Change" [76 544 307 568]
+        Button label="View change: Y. Change" [76 572 307 596]
+        Button label="Handbrake: B. Change" [319 432 550 456]
+        Button label="Start: A / START. Change" [319 460 550 484]
+        Button label="Insert coin: BACK. Change" [319 488 550 512]
+        Button label="Reset" [442 598 562 636]
         Meter label="Steering" value="0%" level=0
         Meter label="Gas" value="0%" level=0
         Meter label="Brake" value="0%" level=0
@@ -92,6 +99,8 @@ Window
         Label value="Insert coin: released"
         Label value="Operator test menu: released"
         Label value="Service: released"
+        Button label="Test the pad" description="The pad is being tested." disabled [626 598 816 636]
+        Label value="Your pad's buttons only light up here now. Press Back and Start together to move through the menu with it."
         Tab label="Games" toggled=False [326 17 404 55]
         Tab label="Controls" toggled=True [412 17 503 55]
         Tab label="Settings" toggled=False [511 17 602 55]
