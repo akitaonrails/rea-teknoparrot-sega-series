@@ -861,7 +861,7 @@ mod tests {
         );
         let s = v.join(" ");
         assert!(s.starts_with("gamescope -w 1280 -h 720 "), "{s}");
-        assert!(s.contains(" -- bwrap --dev-bind / / --ro-bind-try /lib /lib --ro-bind-try /more /more /c/wal/arcade-launcher run "), "{s}");
+        assert!(s.contains(" -- env ENABLE_GAMESCOPE_WSI=0 DISABLE_GAMESCOPE_WSI=1 bwrap --dev-bind / / --ro-bind-try /lib /lib --ro-bind-try /more /more /c/wal/arcade-launcher run "), "{s}");
         // `--library ~`: the data folder inside it is bound back writable
         let home = command_line(
             &plan,
@@ -881,7 +881,9 @@ mod tests {
         let pinned =
             command_line(&plan, &[], Path::new("/d"), false, Some(vec![8, 9, 10, 11])).join(" ");
         assert!(
-            pinned.contains(" -- taskset -c 8,9,10,11 /c/wal/arcade-launcher run "),
+            pinned.contains(
+                " -- env ENABLE_GAMESCOPE_WSI=0 DISABLE_GAMESCOPE_WSI=1 taskset -c 8,9,10,11 /c/wal/arcade-launcher run "
+            ),
             "{pinned}"
         );
     }
