@@ -552,7 +552,6 @@ size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 2560 -H 1440 -r 60 -F linear -f
 input Some(Sequential)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -581,7 +580,6 @@ size 1920x1080
 run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
 input Some(Sequential)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -610,7 +608,6 @@ size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 1280 -H 800 -r 60 -F linear -f
 input Some(Sequential)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -639,7 +636,6 @@ size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 2560 -H 1440 -r 60 -F linear -f
 input Some(HPattern4)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -666,7 +662,6 @@ size 2560x1440
 run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 2560 -h 1440 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
 input Some(HPattern4)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -693,7 +688,6 @@ size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 1280 -H 800 -r 60 -F linear -f
 input Some(HPattern4)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -720,7 +714,6 @@ size 1920x1080
 run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 -r 60 -F linear -f
 input Some(Shell)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -747,7 +740,6 @@ size 1920x1080
 run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
 input Some(Shell)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -774,7 +766,6 @@ size 1920x1080
 run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1920 -h 1080 -W 1280 -H 800 -r 60 -F linear -f
 input Some(Shell)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles

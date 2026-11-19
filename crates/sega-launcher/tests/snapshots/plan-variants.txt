@@ -179,7 +179,6 @@ net_firmware_path = "/bios/ver1305.bin"
 size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 3840 -H 2160 -r 60 -F linear --backend headless
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
 link /d/wal/dist/payloads -> /c/wal/payloads
@@ -206,7 +205,6 @@ env:
 size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 3840 -H 2160 -r 60 -F linear --backend headless
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
 link /d/wal/dist/payloads -> /c/wal/payloads
@@ -231,7 +229,6 @@ env:
 size 1920x1080
 run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
 env W_CACHE=/c/directx
-env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1920 -h 1080 -W 3840 -H 2160 -r 60 -F linear --backend headless
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
 link /d/wal/dist/payloads -> /c/wal/payloads

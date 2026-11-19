@@ -137,6 +137,12 @@ The launcher packs each extracted TeknoParrot Chihiro dump into a FATX `.bin` ne
 | SEGA Rally 3, SEGA Racing Classic, Daytona Championship USA on visible Wayland (Hyprland + NVIDIA RTX 5090 + gamescope 3.17.0) | Before the fix, all three 32-bit DXVK games crashed gamescope (`SIGSEGV` after 3–6 s) with `timeline: SyncobjFdToHandle failed with: ret = -1: Invalid argument` / `vulkan: vkImportSemaphoreFdKHR failed (VkResult: -3)` right after `Gamescope WSI` created the swapchain. Setting `DISABLE_GAMESCOPE_WSI=1` on `Route::Wal` (Linux) prevents the WSI layer from loading (`sr3 --headless --seconds 25`: 0 `[Gamescope WSI]` lines, exit 0, 0 leftovers). Visible desktop check on the owner's monitor pending. |
 | F355 Challenge 2 (`--play f355 --render 3840x2160 --headless --seconds 75`) | `gamescope -w 2880 -h 2160`, `rend.Resolution = 2160`, `rend.AnisotropicFiltering = 16`: both boards booted past both `System reset requested` cycles, saved cleanly on stop (`Slave exiting`), 0 leftovers. |
 
+Since rea-launcher-sdk v0.11.2 the SDK's `gamescope::CommandLine` starts
+every game with `ENABLE_GAMESCOPE_WSI=0 DISABLE_GAMESCOPE_WSI=1`, so the
+launcher's own `DISABLE_GAMESCOPE_WSI=1` on `Route::Wal` was dropped: the
+layer stays out for every route (Lindbergh and xemu draw with OpenGL,
+which the Vulkan layer never touched).
+
 ## Not verified yet
 
 - Visible desktop check of `DISABLE_GAMESCOPE_WSI=1` on SEGA Rally 3, SEGA Racing Classic and Daytona Championship USA on the owner's NVIDIA + Hyprland display.

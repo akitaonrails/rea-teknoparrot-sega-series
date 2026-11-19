@@ -609,15 +609,14 @@ pub fn plan(
                     "--input-pipe".into(),
                 ],
                 // winetricks (run by windowsarcadeloader) takes the DirectX
-                // redistributable for `xact` from the package, not the network;
-                // DISABLE_GAMESCOPE_WSI=1 avoids a gamescope 3.17 SIGSEGV on
-                // NVIDIA + Wayland when 32-bit DXVK creates a swapchain
-                // (SyncobjFdToHandle EINVAL / vkImportSemaphoreFdKHR -3).
+                // redistributable for `xact` from the package, not the network.
+                // gamescope's WSI layer, which crashed gamescope 3.17 on NVIDIA
+                // + Wayland with 32-bit DXVK, stays out through the SDK's
+                // `gamescope::CommandLine` (`NO_WSI`) for every route.
                 env: match host {
-                    Host::Linux => vec![
-                        ("W_CACHE".into(), c.directx.to_string_lossy().into_owned()),
-                        ("DISABLE_GAMESCOPE_WSI".into(), "1".into()),
-                    ],
+                    Host::Linux => {
+                        vec![("W_CACHE".into(), c.directx.to_string_lossy().into_owned())]
+                    }
                     Host::Windows => vec![],
                 },
                 cwd: root.clone(),
@@ -834,17 +833,11 @@ mod tests {
             p.links
                 .contains(&(runners.join("winetricks"), "/c/winetricks".into()))
         );
-        // winetricks finds the bundled DirectX redistributable, offline, and
-        // gamescope's WSI layer is disabled so 32-bit DXVK doesn't crash gamescope on NVIDIA
+        // winetricks finds the bundled DirectX redistributable, offline
         assert!(
             p.game
                 .env
                 .contains(&("W_CACHE".into(), "/c/directx".into()))
-        );
-        assert!(
-            p.game
-                .env
-                .contains(&("DISABLE_GAMESCOPE_WSI".into(), "1".into()))
         );
         let w = plan_for(
             GameId::SegaRally3,
@@ -852,12 +845,7 @@ mod tests {
             false,
             Host::Windows,
         );
-        assert!(
-            w.game
-                .env
-                .iter()
-                .all(|(k, _)| k != "W_CACHE" && k != "DISABLE_GAMESCOPE_WSI")
-        );
+        assert!(w.game.env.iter().all(|(k, _)| k != "W_CACHE"));
     }
 
     #[test]

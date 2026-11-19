@@ -6,6 +6,35 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+### Added
+
+- Controls: change a button. Choose a row of the pad layout (Gas, Brake,
+  a cabinet button), then press the pad button or trigger it should use;
+  Reset goes back to the launcher's layout. The layout is saved in the
+  data folder's `controls.cfg` and used by the window and `--play` for
+  the games the launcher feeds (SEGA Rally 3, SEGA Racing Classic,
+  Daytona Championship USA; xemu, Flycast and lindbergh-loader read the
+  pad themselves).
+
+### Fixed
+
+- Controls: pressing the pad's buttons to try them on the Controls page
+  switched pages (LB/RB) or left it (B). The pad's presses now only light
+  up the live check there; press Back and Start together to move through
+  the menu with the pad, and "Test the pad" to try the buttons again.
+- A PXN wheel (the VD6 and other models with PXN's own USB ID) was
+  listed as "Other" and nothing drove the car ("No controller"); it is a
+  wheel now.
+- Windows: Stop could report a game as having ended normally when the
+  launcher had to end it.
+- Linux: gamescope's WSI layer is now kept out of every game, not only
+  the windowsarcadeloader ones (the gamescope 3.17 crash on NVIDIA +
+  Wayland fixed in 0.4.0).
+
+### Changed
+
+- Updated rea-launcher-sdk to v0.11.2.
+
 ## 0.4.1 - 2026-11-19
 
 ### Fixed
