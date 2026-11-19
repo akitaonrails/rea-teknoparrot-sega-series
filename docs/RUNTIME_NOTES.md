@@ -143,6 +143,14 @@ launcher's own `DISABLE_GAMESCOPE_WSI=1` on `Route::Wal` was dropped: the
 layer stays out for every route (Lindbergh and xemu draw with OpenGL,
 which the Vulkan layer never touched).
 
+Headless on SDK v0.11.2 (2026-11-19, release build, the 0.4.0 package's
+components): `sr3 --headless --seconds 30` exit 0, 0 `[Gamescope WSI]`
+lines, 0 leftovers; `cthr --headless --seconds 45` played the attract
+(FREE PLAY), flushed `crtaxihr.sav`, 0 leftovers, but xemu ended with
+`SIGSEGV` after the flush (`XIO: fatal IO error` once gamescope's reaper
+ended its Xwayland). The released 0.4.0 does the same on this machine, so
+it isn't this update's; the save is written first.
+
 ## Not verified yet
 
 - Visible desktop check of `DISABLE_GAMESCOPE_WSI=1` on SEGA Rally 3, SEGA Racing Classic and Daytona Championship USA on the owner's NVIDIA + Hyprland display.
