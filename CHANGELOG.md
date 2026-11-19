@@ -6,6 +6,8 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+## 0.4.1 - 2026-11-19
+
 ### Fixed
 
 - Chihiro games (OutRun 2 SP Special Tours and Crazy Taxi High Roller) now
