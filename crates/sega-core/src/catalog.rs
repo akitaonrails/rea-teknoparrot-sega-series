@@ -33,8 +33,9 @@ pub enum Route {
         system: &'static str,
         profile: &'static str,
     },
-    /// Sega Chihiro title (an Xbox `.xbe`) in Cxbx-Reloaded.
-    Cxbx,
+    /// Sega Chihiro title (packed into a FATX netboot image) in xemu's
+    /// Chihiro fork (`Tovarichtch/xemu`).
+    Xemu { net_firmware: bool },
     /// Sega NAOMI cartridge (a MAME set, here unzipped) in Flycast.
     Flycast { set: &'static str },
 }
@@ -63,9 +64,7 @@ impl Game {
     /// Linux programs (lindbergh-loader preloads itself into them).
     pub fn support_on(&self, host: Host) -> Support {
         match (host, self.route) {
-            (Host::Windows, Route::Lindbergh) => Support::Blocked(
-                "A Sega Lindbergh game: its Linux build runs in the Linux version of the launcher.",
-            ),
+            (Host::Windows, Route::Lindbergh) => Support::Blocked("Linux only (Sega Lindbergh)."),
             _ => self.support,
         }
     }
@@ -152,14 +151,14 @@ pub const GAMES: &[Game] = &[
         short: "OR2 SP",
         year: 2004,
         board: "Sega Chihiro",
-        route: Route::Cxbx,
+        route: Route::Xemu { net_firmware: true },
         main_file: "outrun2.xbe",
         editions: &[Edition::sha256(
             "0e177363ae40c8beedcde1f7a7a5ccd75c962f0bd495f44932a9d50683a170a7",
             "Japan (TeknoParrot dump)",
         )],
         native: Size::new(640, 480),
-        support: Support::Blocked("Needs the Chihiro emulator, which is still being brought up."),
+        support: Support::Ready,
     },
     Game {
         id: GameId::CrazyTaxi,
@@ -168,14 +167,16 @@ pub const GAMES: &[Game] = &[
         short: "CT HR",
         year: 2003,
         board: "Sega Chihiro",
-        route: Route::Cxbx,
+        route: Route::Xemu {
+            net_firmware: false,
+        },
         main_file: "ctx_ac[r].xbe",
         editions: &[Edition::sha256(
             "fca9dddb942ddb190b2faf5fe58ebdb5a77a570bb235334cc22aee159ed9dc2f",
             "3.000 Japan (TeknoParrot dump)",
         )],
         native: Size::new(640, 480),
-        support: Support::Blocked("Needs the Chihiro emulator, which is still being brought up."),
+        support: Support::Ready,
     },
     Game {
         id: GameId::SegaRally3,
@@ -248,11 +249,7 @@ pub const GAMES: &[Game] = &[
             "International Course Edition, twin (MAME f355twn2)",
         )],
         native: Size::new(640, 480),
-        support: Support::Unverified(
-            "Runs in Flycast as two linked boards in one window. When the boards fail \
-             to find each other at boot, the launcher starts the game again by itself. \
-             Wheels aren't set up for it yet.",
-        ),
+        support: Support::Ready,
     },
 ];
 

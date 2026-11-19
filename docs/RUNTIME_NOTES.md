@@ -121,9 +121,27 @@ Classic's Wine stream on its null sink, none on the desktop's):
 | OutRun 2 SP SDX, Stop at 80 s | attract mode; the game crashed on the stop's SIGTERM (exit SIGSEGV); 0 leftovers. The game's own exit: Stop at 80 s, three times each, crashed 3 of 3 on this build, 3 of 3 on the SDK at a7bb340 and 2 of 3 with the released 0.2.0 launcher (its own process code). Its SRAM (`Jennifer/sram.bin`, the operator settings and records) is written at the stop, a second before the crash. |
 | OutRun 2 SP SDX, the launcher killed at 60 s | 0 leftovers |
 
+## Chihiro through xemu (`Tovarichtch/xemu` `Playtest-v2`, 2026-11-19)
+
+The launcher packs each extracted TeknoParrot Chihiro dump into a FATX `.bin` netboot image (`sega-core::fatx::pack_dir`, read-only dump, skipped when unchanged) and starts `Tovarichtch/xemu` (`Playtest-v2`, GPL-2.0) with `xemu.toml` pointing at the player's BIOS folder (`chihiro_xbox_bios.bin`, `fpr21042_m29w160et.bin`, `ic10_g24lc64`, `ic11_24lc024.bin`, `pc20_g24lc64.bin`, `ver1305.bin`).
+
+| Run | Result |
+|---|---|
+| Crazy Taxi High Roller (`--play cthr --render 3840x2160 --headless --seconds 42`) | FATX `.bin` packed (397.5 MiB), Type-1 board auto-selected, SEGABOOT Ver 2.13.0 -> Hitmaker / game boot, `surface_scale = 4`, `crtaxihr.sav` flushed on SIGTERM; exit 0, 0 leftovers. |
+| OutRun 2 SP Special Tours (`--play or2sp --render 3840x2160 --headless --seconds 46`) | FATX `.bin` packed (481.3 MiB), Type-3 (ASIC) board auto-selected with `ver1305.bin` (13.05), V850 booted, SEGABOOT -> game boot, `surface_scale = 4`, `outr2st.sav` flushed on SIGTERM; exit 0, 0 leftovers. |
+
+## Gamescope WSI on NVIDIA + Wayland & F355 at 4K (2026-11-19)
+
+| Run | Result |
+|---|---|
+| SEGA Rally 3, SEGA Racing Classic, Daytona Championship USA on visible Wayland (Hyprland + NVIDIA RTX 5090 + gamescope 3.17.0) | Before the fix, all three 32-bit DXVK games crashed gamescope (`SIGSEGV` after 3–6 s) with `timeline: SyncobjFdToHandle failed with: ret = -1: Invalid argument` / `vulkan: vkImportSemaphoreFdKHR failed (VkResult: -3)` right after `Gamescope WSI` created the swapchain. Setting `DISABLE_GAMESCOPE_WSI=1` on `Route::Wal` (Linux) prevents the WSI layer from loading (`sr3 --headless --seconds 25`: 0 `[Gamescope WSI]` lines, exit 0, 0 leftovers). Visible desktop check on the owner's monitor pending. |
+| F355 Challenge 2 (`--play f355 --render 3840x2160 --headless --seconds 75`) | `gamescope -w 2880 -h 2160`, `rend.Resolution = 2160`, `rend.AnisotropicFiltering = 16`: both boards booted past both `System reset requested` cycles, saved cleanly on stop (`Slave exiting`), 0 leftovers. |
+
 ## Not verified yet
 
-- F355 Challenge 2 played with controls: a pad (Flycast's own layout, read by the master board off screen) and the keyboard (the slave forwards it); wheels aren't mapped for Flycast yet. A visible window, closing it, and render sizes above 640x480 (the launcher keeps the cabinet's size for now).
+- Visible desktop check of `DISABLE_GAMESCOPE_WSI=1` on SEGA Rally 3, SEGA Racing Classic and Daytona Championship USA on the owner's NVIDIA + Hyprland display.
+- Crazy Taxi High Roller and OutRun 2 SP Special Tours played with controls (pad and wheel/FFB) in `Tovarichtch/xemu`, and on real Windows.
+- F355 Challenge 2 played with controls: a pad (Flycast's own layout, read by the master board off screen) and the keyboard (the slave forwards it); wheels aren't mapped for Flycast yet. A visible window and closing it.
 
 - OutRun 2 SP SDX with a wheel: the launcher writes the wheel's SDL GUID and axes into lindbergh-loader's `controls.ini` (steering on the guessed axis, pedals by where they rest, `_INVERTED` when they rest at the top); not tried on hardware.
 - Any wheel on hardware: steering lock, force feedback direction and strength, pedals on a second USB device (the owner's wheel).

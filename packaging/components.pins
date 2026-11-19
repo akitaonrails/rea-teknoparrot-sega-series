@@ -13,5 +13,9 @@ directx https://files.holarse-linuxgaming.de/mirrors/microsoft/directx_Jun2010_r
 flycast https://github.com/flyinghead/flycast/releases/download/v2.7/flycast-x86_64-2.7.AppImage 5b9f8a636a6acb8446bc78fe96650d8cb8233ac9f8ce69665dab3f39a1cbaae1
 flycast-win https://github.com/flyinghead/flycast/releases/download/v2.7/flycast-win64-2.7.zip 7edf489ba6b3053703a18ce8233767eb71a2d89e4bda0421b312c2167a739161
 flycast-license https://raw.githubusercontent.com/flyinghead/flycast/v2.7/LICENSE 8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643
+# xemu Chihiro fork (Tovarichtch/xemu, GPL-2.0): OutRun 2 SP Special Tours & Crazy Taxi High Roller
+xemu https://github.com/Tovarichtch/xemu/releases/download/Playtest-v2/xemu-0.8.134-406-g0d44d803b2-x86_64.AppImage 40179ae61386ccdeaed0cfc67e9a25f49ad5a22236fea7a2da7f4c615a46acdf
+xemu-win https://github.com/Tovarichtch/xemu/releases/download/Playtest-v2/xemu-0.8.134-406-g0d44d803b2-windows-x86_64.zip 2e12e7d4b7bfb2137b64398fbacc07b4b84cad131e6e1ed6f128622013996905
+xemu-license https://raw.githubusercontent.com/Tovarichtch/xemu/Playtest-v2/COPYING dd3ce02338c3a48abb6ba59b48809f7108a8bd242cb0cc8be90daafa30707c28
 # the licence of the libssl/libcrypto 0.9.7 that lindbergh-loader's libs/ carries
 openssl-license https://raw.githubusercontent.com/openssl/openssl/OpenSSL_0_9_7m/LICENSE 81d5872403d0f080f0e2ba0ff305023eab07245691704e93b6bd1b144a20d9e1

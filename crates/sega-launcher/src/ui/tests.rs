@@ -165,9 +165,52 @@ fn a_blocked_game_cannot_be_played_and_says_why() {
 fn an_unverified_game_shows_its_note_and_can_be_played() {
     let t = tempfile::tempdir().unwrap();
     let mut h = hub(t.path(), SIZE_720, true);
+    h.state_mut().backend_mut().supports[index("f355")] =
+        Support::Unverified("Still being checked.");
     select(&mut h, "f355");
-    assert!(says(&h, "two linked boards in one window"));
+    assert!(says(&h, "Still being checked."));
     assert!(!row_disabled(&h, "Play"));
+}
+
+#[test]
+fn play_and_settings_never_overlap_the_game_tiles_for_any_game() {
+    let t = tempfile::tempdir().unwrap();
+    let mut h = window(t.path(), Some("library = /games\nbios = /bios\n"), SIZE_720);
+    h.state_mut().set_library(library(true));
+    h.run_steps(3);
+    for g in GAMES
+        .iter()
+        .filter(|g| g.support_on(Host::current()) == Support::Ready)
+    {
+        select(&mut h, g.slug);
+        let play = h
+            .get_by_role_and_label(Role::Button, "Play")
+            .accesskit_node()
+            .bounding_box()
+            .unwrap();
+        let settings = h
+            .get_by_role_and_label(Role::Button, "Settings")
+            .accesskit_node()
+            .bounding_box()
+            .unwrap();
+        let tile = h
+            .get_by_role_and_label(Role::RadioButton, GAMES[0].title)
+            .accesskit_node()
+            .bounding_box()
+            .unwrap();
+        // "Your games · 7 of 7 found" sits ~31 px above the tile row
+        let shelf_top = tile.y0 - 31.0;
+        assert!(
+            play.y1 <= shelf_top && settings.y1 <= shelf_top,
+            "{}: Play ({:.0}..{:.0}) / Settings ({:.0}..{:.0}) overlap shelf top {:.0}",
+            g.slug,
+            play.y0,
+            play.y1,
+            settings.y0,
+            settings.y1,
+            shelf_top
+        );
+    }
 }
 
 #[test]

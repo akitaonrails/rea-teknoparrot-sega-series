@@ -14,8 +14,8 @@ main file (`crates/sega-core/src/catalog.rs`).
 | Game | Board | Main file | What runs it |
 |---|---|---|---|
 | OutRun 2 SP SDX (2006) | Sega Lindbergh Yellow (Linux, x86) | `or2g/disk0/Jennifer/Jennifer` (ELF) | lindbergh-loader, natively |
-| OutRun 2 SP Special Tours (2004) | Sega Chihiro (Xbox-based) | `outrun2.xbe` | Cxbx-Reloaded (in progress) |
-| Crazy Taxi High Roller (2003) | Sega Chihiro | `ctx_ac[r].xbe` | Cxbx-Reloaded (in progress) |
+| OutRun 2 SP Special Tours (2004) | Sega Chihiro (Xbox-based) | `outrun2.xbe` | xemu Chihiro fork (`Tovarichtch/xemu`), FATX `.bin` packed by the launcher |
+| Crazy Taxi High Roller (2003) | Sega Chihiro | `ctx_ac[r].xbe` | xemu Chihiro fork (`Tovarichtch/xemu`), FATX `.bin` packed by the launcher |
 | SEGA Rally 3 (2008) | Sega Europa-R (Windows XP PC) | `Rally/Rally.exe` (32-bit) | windowsarcadeloader under Wine |
 | SEGA Racing Classic (2009) | Sega RingWide (Windows Embedded) | `d1a.exe` (32-bit) | windowsarcadeloader under Wine |
 | F355 Challenge 2, twin (2001) | Sega NAOMI (cartridge, MAME set `f355twn2`, unzipped) | `epr-23399.ic22` | Flycast: the set packed into a stored zip by the launcher, `f355bios.zip` from the player's BIOS folder |
@@ -34,7 +34,7 @@ main file (`crates/sega-core/src/catalog.rs`).
 | [winetricks](https://github.com/Winetricks/winetricks) | windowsarcadeloader installs native XACT/XAudio2 with it (the RingWide sound thread crashes on Wine's own) | LGPL-2.1+ | yes | **bundled**, pinned |
 | [FFBArcadePlugin](https://github.com/Boomslangnz/FFBArcadePlugin) (Boomslangnz) | Force feedback for many TeknoParrot games through a DLL in the game folder | GPL-3.0 | moved to the closed FFBlaster | not used: windowsarcadeloader plays the games' force feedback itself (`out` lines), and lindbergh-loader the drive board |
 | [Flycast](https://github.com/flyinghead/flycast) | Dreamcast/NAOMI emulator; runs multiboard NAOMI games (F355 Twin and Deluxe) as one process per board, linked by shared memory; boot sometimes hangs at "being named..." (flycast#1909, #1630, open) | GPL-2.0 | yes (2.7, 2026) | **bundled** (its Linux AppImage, pinned) for F355; the launcher shows only the slave board, restarts a hung boot and pins the boards to alike cores (RUNTIME_NOTES). Its Windows build starts slaves by its own path (`GetModuleFileNameW`), so there the launcher hides the master's window instead, and reads the boards' log from Flycast's `LogServer` (UDP) |
-| xemu Chihiro forks | Low-level Chihiro emulation (needs disc images, not extracted dumps) | GPL-2.0 | yes | not used: our dumps are TeknoParrot's extracted XBE folders |
+| [xemu Chihiro fork](https://github.com/Tovarichtch/xemu) (Tovarichtch) | Low-level Sega Chihiro emulation (V850 media board, AN2131, JVS, network board, Sega 838 drive-board FFB); runs FATX `.bin` netboot images natively on Linux and Windows | GPL-2.0 | yes (`Playtest-v2`, 2026) | **bundled** (Linux AppImage + Windows zip, pinned) for OutRun 2 SP Special Tours and Crazy Taxi High Roller; the launcher packs each extracted TeknoParrot dump into a FATX `.bin` image in its runtime (`sega-core::fatx`) |
 
 ## 3. What the games' own files say
 

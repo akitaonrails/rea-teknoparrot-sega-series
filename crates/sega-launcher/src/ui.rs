@@ -257,7 +257,10 @@ impl HubBackend for Sega {
 
     /// The Chihiro and NAOMI games need the player's BIOS folder.
     fn note(&self, game: usize, config: &HubConfig) -> Option<Note> {
-        let needs_bios = matches!(GAMES[game].route, Route::Cxbx | Route::Flycast { .. });
+        let needs_bios = matches!(
+            GAMES[game].route,
+            Route::Xemu { .. } | Route::Flycast { .. }
+        );
         (needs_bios && paths::bios(config).is_none())
             .then(|| Note::error("Needs your BIOS folder: add it in Settings."))
     }

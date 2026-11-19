@@ -23,26 +23,8 @@ link /rt/or2sdx/Jennifer/rankingdata/data.bin -> /dump/or2sdx/or2g/disk0/Jennife
 link /rt/or2sdx/Jennifer/rankingdata/sub -> /dump/or2sdx/or2g/disk0/Jennifer/rankingdata/sub
 == or2sp
 dir /rt/or2sp
-link /rt/or2sp/AMFS -> /dump/or2sp/AMFS
-link /rt/or2sp/big.bin -> /dump/or2sp/big.bin
-link /rt/or2sp/code.dll -> /dump/or2sp/code.dll
-link /rt/or2sp/data -> /dump/or2sp/data
-link /rt/or2sp/libfoo.so.1 -> /dump/or2sp/libfoo.so.1
-copy /dump/or2sp/lindbergh.ini -> /rt/or2sp/lindbergh.ini
-copy /dump/or2sp/old.windowsloader -> /rt/or2sp/old.windowsloader
-link /rt/or2sp/outrun2.xbe -> /dump/or2sp/outrun2.xbe
-copy /dump/or2sp/small.ini -> /rt/or2sp/small.ini
 == cthr
 dir /rt/cthr
-link /rt/cthr/AMFS -> /dump/cthr/AMFS
-link /rt/cthr/big.bin -> /dump/cthr/big.bin
-link /rt/cthr/code.dll -> /dump/cthr/code.dll
-link /rt/cthr/ctx_ac[r].xbe -> /dump/cthr/ctx_ac[r].xbe
-link /rt/cthr/data -> /dump/cthr/data
-link /rt/cthr/libfoo.so.1 -> /dump/cthr/libfoo.so.1
-copy /dump/cthr/lindbergh.ini -> /rt/cthr/lindbergh.ini
-copy /dump/cthr/old.windowsloader -> /rt/cthr/old.windowsloader
-copy /dump/cthr/small.ini -> /rt/cthr/small.ini
 == sr3
 dir /rt/sr3
 copy /dump/sr3/TeknoParrot.ini -> /rt/sr3/TeknoParrot.ini

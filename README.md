@@ -13,11 +13,11 @@ This project contains no game files: you need your own dumps.
 
 > **Work in progress.** OutRun 2 SP SDX, SEGA Rally 3, SEGA Racing Classic and
 > Daytona Championship USA play full races through the launcher on Linux.
-> F355 Challenge 2 starts and reaches its attract mode on Linux (and under
-> Wine with the Windows build), but hasn't been played with controls yet. OutRun 2 SP Special Tours and Crazy Taxi
-> High Roller are still being brought up. Wheels, the
-> Windows build and the Steam Deck are not tested on hardware yet
-> ([docs/RUNTIME_NOTES.md](docs/RUNTIME_NOTES.md)). Reports are welcome at
+> OutRun 2 SP Special Tours and Crazy Taxi High Roller boot and render in the
+> bundled xemu Chihiro fork (Linux and Windows), and F355 Challenge 2 runs in
+> Flycast up to 4K (4:3). Wheels, real Windows and the Steam Deck are not
+> tested on hardware yet ([docs/RUNTIME_NOTES.md](docs/RUNTIME_NOTES.md)).
+> Reports are welcome at
 > <https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues>.
 
 <!-- Showcase video: the owner records it and hosts it outside the

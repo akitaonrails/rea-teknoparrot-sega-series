@@ -82,7 +82,12 @@ fn every_look_of_every_game() {
                             let _ = writeln!(out, "link {} -> {}", p(at), p(target));
                         }
                         for (f, text) in &plan.files {
-                            let _ = writeln!(out, "file {}\n{text}", p(f));
+                            let shown = if f.extension().and_then(|e| e.to_str()) == Some("toml") {
+                                text.replace("\\\\", "/")
+                            } else {
+                                text.clone()
+                            };
+                            let _ = writeln!(out, "file {}\n{shown}", p(f));
                         }
                     }
                     Err(e) => {
@@ -103,6 +108,7 @@ fn components() -> Components {
         winetricks: "/c/winetricks".into(),
         directx: "/c/directx".into(),
         flycast: "/c/flycast".into(),
+        xemu: "/c/xemu".into(),
         launcher: "/pkg/sega-launcher".into(),
     }
 }
@@ -112,9 +118,9 @@ fn places(g: &Game) -> Places {
         runtime: PathBuf::from("/d/runtimes").join(g.slug),
         wal_root: "/d/wal".into(),
         wheel: None,
-        bios: launch::bios_names(g)
+        bios: launch::bios_specs(g)
             .iter()
-            .map(|n| PathBuf::from("/bios").join(n))
+            .map(|spec| PathBuf::from("/bios").join(spec.names[0]))
             .collect(),
         // the port the Windows session opens for Flycast's log
         log_port: Some(50123),
@@ -146,7 +152,12 @@ fn write_plan(out: &mut String, plan: Result<launch::Plan, launch::NotYet>) {
         let _ = writeln!(out, "link {} -> {}", p(at), p(target));
     }
     for (f, text) in &plan.files {
-        let _ = writeln!(out, "file {}\n{text}", p(f));
+        let shown = if f.extension().and_then(|e| e.to_str()) == Some("toml") {
+            text.replace("\\\\", "/")
+        } else {
+            text.clone()
+        };
+        let _ = writeln!(out, "file {}\n{shown}", p(f));
     }
 }
 

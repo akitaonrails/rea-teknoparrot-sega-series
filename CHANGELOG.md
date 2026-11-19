@@ -6,6 +6,27 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+### Added
+
+- OutRun 2 SP Special Tours and Crazy Taxi High Roller (Sega Chihiro) are now
+  playable on Linux and Windows through Tovarichtch's xemu Chihiro fork
+  (`Playtest-v2`, GPL-2.0). The launcher packs each extracted dump into a FATX
+  netboot image in its runtime folder, configures the Chihiro BIOS and
+  network firmware from your BIOS folder, and maps your render resolution,
+  steering lock and force-feedback strength into `xemu.toml`.
+
+### Fixed
+
+- SEGA Rally 3, SEGA Racing Classic and Daytona Championship USA no longer
+  close right after opening on NVIDIA + Wayland desktops: the launcher sets
+  `DISABLE_GAMESCOPE_WSI=1` on Linux so 32-bit DXVK presents cleanly through
+  gamescope instead of hitting gamescope 3.17's `SyncobjFdToHandle` crash.
+- F355 Challenge 2 now honours your Game resolution setting in Flycast
+  (scaled in 4:3 up to 2880x2160 with 16x anisotropic filtering) instead of
+  staying at 640x480.
+- The Play and Settings buttons no longer overlap "Your games" and the game
+  tiles when F355 Challenge 2 is selected.
+
 ## 0.3.0 - 2026-11-18
 
 ### Fixed

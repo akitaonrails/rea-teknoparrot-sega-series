@@ -69,6 +69,7 @@ pub fn components(p: &HubPaths) -> Components {
         winetricks: c.join("winetricks"),
         directx: c.join("directx"),
         flycast: c.join("flycast"),
+        xemu: c.join("xemu"),
         // Flycast starts F355's boards through this program
         launcher: std::env::current_exe().unwrap_or_else(|_| "sega-launcher".into()),
     }

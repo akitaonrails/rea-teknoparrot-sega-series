@@ -22,7 +22,7 @@
 set -eu
 here=$(cd "$(dirname "$0")/.." && pwd)
 out=$(mkdir -p "$1" && cd "$1" && pwd); shift
-parts=${*:-lindbergh wal runner winetricks directx flycast flycast-win assets}
+parts=${*:-lindbergh wal runner winetricks directx flycast flycast-win xemu xemu-win assets}
 work="$out/.build"; mkdir -p "$work"
 
 LINDBERGH_REPO=https://github.com/lindbergh-loader/lindbergh-loader
@@ -119,6 +119,22 @@ flycast-win)
   unzip -q "$f" flycast.exe -d "$out/flycast-win"
   l=$(fetch flycast-license "$work/flycast-license")
   cp "$l" "$out/flycast-win/LICENSE"
+  ;;
+xemu)
+  f=$(fetch xemu "$work")
+  rm -rf "$work/squashfs-root"; chmod +x "$f"
+  (cd "$work" && "$f" --appimage-extract >/dev/null)
+  rm -rf "$out/xemu"; mkdir -p "$out/xemu"
+  mv "$work/squashfs-root/usr" "$out/xemu/usr"; rm -rf "$work/squashfs-root"
+  l=$(fetch xemu-license "$work/xemu-license")
+  cp "$l" "$out/xemu/LICENSE"
+  ;;
+xemu-win)
+  f=$(fetch xemu-win "$work")
+  rm -rf "$out/xemu-win"; mkdir -p "$out/xemu-win"
+  unzip -q "$f" xemu.exe -d "$out/xemu-win"
+  l=$(fetch xemu-license "$work/xemu-license")
+  cp "$l" "$out/xemu-win/LICENSE"
   ;;
 assets)
   rm -rf "$out/art" "$out/fonts"; cp -r "$here/assets/art" "$out/art"

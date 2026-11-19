@@ -30,9 +30,11 @@ use sega_core::catalog::{Game, Host, Route, Support};
 use sega_core::input::StickLayout;
 #[cfg(target_os = "linux")]
 use sega_core::launch::Board;
-use sega_core::launch::{self, DIRECTX_REDIST, FLYCAST_EXE, FLYCAST_PROGRAM, Places, Plan};
-use sega_core::runtime;
+use sega_core::launch::{
+    self, DIRECTX_REDIST, FLYCAST_EXE, FLYCAST_PROGRAM, Places, Plan, XEMU_EXE, XEMU_PROGRAM,
+};
 use sega_core::settings::Settings;
+use sega_core::{fatx, runtime};
 
 use crate::input::{self, Stick};
 use crate::paths;
@@ -106,7 +108,8 @@ pub fn check_components(game: &Game, p: &HubPaths) -> Result<()> {
         ],
         Route::Flycast { .. } if windows => vec![c.flycast.join(FLYCAST_EXE)],
         Route::Flycast { .. } => vec![c.flycast.join(FLYCAST_PROGRAM)],
-        Route::Cxbx => vec![],
+        Route::Xemu { .. } if windows => vec![c.xemu.join(XEMU_EXE)],
+        Route::Xemu { .. } => vec![c.xemu.join(XEMU_PROGRAM)],
     };
     let missing: Vec<String> = need
         .iter()
@@ -154,19 +157,27 @@ pub fn prepare(
         .with_context(|| format!("reading {}", entry.dir.display()))?;
     linkfarm::apply(&rt, &ops, Occupied::Refuse)
         .with_context(|| format!("building {}", rt.display()))?;
+    if matches!(game.route, Route::Xemu { .. }) {
+        let image = rt.join(format!("{}.bin", game.slug));
+        fatx::pack_dir(&entry.dir, &image)
+            .with_context(|| format!("packing {} into {}", entry.dir.display(), image.display()))?;
+    }
     let mut bios = Vec::new();
-    for name in launch::bios_names(game) {
-        let found = launch::bios_places(bios_folder, &entry.dir)
-            .into_iter()
-            .map(|d| d.join(name))
+    let places_list = launch::bios_places(bios_folder, &entry.dir);
+    for spec in launch::bios_specs(game) {
+        let found = places_list
+            .iter()
+            .flat_map(|d| spec.names.iter().map(move |name| d.join(name)))
             .find(|f| f.is_file());
         match found {
             Some(f) => bios.push(f),
+            None if spec.optional => {}
             None => bail!(
-                "{} needs {name}, its board's BIOS file. Add the folder that holds it under \
+                "{} needs {}, its board's BIOS file. Add the folder that holds it under \
                  Settings, Folders and BIOS (EmuDeck's bios folder works), or start the \
                  launcher once with --bios <folder>.",
-                game.title
+                game.title,
+                spec.names[0]
             ),
         }
     }
@@ -626,6 +637,7 @@ mod watch_tests {
             winetricks: "/c/w".into(),
             directx: "/c/dx".into(),
             flycast: "/c/fc".into(),
+            xemu: "/c/xemu".into(),
             launcher: "/pkg/sega-launcher".into(),
         };
         launch::plan(
@@ -833,6 +845,7 @@ mod tests {
             winetricks: "/c/w".into(),
             directx: "/c/dx".into(),
             flycast: "/c/fc".into(),
+            xemu: "/c/xemu".into(),
             launcher: "/pkg/sega-launcher".into(),
         };
         let g = game(GameId::RacingClassic);
@@ -884,6 +897,7 @@ mod tests {
             winetricks: "/c/winetricks".into(),
             directx: "/c/directx".into(),
             flycast: "/c/flycast".into(),
+            xemu: "/c/xemu".into(),
             launcher: "/pkg/sega-launcher".into(),
         };
         let libraries = ["/games".into(), "/more games".into()];

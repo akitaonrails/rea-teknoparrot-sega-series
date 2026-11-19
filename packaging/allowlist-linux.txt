@@ -16,3 +16,4 @@ components/lindbergh/lindbergh.so
 components/lindbergh/lib*.so*
 components/directx/directx9/directx_Jun2010_redist.exe
 components/flycast/usr/*
+components/xemu/usr/*

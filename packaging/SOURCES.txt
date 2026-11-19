@@ -47,5 +47,13 @@ Flycast 2.7 (GPL-2.0): components/flycast
   archive); for a copy of any of them, open an issue at
   https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues
 
+xemu Chihiro fork (GPL-2.0): components/xemu
+  https://github.com/Tovarichtch/xemu/tree/Playtest-v2. The Linux package
+  holds its release AppImage xemu-0.8.134-406-g0d44d803b2-x86_64.AppImage,
+  unpacked, unmodified; the Windows package its release
+  xemu-0.8.134-406-g0d44d803b2-windows-x86_64.zip's xemu.exe, unmodified.
+  For a copy of the source, open an issue at
+  https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues
+
 Microsoft DirectX June 2010 redistributable, Linux package only:
   components/directx (Microsoft's licence, redistributable)

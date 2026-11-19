@@ -3,6 +3,7 @@
 //! runtime folder rules, settings, input layouts and the launch plan.
 
 pub mod catalog;
+pub mod fatx;
 pub mod input;
 pub mod launch;
 pub mod runtime;

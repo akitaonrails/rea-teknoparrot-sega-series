@@ -9,7 +9,8 @@ use std::path::{Path, PathBuf};
 
 use crate::catalog::{Game, GameId, Host, Route};
 use crate::input::StickLayout;
-use rea_launcher::gamescope::{Crt, Picture, Size};
+use rea_launcher::gamescope::{Crt, Picture, Size, fit};
+use rea_launcher::wheel::SteeringLock;
 
 use crate::settings::Settings;
 
@@ -72,6 +73,9 @@ pub struct Components {
     /// Flycast: on Linux its AppImage unpacked ([`FLYCAST_PROGRAM`] and the
     /// libraries beside it), on Windows its one program ([`FLYCAST_EXE`]).
     pub flycast: PathBuf,
+    /// xemu's Chihiro fork (`Tovarichtch/xemu`): on Linux its AppImage unpacked
+    /// ([`XEMU_PROGRAM`]), on Windows its program ([`XEMU_EXE`]).
+    pub xemu: PathBuf,
     /// This launcher's own program: Flycast starts each NAOMI board through
     /// it ([`flycast_board`]).
     pub launcher: PathBuf,
@@ -84,6 +88,12 @@ pub const FLYCAST_PROGRAM: &str = "usr/bin/flycast";
 /// settings beside itself (`emu.cfg`, `data/`), so each game's runtime
 /// gets its own copy.
 pub const FLYCAST_EXE: &str = "flycast.exe";
+
+/// xemu's program inside [`Components::xemu`] on Linux.
+pub const XEMU_PROGRAM: &str = "usr/bin/xemu";
+
+/// xemu's program inside [`Components::xemu`] on Windows.
+pub const XEMU_EXE: &str = "xemu.exe";
 
 /// The variable that makes the launcher's program start a Flycast board
 /// (its value: Flycast's program) instead of the launcher.
@@ -132,7 +142,8 @@ pub const WAL_PORT: u16 = 38000;
 /// The size the game draws at: the setting, within what the game can do.
 /// SEGA Rally 3 draws at 1280x720 (the cabinet's) or 1920x1080
 /// (windowsarcadeloader's `WAL_EUROPAR_RESOLUTION`), nothing else;
-/// Daytona Championship USA always at its own 1920x1080.
+/// Daytona Championship USA always at its own 1920x1080; the 4:3 NAOMI and
+/// Chihiro cabinets scale cleanly inside the requested size in 4:3.
 pub fn game_size(game: &Game, s: &Settings) -> Size {
     let want = s.render.unwrap_or(game.native);
     match game.id {
@@ -140,8 +151,7 @@ pub fn game_size(game: &Game, s: &Settings) -> Size {
         GameId::SegaRally3 => Size::new(1280, 720),
         // its profile has no resolution setting: the game's own 1920x1080
         GameId::Daytona => game.native,
-        // only the cabinet's 640x480 was checked in Flycast
-        GameId::F355Challenge2 => game.native,
+        GameId::F355Challenge2 | GameId::OutRun2Sp | GameId::CrazyTaxi => fit(game.native, want),
         _ => want,
     }
 }
@@ -267,11 +277,75 @@ pub fn wal_layer(game: &Game, size: Size, ffb: u8, port: u16) -> String {
     out
 }
 
-/// The BIOS files a game needs from the player's BIOS folder (MAME's
-/// names): F355's NAOMI board BIOS.
-pub fn bios_names(game: &Game) -> &'static [&'static str] {
+/// One BIOS file a game needs from the player's BIOS folder, with accepted
+/// filenames (MAME and EmuDeck spellings).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BiosSpec {
+    pub key: &'static str,
+    pub names: &'static [&'static str],
+    pub optional: bool,
+}
+
+const F355_BIOS: &[BiosSpec] = &[BiosSpec {
+    key: "f355bios",
+    names: &["f355bios.zip"],
+    optional: false,
+}];
+
+const CHIHIRO_BIOS_NET: &[BiosSpec] = &[
+    BiosSpec {
+        key: "bios",
+        names: &["chihiro_xbox_bios.bin"],
+        optional: false,
+    },
+    BiosSpec {
+        key: "mediaboard",
+        names: &["fpr21042_m29w160et.bin", "fpr-23887_29lv160te.ic4"],
+        optional: false,
+    },
+    BiosSpec {
+        key: "ic10",
+        names: &["ic10_g24lc64", "ic10_g24lc64.bin"],
+        optional: false,
+    },
+    BiosSpec {
+        key: "ic11",
+        names: &["ic11_24lc024.bin"],
+        optional: false,
+    },
+    BiosSpec {
+        key: "pc20",
+        names: &["pc20_g24lc64.bin"],
+        optional: false,
+    },
+    BiosSpec {
+        key: "net_firmware",
+        names: &["ver1305.bin"],
+        optional: false,
+    },
+];
+
+const CHIHIRO_BIOS_OPT_NET: &[BiosSpec] = &[
+    CHIHIRO_BIOS_NET[0],
+    CHIHIRO_BIOS_NET[1],
+    CHIHIRO_BIOS_NET[2],
+    CHIHIRO_BIOS_NET[3],
+    CHIHIRO_BIOS_NET[4],
+    BiosSpec {
+        key: "net_firmware",
+        names: &["ver1305.bin"],
+        optional: true,
+    },
+];
+
+/// The BIOS files a game needs from the player's BIOS folder.
+pub fn bios_specs(game: &Game) -> &'static [BiosSpec] {
     match game.route {
-        Route::Flycast { .. } => &["f355bios.zip"],
+        Route::Flycast { .. } => F355_BIOS,
+        Route::Xemu { net_firmware: true } => CHIHIRO_BIOS_NET,
+        Route::Xemu {
+            net_firmware: false,
+        } => CHIHIRO_BIOS_OPT_NET,
         _ => &[],
     }
 }
@@ -330,9 +404,14 @@ pub fn board_env(board: Board) -> &'static [(&'static str, &'static str)] {
 /// Windows the window covers the screen itself when `fullscreen` (Flycast's
 /// borderless desktop size), and each board sends its log to `log_port`.
 pub fn flycast_cfg(size: Size, fullscreen: bool, log_port: Option<u16>) -> String {
+    let af = if size.h > 480 {
+        "rend.AnisotropicFiltering = 16\n"
+    } else {
+        ""
+    };
     let mut s = format!(
         "# Written by the launcher before every start.\n\
-         [config]\nrend.Resolution = {h}\n\
+         [config]\nrend.Resolution = {h}\n{af}\
          [window]\nfullscreen = {f}\nmaximized = no\nwidth = {w}\nheight = {h}\n",
         w = size.w,
         h = size.h,
@@ -344,6 +423,82 @@ pub fn flycast_cfg(size: Size, fullscreen: bool, log_port: Option<u16>) -> Strin
         ));
     }
     s
+}
+
+/// Formats `path` as a TOML basic string, safe for spaces, apostrophes and
+/// Windows backslashes.
+fn toml_path(path: &Path) -> String {
+    let raw = path.to_string_lossy();
+    let mut out = String::with_capacity(raw.len() + 2);
+    out.push('"');
+    for ch in raw.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
+}
+
+/// xemu's `xemu.toml` for a Sega Chihiro game (`Tovarichtch/xemu`).
+pub fn xemu_toml(
+    size: Size,
+    fullscreen: bool,
+    image: &Path,
+    bios: &[PathBuf],
+    s: &Settings,
+) -> String {
+    let scale = (size.h / 480).clamp(1, 10);
+    let wheel_rot = match s.steering_lock {
+        SteeringLock::Full => 0,
+        SteeringLock::Degrees(d) => u32::from(d),
+    };
+    let ffb_on = s.force_feedback > 0;
+    let ffb_strength = s.force_feedback;
+    let rom = |names: &[&str]| -> Option<&Path> {
+        bios.iter()
+            .find(|p| {
+                p.file_name()
+                    .and_then(|n| n.to_str())
+                    .is_some_and(|n| names.iter().any(|want| n.eq_ignore_ascii_case(want)))
+            })
+            .map(PathBuf::as_path)
+    };
+    let mut out = format!(
+        "# Written by the launcher before every start.\n\
+         [general]\nshow_welcome = false\n\
+         [general.updates]\ncheck = false\n\
+         [display]\nrenderer = 'OPENGL'\n\
+         [display.quality]\nsurface_scale = {scale}\n\
+         [display.window]\nstartup_size = '{w}x{h}'\nfullscreen_on_startup = {fullscreen}\n\
+         [sys]\ndefault_machine = 'chihiro'\nlast_machine = 'chihiro'\nmem_limit = '128'\n\
+         [sys.files]\ndvd_path = {img}\n\
+         [chihiro.settings]\nfreeplay = true\nregion = 'ex'\ndimm_size = 'auto'\n\
+         board_type = 'auto'\nforce_feedback = {ffb_on}\nffb_strength = {ffb_strength}\n\
+         wheel_rotation = {wheel_rot}\nwheel_autocenter = true\n\
+         [chihiro.roms]\n",
+        w = size.w,
+        h = size.h,
+        img = toml_path(image),
+    );
+    for (key, names) in [
+        ("bios_path", CHIHIRO_BIOS_NET[0].names),
+        ("mediaboard_path", CHIHIRO_BIOS_NET[1].names),
+        ("ic10_path", CHIHIRO_BIOS_NET[2].names),
+        ("ic11_path", CHIHIRO_BIOS_NET[3].names),
+        ("pc20_path", CHIHIRO_BIOS_NET[4].names),
+        ("net_firmware_path", CHIHIRO_BIOS_NET[5].names),
+    ] {
+        if let Some(p) = rom(names) {
+            out.push_str(&format!("{key} = {}\n", toml_path(p)));
+        }
+    }
+    out
 }
 
 /// Why a game can't be planned yet (a route still being brought up).
@@ -426,11 +581,15 @@ pub fn plan(
                     "--input-pipe".into(),
                 ],
                 // winetricks (run by windowsarcadeloader) takes the DirectX
-                // redistributable for `xact` from the package, not the network
+                // redistributable for `xact` from the package, not the network;
+                // DISABLE_GAMESCOPE_WSI=1 avoids a gamescope 3.17 SIGSEGV on
+                // NVIDIA + Wayland when 32-bit DXVK creates a swapchain
+                // (SyncobjFdToHandle EINVAL / vkImportSemaphoreFdKHR -3).
                 env: match host {
-                    Host::Linux => {
-                        vec![("W_CACHE".into(), c.directx.to_string_lossy().into_owned())]
-                    }
+                    Host::Linux => vec![
+                        ("W_CACHE".into(), c.directx.to_string_lossy().into_owned()),
+                        ("DISABLE_GAMESCOPE_WSI".into(), "1".into()),
+                    ],
                     Host::Windows => vec![],
                 },
                 cwd: root.clone(),
@@ -494,8 +653,51 @@ pub fn plan(
                 cwd: rt.clone(),
             }
         }
-        Route::Cxbx => {
-            return Err(format!("{} can't be started yet.", game.title));
+        Route::Xemu { .. } => {
+            let xemu_dir = rt.join("xemu");
+            let cfg_path = xemu_dir.join("xemu.toml");
+            let image = rt.join(format!("{}.bin", game.slug));
+            let fullscreen = host == Host::Windows && s.fullscreen;
+            files.push((
+                cfg_path.clone(),
+                xemu_toml(size, fullscreen, &image, &places.bios, s),
+            ));
+            let program = match host {
+                Host::Linux => c.xemu.join(XEMU_PROGRAM),
+                Host::Windows => {
+                    // xemu enters portable mode when xemu.toml sits beside xemu.exe,
+                    // keeping saves, EEPROM and shaders inside this game's runtime.
+                    let local = xemu_dir.join(XEMU_EXE);
+                    links.push((local.clone(), c.xemu.join(XEMU_EXE)));
+                    local
+                }
+            };
+            let env = match host {
+                Host::Linux => vec![
+                    (
+                        "XDG_DATA_HOME".into(),
+                        xemu_dir.join("data").to_string_lossy().into_owned(),
+                    ),
+                    (
+                        "XDG_CONFIG_HOME".into(),
+                        xemu_dir.join("config").to_string_lossy().into_owned(),
+                    ),
+                    (
+                        "XDG_CACHE_HOME".into(),
+                        xemu_dir.join("cache").to_string_lossy().into_owned(),
+                    ),
+                ],
+                Host::Windows => vec![],
+            };
+            Command {
+                program,
+                args: vec![
+                    "-config_path".into(),
+                    cfg_path.to_string_lossy().into_owned(),
+                ],
+                env,
+                cwd: rt.clone(),
+            }
         }
     };
     // F355's linked boards: restart a hung boot, alike cores, stop once saved
@@ -538,6 +740,7 @@ mod tests {
             winetricks: "/c/winetricks".into(),
             directx: "/c/directx".into(),
             flycast: "/c/flycast".into(),
+            xemu: "/c/xemu".into(),
             launcher: "/pkg/sega-launcher".into(),
         }
     }
@@ -603,11 +806,17 @@ mod tests {
             p.links
                 .contains(&(runners.join("winetricks"), "/c/winetricks".into()))
         );
-        // winetricks finds the bundled DirectX redistributable, offline
+        // winetricks finds the bundled DirectX redistributable, offline, and
+        // gamescope's WSI layer is disabled so 32-bit DXVK doesn't crash gamescope on NVIDIA
         assert!(
             p.game
                 .env
                 .contains(&("W_CACHE".into(), "/c/directx".into()))
+        );
+        assert!(
+            p.game
+                .env
+                .contains(&("DISABLE_GAMESCOPE_WSI".into(), "1".into()))
         );
         let w = plan_for(
             GameId::SegaRally3,
@@ -615,7 +824,12 @@ mod tests {
             false,
             Host::Windows,
         );
-        assert!(w.game.env.iter().all(|(k, _)| k != "W_CACHE"));
+        assert!(
+            w.game
+                .env
+                .iter()
+                .all(|(k, _)| k != "W_CACHE" && k != "DISABLE_GAMESCOPE_WSI")
+        );
     }
 
     #[test]
@@ -777,12 +991,13 @@ mod tests {
             rt.join("flycast/data/flycast/f355bios.zip"),
             "/bios/dc/f355bios.zip".into()
         )));
-        // the cabinet's size whatever the setting: only 640x480 was checked
-        assert_eq!(p.game_size, Size::new(640, 480));
-        assert_eq!(arg_after(&p.gamescope, "-w").as_deref(), Some("640"));
+        // 4:3 scaled inside the requested 4K render size
+        assert_eq!(p.game_size, Size::new(2880, 2160));
+        assert_eq!(arg_after(&p.gamescope, "-w").as_deref(), Some("2880"));
         let cfg = file(&p, "flycast/config/flycast/emu.cfg");
-        assert!(cfg.contains("rend.Resolution = 480\n"), "{cfg}");
-        assert!(cfg.contains("width = 640\nheight = 480\n"), "{cfg}");
+        assert!(cfg.contains("rend.Resolution = 2160\n"), "{cfg}");
+        assert!(cfg.contains("rend.AnisotropicFiltering = 16\n"), "{cfg}");
+        assert!(cfg.contains("width = 2880\nheight = 2160\n"), "{cfg}");
         assert_eq!(p.boot_hang, Some(FLYCAST_BOOT_HANG));
         assert!(p.one_cache);
         assert_eq!(p.stopped, Some(FLYCAST_SAVED));
@@ -887,10 +1102,14 @@ mod tests {
     }
 
     #[test]
-    fn the_naomi_bios_is_looked_for_where_emudeck_and_mame_keep_it() {
+    fn the_naomi_and_chihiro_bios_are_looked_for_where_emudeck_and_mame_keep_it() {
         let g = game(GameId::F355Challenge2);
-        assert_eq!(bios_names(g), ["f355bios.zip"]);
-        assert!(bios_names(game(GameId::SegaRally3)).is_empty());
+        assert_eq!(bios_specs(g).len(), 1);
+        assert_eq!(bios_specs(g)[0].names, ["f355bios.zip"]);
+        assert!(bios_specs(game(GameId::SegaRally3)).is_empty());
+        assert_eq!(bios_specs(game(GameId::OutRun2Sp)).len(), 6);
+        assert!(!bios_specs(game(GameId::OutRun2Sp))[5].optional);
+        assert!(bios_specs(game(GameId::CrazyTaxi))[5].optional);
         let at = bios_places(Some(Path::new("/emu/bios")), Path::new("/roms/tp/f355twn2"));
         let want: Vec<PathBuf> = [
             "/emu/bios",
@@ -907,5 +1126,46 @@ mod tests {
             bios_places(None, Path::new("/g")),
             [PathBuf::from("/g"), PathBuf::from("/")]
         );
+    }
+
+    #[test]
+    fn chihiro_uses_xemu_with_fatx_image_and_bios_roms() {
+        let g = game(GameId::OutRun2Sp);
+        let mut pl = places(g.slug);
+        pl.bios = vec![
+            "/bios/chihiro/chihiro_xbox_bios.bin".into(),
+            "/bios/chihiro/fpr21042_m29w160et.bin".into(),
+            "/bios/chihiro/ic10_g24lc64".into(),
+            "/bios/chihiro/ic11_24lc024.bin".into(),
+            "/bios/chihiro/pc20_g24lc64.bin".into(),
+            "/bios/chihiro/ver1305.bin".into(),
+        ];
+        let s = Settings {
+            render: Some(Size::new(3840, 2160)),
+            force_feedback: 120,
+            ..Settings::default()
+        };
+        let p = plan(g, &pl, &comps(), &s, "eth0", false, Host::Linux).unwrap();
+        assert_eq!(p.game.program, PathBuf::from("/c/xemu/usr/bin/xemu"));
+        assert_eq!(p.game_size, Size::new(2880, 2160));
+        let toml = file(&p, "xemu/xemu.toml");
+        assert!(toml.contains("default_machine = 'chihiro'"), "{toml}");
+        assert!(toml.contains("surface_scale = 4\n"), "{toml}");
+        assert!(toml.contains("startup_size = '2880x2160'"), "{toml}");
+        assert!(toml.contains("fullscreen_on_startup = false"), "{toml}");
+        assert!(toml.contains("ffb_strength = 120"), "{toml}");
+        assert!(toml.contains("wheel_rotation = 270"), "{toml}");
+        assert!(
+            toml.contains("net_firmware_path = \"/bios/chihiro/ver1305.bin\""),
+            "{toml}"
+        );
+        let w = plan(g, &pl, &comps(), &s, "eth0", false, Host::Windows).unwrap();
+        assert_eq!(w.game.program, pl.runtime.join("xemu/xemu.exe"));
+        assert!(
+            w.links
+                .contains(&(pl.runtime.join("xemu/xemu.exe"), "/c/xemu/xemu.exe".into()))
+        );
+        assert!(file(&w, "xemu/xemu.toml").contains("fullscreen_on_startup = true"));
+        assert!(w.gamescope.is_empty());
     }
 }

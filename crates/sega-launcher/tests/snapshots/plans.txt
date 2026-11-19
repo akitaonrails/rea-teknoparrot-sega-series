@@ -176,22 +176,281 @@ P1_Gas = GC0_AXIS_RIGHTTRIGGER
 P1_Brake = GC0_AXIS_LEFTTRIGGER
 
 == Linux or2sp original
-not yet: OutRun 2 SP Special Tours can't be started yet.
+size 640x480
+run /c/xemu/usr/bin/xemu -config_path /d/runtimes/or2sp/xemu/xemu.toml
+cwd /d/runtimes/or2sp
+env XDG_DATA_HOME=/d/runtimes/or2sp/xemu/data
+env XDG_CONFIG_HOME=/d/runtimes/or2sp/xemu/config
+env XDG_CACHE_HOME=/d/runtimes/or2sp/xemu/cache
+gamescope -w 640 -h 480 -W 2560 -H 1440 -r 60 -F linear -f
+input None
+file /d/runtimes/or2sp/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 1
+[display.window]
+startup_size = '640x480'
+fullscreen_on_startup = false
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Linux or2sp recommended
-not yet: OutRun 2 SP Special Tours can't be started yet.
+size 1920x1440
+run /c/xemu/usr/bin/xemu -config_path /d/runtimes/or2sp/xemu/xemu.toml
+cwd /d/runtimes/or2sp
+env XDG_DATA_HOME=/d/runtimes/or2sp/xemu/data
+env XDG_CONFIG_HOME=/d/runtimes/or2sp/xemu/config
+env XDG_CACHE_HOME=/d/runtimes/or2sp/xemu/cache
+gamescope -w 1920 -h 1440 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
+input None
+file /d/runtimes/or2sp/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 3
+[display.window]
+startup_size = '1920x1440'
+fullscreen_on_startup = false
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Linux or2sp steam_deck
-not yet: OutRun 2 SP Special Tours can't be started yet.
+size 1066x799
+run /c/xemu/usr/bin/xemu -config_path /d/runtimes/or2sp/xemu/xemu.toml
+cwd /d/runtimes/or2sp
+env XDG_DATA_HOME=/d/runtimes/or2sp/xemu/data
+env XDG_CONFIG_HOME=/d/runtimes/or2sp/xemu/config
+env XDG_CACHE_HOME=/d/runtimes/or2sp/xemu/cache
+gamescope -w 1066 -h 799 -W 1280 -H 800 -r 60 -F linear -f
+input None
+file /d/runtimes/or2sp/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 1
+[display.window]
+startup_size = '1066x799'
+fullscreen_on_startup = false
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Linux cthr original
-not yet: Crazy Taxi High Roller can't be started yet.
+size 640x480
+run /c/xemu/usr/bin/xemu -config_path /d/runtimes/cthr/xemu/xemu.toml
+cwd /d/runtimes/cthr
+env XDG_DATA_HOME=/d/runtimes/cthr/xemu/data
+env XDG_CONFIG_HOME=/d/runtimes/cthr/xemu/config
+env XDG_CACHE_HOME=/d/runtimes/cthr/xemu/cache
+gamescope -w 640 -h 480 -W 2560 -H 1440 -r 60 -F linear -f
+input None
+file /d/runtimes/cthr/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 1
+[display.window]
+startup_size = '640x480'
+fullscreen_on_startup = false
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Linux cthr recommended
-not yet: Crazy Taxi High Roller can't be started yet.
+size 1920x1440
+run /c/xemu/usr/bin/xemu -config_path /d/runtimes/cthr/xemu/xemu.toml
+cwd /d/runtimes/cthr
+env XDG_DATA_HOME=/d/runtimes/cthr/xemu/data
+env XDG_CONFIG_HOME=/d/runtimes/cthr/xemu/config
+env XDG_CACHE_HOME=/d/runtimes/cthr/xemu/cache
+gamescope -w 1920 -h 1440 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
+input None
+file /d/runtimes/cthr/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 3
+[display.window]
+startup_size = '1920x1440'
+fullscreen_on_startup = false
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Linux cthr steam_deck
-not yet: Crazy Taxi High Roller can't be started yet.
+size 1066x799
+run /c/xemu/usr/bin/xemu -config_path /d/runtimes/cthr/xemu/xemu.toml
+cwd /d/runtimes/cthr
+env XDG_DATA_HOME=/d/runtimes/cthr/xemu/data
+env XDG_CONFIG_HOME=/d/runtimes/cthr/xemu/config
+env XDG_CACHE_HOME=/d/runtimes/cthr/xemu/cache
+gamescope -w 1066 -h 799 -W 1280 -H 800 -r 60 -F linear -f
+input None
+file /d/runtimes/cthr/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 1
+[display.window]
+startup_size = '1066x799'
+fullscreen_on_startup = false
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Linux sr3 original
 size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
+env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 2560 -H 1440 -r 60 -F linear -f
 input Some(Sequential)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -220,6 +479,7 @@ size 1920x1080
 run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
+env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
 input Some(Sequential)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -248,6 +508,7 @@ size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
+env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 1280 -H 800 -r 60 -F linear -f
 input Some(Sequential)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -276,6 +537,7 @@ size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
+env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 2560 -H 1440 -r 60 -F linear -f
 input Some(HPattern4)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -302,6 +564,7 @@ size 2560x1440
 run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
+env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 2560 -h 1440 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
 input Some(HPattern4)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -328,6 +591,7 @@ size 1280x720
 run /c/wal/arcade-launcher run /d/runtimes/src --root /d/wal --profile /d/wal/layer-src.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
+env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1280 -h 720 -W 1280 -H 800 -r 60 -F linear -f
 input Some(HPattern4)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -354,6 +618,7 @@ size 1920x1080
 run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
+env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 -r 60 -F linear -f
 input Some(Shell)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -380,6 +645,7 @@ size 1920x1080
 run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
+env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
 input Some(Shell)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -406,6 +672,7 @@ size 1920x1080
 run /c/wal/arcade-launcher run /d/runtimes/dcusa --root /d/wal --profile /d/wal/layer-dcusa.yaml --input-pipe
 cwd /d/wal
 env W_CACHE=/c/directx
+env DISABLE_GAMESCOPE_WSI=1
 gamescope -w 1920 -h 1080 -W 1280 -H 800 -r 60 -F linear -f
 input Some(Shell)
 link /d/wal/systemprofiles -> /c/wal/systemprofiles
@@ -452,13 +719,13 @@ width = 640
 height = 480
 
 == Linux f355 recommended
-size 640x480
+size 1920x1440
 run /pkg/sega-launcher /d/runtimes/f355/f355twn2.zip
 cwd /d/runtimes/f355
 env SEGA_FLYCAST=/c/flycast/usr/bin/flycast
 env XDG_CONFIG_HOME=/d/runtimes/f355/flycast/config
 env XDG_DATA_HOME=/d/runtimes/f355/flycast/data
-gamescope -w 640 -h 480 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
+gamescope -w 1920 -h 1440 -W 2560 -H 1440 -r 60 -F fsr --sharpness 5 -f
 input None
 restart on "TRAP #50"
 one cache domain
@@ -468,21 +735,22 @@ link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/config/flycast/emu.cfg
 # Written by the launcher before every start.
 [config]
-rend.Resolution = 480
+rend.Resolution = 1440
+rend.AnisotropicFiltering = 16
 [window]
 fullscreen = no
 maximized = no
-width = 640
-height = 480
+width = 1920
+height = 1440
 
 == Linux f355 steam_deck
-size 640x480
+size 1066x799
 run /pkg/sega-launcher /d/runtimes/f355/f355twn2.zip
 cwd /d/runtimes/f355
 env SEGA_FLYCAST=/c/flycast/usr/bin/flycast
 env XDG_CONFIG_HOME=/d/runtimes/f355/flycast/config
 env XDG_DATA_HOME=/d/runtimes/f355/flycast/data
-gamescope -w 640 -h 480 -W 1280 -H 800 -r 60 -F linear -f
+gamescope -w 1066 -h 799 -W 1280 -H 800 -r 60 -F linear -f
 input None
 restart on "TRAP #50"
 one cache domain
@@ -492,12 +760,13 @@ link /d/runtimes/f355/flycast/data/flycast/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/config/flycast/emu.cfg
 # Written by the launcher before every start.
 [config]
-rend.Resolution = 480
+rend.Resolution = 799
+rend.AnisotropicFiltering = 16
 [window]
 fullscreen = no
 maximized = no
-width = 640
-height = 480
+width = 1066
+height = 799
 
 == Windows or2sdx original
 size 800x480
@@ -677,17 +946,263 @@ P1_Gas = GC0_AXIS_RIGHTTRIGGER
 P1_Brake = GC0_AXIS_LEFTTRIGGER
 
 == Windows or2sp original
-not yet: OutRun 2 SP Special Tours can't be started yet.
+size 640x480
+run /d/runtimes/or2sp/xemu/xemu.exe -config_path /d/runtimes/or2sp/xemu/xemu.toml
+cwd /d/runtimes/or2sp
+gamescope 
+input None
+link /d/runtimes/or2sp/xemu/xemu.exe -> /c/xemu/xemu.exe
+file /d/runtimes/or2sp/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 1
+[display.window]
+startup_size = '640x480'
+fullscreen_on_startup = true
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Windows or2sp recommended
-not yet: OutRun 2 SP Special Tours can't be started yet.
+size 1920x1440
+run /d/runtimes/or2sp/xemu/xemu.exe -config_path /d/runtimes/or2sp/xemu/xemu.toml
+cwd /d/runtimes/or2sp
+gamescope 
+input None
+link /d/runtimes/or2sp/xemu/xemu.exe -> /c/xemu/xemu.exe
+file /d/runtimes/or2sp/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 3
+[display.window]
+startup_size = '1920x1440'
+fullscreen_on_startup = true
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Windows or2sp steam_deck
-not yet: OutRun 2 SP Special Tours can't be started yet.
+size 1066x799
+run /d/runtimes/or2sp/xemu/xemu.exe -config_path /d/runtimes/or2sp/xemu/xemu.toml
+cwd /d/runtimes/or2sp
+gamescope 
+input None
+link /d/runtimes/or2sp/xemu/xemu.exe -> /c/xemu/xemu.exe
+file /d/runtimes/or2sp/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 1
+[display.window]
+startup_size = '1066x799'
+fullscreen_on_startup = true
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Windows cthr original
-not yet: Crazy Taxi High Roller can't be started yet.
+size 640x480
+run /d/runtimes/cthr/xemu/xemu.exe -config_path /d/runtimes/cthr/xemu/xemu.toml
+cwd /d/runtimes/cthr
+gamescope 
+input None
+link /d/runtimes/cthr/xemu/xemu.exe -> /c/xemu/xemu.exe
+file /d/runtimes/cthr/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 1
+[display.window]
+startup_size = '640x480'
+fullscreen_on_startup = true
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Windows cthr recommended
-not yet: Crazy Taxi High Roller can't be started yet.
+size 1920x1440
+run /d/runtimes/cthr/xemu/xemu.exe -config_path /d/runtimes/cthr/xemu/xemu.toml
+cwd /d/runtimes/cthr
+gamescope 
+input None
+link /d/runtimes/cthr/xemu/xemu.exe -> /c/xemu/xemu.exe
+file /d/runtimes/cthr/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 3
+[display.window]
+startup_size = '1920x1440'
+fullscreen_on_startup = true
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Windows cthr steam_deck
-not yet: Crazy Taxi High Roller can't be started yet.
+size 1066x799
+run /d/runtimes/cthr/xemu/xemu.exe -config_path /d/runtimes/cthr/xemu/xemu.toml
+cwd /d/runtimes/cthr
+gamescope 
+input None
+link /d/runtimes/cthr/xemu/xemu.exe -> /c/xemu/xemu.exe
+file /d/runtimes/cthr/xemu/xemu.toml
+# Written by the launcher before every start.
+[general]
+show_welcome = false
+[general.updates]
+check = false
+[display]
+renderer = 'OPENGL'
+[display.quality]
+surface_scale = 1
+[display.window]
+startup_size = '1066x799'
+fullscreen_on_startup = true
+[sys]
+default_machine = 'chihiro'
+last_machine = 'chihiro'
+mem_limit = '128'
+[sys.files]
+dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.settings]
+freeplay = true
+region = 'ex'
+dimm_size = 'auto'
+board_type = 'auto'
+force_feedback = true
+ffb_strength = 100
+wheel_rotation = 270
+wheel_autocenter = true
+[chihiro.roms]
+bios_path = "/bios/chihiro_xbox_bios.bin"
+mediaboard_path = "/bios/fpr21042_m29w160et.bin"
+ic10_path = "/bios/ic10_g24lc64"
+ic11_path = "/bios/ic11_24lc024.bin"
+pc20_path = "/bios/pc20_g24lc64.bin"
+net_firmware_path = "/bios/ver1305.bin"
+
 == Windows sr3 original
 size 1280x720
 run /c/wal/arcade-launcher.exe run /d/runtimes/sr3 --root /d/wal --profile /d/wal/layer-sr3.yaml --input-pipe
@@ -929,7 +1444,7 @@ LogToFile = no
 LogServer = 127.0.0.1:50123
 
 == Windows f355 recommended
-size 640x480
+size 1920x1440
 run /d/runtimes/f355/flycast/flycast.exe /d/runtimes/f355/f355twn2.zip
 cwd /d/runtimes/f355
 env SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
@@ -944,19 +1459,20 @@ link /d/runtimes/f355/flycast/data/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/emu.cfg
 # Written by the launcher before every start.
 [config]
-rend.Resolution = 480
+rend.Resolution = 1440
+rend.AnisotropicFiltering = 16
 [window]
 fullscreen = yes
 maximized = no
-width = 640
-height = 480
+width = 1920
+height = 1440
 [log]
 LogToConsole = no
 LogToFile = no
 LogServer = 127.0.0.1:50123
 
 == Windows f355 steam_deck
-size 640x480
+size 1066x799
 run /d/runtimes/f355/flycast/flycast.exe /d/runtimes/f355/f355twn2.zip
 cwd /d/runtimes/f355
 env SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
@@ -971,12 +1487,13 @@ link /d/runtimes/f355/flycast/data/f355bios.zip -> /bios/f355bios.zip
 file /d/runtimes/f355/flycast/emu.cfg
 # Written by the launcher before every start.
 [config]
-rend.Resolution = 480
+rend.Resolution = 799
+rend.AnisotropicFiltering = 16
 [window]
 fullscreen = yes
 maximized = no
-width = 640
-height = 480
+width = 1066
+height = 799
 [log]
 LogToConsole = no
 LogToFile = no

@@ -6,8 +6,22 @@
 ["gamescope", "-w", "800", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "/c/lindbergh/lindbergh", "-c", "/d/runtimes/or2sdx/lindbergh.ini", "-o", "/d/runtimes/or2sdx/controls.ini", "-g", "/d/runtimes/or2sdx/Jennifer"]
 == or2sdx headless true bwrap true cpus Some("8,9,10,11")
 ["gamescope", "-w", "800", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind-try", "/games", "/games", "--ro-bind-try", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/lindbergh/lindbergh", "-c", "/d/runtimes/or2sdx/lindbergh.ini", "-o", "/d/runtimes/or2sdx/controls.ini", "-g", "/d/runtimes/or2sdx/Jennifer"]
-== or2sp: OutRun 2 SP Special Tours can't be started yet.
-== cthr: Crazy Taxi High Roller can't be started yet.
+== or2sp headless false bwrap false cpus None
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "/c/xemu/usr/bin/xemu", "-config_path", "/d/runtimes/or2sp/xemu/xemu.toml"]
+== or2sp headless false bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind-try", "/games", "/games", "--ro-bind-try", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/xemu/usr/bin/xemu", "-config_path", "/d/runtimes/or2sp/xemu/xemu.toml"]
+== or2sp headless true bwrap false cpus None
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "/c/xemu/usr/bin/xemu", "-config_path", "/d/runtimes/or2sp/xemu/xemu.toml"]
+== or2sp headless true bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind-try", "/games", "/games", "--ro-bind-try", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/xemu/usr/bin/xemu", "-config_path", "/d/runtimes/or2sp/xemu/xemu.toml"]
+== cthr headless false bwrap false cpus None
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "/c/xemu/usr/bin/xemu", "-config_path", "/d/runtimes/cthr/xemu/xemu.toml"]
+== cthr headless false bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind-try", "/games", "/games", "--ro-bind-try", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/xemu/usr/bin/xemu", "-config_path", "/d/runtimes/cthr/xemu/xemu.toml"]
+== cthr headless true bwrap false cpus None
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "/c/xemu/usr/bin/xemu", "-config_path", "/d/runtimes/cthr/xemu/xemu.toml"]
+== cthr headless true bwrap true cpus Some("8,9,10,11")
+["gamescope", "-w", "640", "-h", "480", "-W", "3840", "-H", "2160", "-r", "60", "-F", "linear", "--backend", "headless", "--", "bwrap", "--dev-bind", "/", "/", "--ro-bind-try", "/games", "/games", "--ro-bind-try", "/more games", "/more games", "taskset", "-c", "8,9,10,11", "/c/xemu/usr/bin/xemu", "-config_path", "/d/runtimes/cthr/xemu/xemu.toml"]
 == sr3 headless false bwrap false cpus None
 ["gamescope", "-w", "1280", "-h", "720", "-W", "3840", "-H", "2160", "-r", "60", "-F", "fsr", "--sharpness", "5", "-f", "--", "/c/wal/arcade-launcher", "run", "/d/runtimes/sr3", "--root", "/d/wal", "--profile", "/d/wal/layer-sr3.yaml", "--input-pipe"]
 == sr3 headless false bwrap true cpus Some("8,9,10,11")

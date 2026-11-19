@@ -53,8 +53,7 @@ fn skip(route: Route, name: &str) -> bool {
             name.ends_with(".windowsloader")
                 || matches!(name, "AMFS" | "amfs" | "AppData" | "Y" | "WindowsLoader")
         }
-        // TeknoParrot's own settings file, of no use to Cxbx
-        Route::Cxbx => name.eq_ignore_ascii_case("teknoparrot.ini"),
+        Route::Xemu { .. } => name.eq_ignore_ascii_case("teknoparrot.ini"),
         Route::Flycast { .. } => false,
     }
 }
@@ -114,21 +113,25 @@ pub fn plan(
     ls: &dyn Fn(&Path) -> io::Result<Vec<Item>>,
 ) -> io::Result<Vec<Op>> {
     let src = dump.join(game.source_folder());
-    let Route::Flycast { set } = game.route else {
-        return linkfarm::plan(&src, rt, &Sega(game), ls);
-    };
-    let files = ls(&src)?
-        .into_iter()
-        .filter(|it| !it.dir && !skip(game.route, &it.name))
-        .map(|it| src.join(it.name))
-        .collect();
-    Ok(vec![
-        Op::Dir(rt.to_path_buf()),
-        Op::Archive {
-            files,
-            to: rt.join(format!("{set}.zip")),
-        },
-    ])
+    match game.route {
+        Route::Flycast { set } => {
+            let files = ls(&src)?
+                .into_iter()
+                .filter(|it| !it.dir && !skip(game.route, &it.name))
+                .map(|it| src.join(it.name))
+                .collect();
+            Ok(vec![
+                Op::Dir(rt.to_path_buf()),
+                Op::Archive {
+                    files,
+                    to: rt.join(format!("{set}.zip")),
+                },
+            ])
+        }
+        // Chihiro dumps are packed into a FATX netboot image (`fatx::pack_dir`).
+        Route::Xemu { .. } => Ok(vec![Op::Dir(rt.to_path_buf())]),
+        _ => linkfarm::plan(&src, rt, &Sega(game), ls),
+    }
 }
 
 #[cfg(test)]

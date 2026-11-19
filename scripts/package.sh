@@ -48,7 +48,7 @@ if [ "$os" = linux ]; then
 	bin=$root/dist/linux
 	[ -f "$bin/sega-launcher" ] || die "missing $bin/sega-launcher - build it first"
 	[ -f "$bin/lib/libSDL2-2.0.so.0" ] || die "missing $bin/lib/libSDL2-2.0.so.0"
-	"$root/scripts/build-components.sh" "$comps" lindbergh wal runner winetricks directx flycast assets
+	"$root/scripts/build-components.sh" "$comps" lindbergh wal runner winetricks directx flycast xemu assets
 	install -m 755 "$bin/sega-launcher" "$out/sega-launcher"
 	mkdir -p "$out/lib"
 	cp "$bin"/lib/* "$out/lib/"
@@ -63,19 +63,23 @@ if [ "$os" = linux ]; then
 	cp -r "$comps/directx" "$out/components/directx"
 	cp -r "$comps/flycast" "$out/components/flycast"
 	mv "$out/components/flycast/LICENSE" "$out/licenses/Flycast-LICENSE.txt"
+	cp -r "$comps/xemu" "$out/components/xemu"
+	mv "$out/components/xemu/LICENSE" "$out/licenses/xemu-LICENSE.txt"
 else
 	exe=${CARGO_TARGET_DIR:-$root/target}/x86_64-pc-windows-gnu/release/sega-launcher.exe
 	[ -f "$exe" ] || die "missing $exe - run sdk/packaging/build-launcher.sh windows sega-launcher"
 	[ -f "$root/dist/sdl2/SDL2.dll" ] || die "missing dist/sdl2/SDL2.dll"
-	"$root/scripts/build-components.sh" "$comps" wal flycast-win assets
+	"$root/scripts/build-components.sh" "$comps" wal flycast-win xemu-win assets
 	cp "$exe" "$root/dist/sdl2/SDL2.dll" "$out/"
 	for l in "$root"/dist/sdl2/SDL2-*/LICENSE.txt; do
 		cp "$l" "$out/licenses/SDL2-LICENSE.txt"
 	done
 	copy_wal arcade-launcher.exe
-	mkdir -p "$out/components/flycast"
+	mkdir -p "$out/components/flycast" "$out/components/xemu"
 	cp "$comps/flycast-win/flycast.exe" "$out/components/flycast/"
 	cp "$comps/flycast-win/LICENSE" "$out/licenses/Flycast-LICENSE.txt"
+	cp "$comps/xemu-win/xemu.exe" "$out/components/xemu/"
+	cp "$comps/xemu-win/LICENSE" "$out/licenses/xemu-LICENSE.txt"
 fi
 
 cp "$root/packaging/README-player.txt" "$out/README.txt"

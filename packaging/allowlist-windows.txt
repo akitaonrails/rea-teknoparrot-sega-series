@@ -8,3 +8,4 @@ components/wal/arcade-launcher.exe
 components/wal/payloads/*
 components/wal/systemprofiles/*
 components/flycast/flycast.exe
+components/xemu/xemu.exe
