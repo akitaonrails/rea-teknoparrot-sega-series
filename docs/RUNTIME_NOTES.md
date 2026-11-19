@@ -127,7 +127,7 @@ The launcher packs each extracted TeknoParrot Chihiro dump into a FATX `.bin` ne
 
 | Run | Result |
 |---|---|
-| Crazy Taxi High Roller (`--play cthr --render 3840x2160 --headless --seconds 42`) | FATX `.bin` packed (397.5 MiB), Type-1 board auto-selected, SEGABOOT Ver 2.13.0 -> Hitmaker / game boot, `surface_scale = 4`, `crtaxihr.sav` flushed on SIGTERM; exit 0, 0 leftovers. |
+| Crazy Taxi High Roller (`--play cthr --render 3840x2160 --headless --seconds 42`) | FATX `.bin` packed (397.5 MiB), Type-1 board auto-selected, SEGABOOT Ver 2.13.0 -> Hitmaker / game boot, `surface_scale = 4`, `crtaxihr.sav` flushed on SIGTERM; exit 0, 0 leftovers. Note: the short `.mvs` attract movies (`Media/Movies/movie_*.mvs`) render black with audio and "FREE PLAY" on screen; 3D attract mode and gameplay render normally (verified in both OpenGL and Vulkan at 4x scale). |
 | OutRun 2 SP Special Tours (`--play or2sp --render 3840x2160 --headless --seconds 46`) | FATX `.bin` packed (481.3 MiB), Type-3 (ASIC) board auto-selected with `ver1305.bin` (13.05), V850 booted, SEGABOOT -> game boot, `surface_scale = 4`, `outr2st.sav` flushed on SIGTERM; exit 0, 0 leftovers. |
 
 ## Gamescope WSI on NVIDIA + Wayland & F355 at 4K (2026-11-19)

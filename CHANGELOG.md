@@ -6,6 +6,17 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+### Fixed
+
+- Chihiro games (OutRun 2 SP Special Tours and Crazy Taxi High Roller) now
+  pre-bind your gamepad in `xemu.toml` (`[chihiro.jvs]` on Port 1: Start,
+  Back for coin, left stick to steer, triggers for gas/brake, shoulders for
+  gears / drive-reverse, Y for view change, A for jump) instead of leaving
+  xemu's keyboard-only JVS defaults.
+- `xemu.toml` now writes a valid `display.window.startup_size` enum value
+  (e.g. `2560x1920` for 4K) instead of `2880x2160`, clearing xemu's startup
+  config error.
+
 ## 0.4.0 - 2026-11-19
 
 ### Added

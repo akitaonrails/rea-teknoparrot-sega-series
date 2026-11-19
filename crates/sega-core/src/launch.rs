@@ -445,7 +445,28 @@ fn toml_path(path: &Path) -> String {
     out
 }
 
+/// xemu's `display.window.startup_size` is an enum of fixed sizes; pick the
+/// closest 4:3 / 16:9 entry that fits `size`.
+fn xemu_startup_size(size: Size) -> &'static str {
+    if size.h >= 1920 {
+        "2560x1920"
+    } else if size.h >= 1440 {
+        "2560x1440"
+    } else if size.h >= 1080 {
+        "1920x1080"
+    } else if size.h >= 960 {
+        "1280x960"
+    } else {
+        "640x480"
+    }
+}
+
 /// xemu's `xemu.toml` for a Sega Chihiro game (`Tovarichtch/xemu`).
+///
+/// Chihiro JVS defaults to keyboard scancodes in xemu; bind the standard SDL
+/// gamepad on port 1 (`CHIHIRO_GAMEPAD_BUTTON_BASE = 2001`,
+/// `CHIHIRO_GAMEPAD_AXIS_BASE = 3001`) so controllers work immediately
+/// without opening xemu's menus.
 pub fn xemu_toml(
     size: Size,
     fullscreen: bool,
@@ -454,6 +475,7 @@ pub fn xemu_toml(
     s: &Settings,
 ) -> String {
     let scale = (size.h / 480).clamp(1, 10);
+    let startup = xemu_startup_size(size);
     let wheel_rot = match s.steering_lock {
         SteeringLock::Full => 0,
         SteeringLock::Degrees(d) => u32::from(d),
@@ -473,17 +495,23 @@ pub fn xemu_toml(
         "# Written by the launcher before every start.\n\
          [general]\nshow_welcome = false\n\
          [general.updates]\ncheck = false\n\
+         [input]\nauto_bind = true\n\
          [display]\nrenderer = 'OPENGL'\n\
          [display.quality]\nsurface_scale = {scale}\n\
-         [display.window]\nstartup_size = '{w}x{h}'\nfullscreen_on_startup = {fullscreen}\n\
+         [display.window]\nstartup_size = '{startup}'\nfullscreen_on_startup = {fullscreen}\n\
          [sys]\ndefault_machine = 'chihiro'\nlast_machine = 'chihiro'\nmem_limit = '128'\n\
          [sys.files]\ndvd_path = {img}\n\
+         [chihiro.jvs]\n\
+         start = 2007\ncoin = 2005\n\
+         steer_left = 3001\nsteer_right = 3002\n\
+         gas = 3012\nbrake = 3010\n\
+         gear_up = 2011\ngear_down = 2010\n\
+         [chihiro.jvs.or2]\nview_change = 2004\n\
+         [chihiro.jvs.ctx]\ndrive_gear = 2011\nreverse = 2010\njump = 2001\n\
          [chihiro.settings]\nfreeplay = true\nregion = 'ex'\ndimm_size = 'auto'\n\
          board_type = 'auto'\nforce_feedback = {ffb_on}\nffb_strength = {ffb_strength}\n\
          wheel_rotation = {wheel_rot}\nwheel_autocenter = true\n\
          [chihiro.roms]\n",
-        w = size.w,
-        h = size.h,
         img = toml_path(image),
     );
     for (key, names) in [
@@ -1150,9 +1178,12 @@ mod tests {
         assert_eq!(p.game_size, Size::new(2880, 2160));
         let toml = file(&p, "xemu/xemu.toml");
         assert!(toml.contains("default_machine = 'chihiro'"), "{toml}");
+        assert!(toml.contains("auto_bind = true"), "{toml}");
         assert!(toml.contains("surface_scale = 4\n"), "{toml}");
-        assert!(toml.contains("startup_size = '2880x2160'"), "{toml}");
+        assert!(toml.contains("startup_size = '2560x1920'"), "{toml}");
         assert!(toml.contains("fullscreen_on_startup = false"), "{toml}");
+        assert!(toml.contains("[chihiro.jvs]\nstart = 2007\n"), "{toml}");
+        assert!(toml.contains("gas = 3012\nbrake = 3010\n"), "{toml}");
         assert!(toml.contains("ffb_strength = 120"), "{toml}");
         assert!(toml.contains("wheel_rotation = 270"), "{toml}");
         assert!(

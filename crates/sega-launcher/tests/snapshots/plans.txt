@@ -190,6 +190,8 @@ file /d/runtimes/or2sp/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
@@ -203,6 +205,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -235,12 +252,14 @@ file /d/runtimes/or2sp/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
 surface_scale = 3
 [display.window]
-startup_size = '1920x1440'
+startup_size = '2560x1440'
 fullscreen_on_startup = false
 [sys]
 default_machine = 'chihiro'
@@ -248,6 +267,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -280,12 +314,14 @@ file /d/runtimes/or2sp/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
 surface_scale = 1
 [display.window]
-startup_size = '1066x799'
+startup_size = '640x480'
 fullscreen_on_startup = false
 [sys]
 default_machine = 'chihiro'
@@ -293,6 +329,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -325,6 +376,8 @@ file /d/runtimes/cthr/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
@@ -338,6 +391,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -370,12 +438,14 @@ file /d/runtimes/cthr/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
 surface_scale = 3
 [display.window]
-startup_size = '1920x1440'
+startup_size = '2560x1440'
 fullscreen_on_startup = false
 [sys]
 default_machine = 'chihiro'
@@ -383,6 +453,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -415,12 +500,14 @@ file /d/runtimes/cthr/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
 surface_scale = 1
 [display.window]
-startup_size = '1066x799'
+startup_size = '640x480'
 fullscreen_on_startup = false
 [sys]
 default_machine = 'chihiro'
@@ -428,6 +515,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -958,6 +1060,8 @@ file /d/runtimes/or2sp/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
@@ -971,6 +1075,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -1001,12 +1120,14 @@ file /d/runtimes/or2sp/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
 surface_scale = 3
 [display.window]
-startup_size = '1920x1440'
+startup_size = '2560x1440'
 fullscreen_on_startup = true
 [sys]
 default_machine = 'chihiro'
@@ -1014,6 +1135,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -1044,12 +1180,14 @@ file /d/runtimes/or2sp/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
 surface_scale = 1
 [display.window]
-startup_size = '1066x799'
+startup_size = '640x480'
 fullscreen_on_startup = true
 [sys]
 default_machine = 'chihiro'
@@ -1057,6 +1195,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/or2sp/or2sp.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -1087,6 +1240,8 @@ file /d/runtimes/cthr/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
@@ -1100,6 +1255,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -1130,12 +1300,14 @@ file /d/runtimes/cthr/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
 surface_scale = 3
 [display.window]
-startup_size = '1920x1440'
+startup_size = '2560x1440'
 fullscreen_on_startup = true
 [sys]
 default_machine = 'chihiro'
@@ -1143,6 +1315,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
@@ -1173,12 +1360,14 @@ file /d/runtimes/cthr/xemu/xemu.toml
 show_welcome = false
 [general.updates]
 check = false
+[input]
+auto_bind = true
 [display]
 renderer = 'OPENGL'
 [display.quality]
 surface_scale = 1
 [display.window]
-startup_size = '1066x799'
+startup_size = '640x480'
 fullscreen_on_startup = true
 [sys]
 default_machine = 'chihiro'
@@ -1186,6 +1375,21 @@ last_machine = 'chihiro'
 mem_limit = '128'
 [sys.files]
 dvd_path = "/d/runtimes/cthr/cthr.bin"
+[chihiro.jvs]
+start = 2007
+coin = 2005
+steer_left = 3001
+steer_right = 3002
+gas = 3012
+brake = 3010
+gear_up = 2011
+gear_down = 2010
+[chihiro.jvs.or2]
+view_change = 2004
+[chihiro.jvs.ctx]
+drive_gear = 2011
+reverse = 2010
+jump = 2001
 [chihiro.settings]
 freeplay = true
 region = 'ex'
