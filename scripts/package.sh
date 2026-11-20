@@ -75,6 +75,9 @@ else
 		cp "$l" "$out/licenses/SDL2-LICENSE.txt"
 	done
 	copy_wal arcade-launcher.exe
+	# Remove WAL profile files with colons (e.g. SegaRally2Resolution-4:3.cfg)
+	# that are illegal filenames on Windows and abort zip extraction (#1).
+	find "$out/components/wal/systemprofiles" -name '*:*' -delete
 	mkdir -p "$out/components/flycast" "$out/components/xemu"
 	cp "$comps/flycast-win/flycast.exe" "$out/components/flycast/"
 	cp "$comps/flycast-win/LICENSE" "$out/licenses/Flycast-LICENSE.txt"

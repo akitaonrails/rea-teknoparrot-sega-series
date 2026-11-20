@@ -6,6 +6,8 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+## 0.5.0 - 2026-11-20
+
 ### Added
 
 - Controls: change a button. Choose a row of the pad layout (Gas, Brake,
@@ -30,10 +32,18 @@ All notable changes to this launcher. The format follows
 - Linux: gamescope's WSI layer is now kept out of every game, not only
   the windowsarcadeloader ones (the gamescope 3.17 crash on NVIDIA +
   Wayland fixed in 0.4.0).
+- Windows: removed the two unused WAL profile files with colons in their
+  names (`SegaRally2Resolution-4:3.cfg`, `SegaRally2Resolution-16:9.cfg`)
+  from the Windows zip so extraction succeeds cleanly (#1).
+- Windows: WAL's `winhost` and `linkfarm` now handle dumps on mapped network
+  drives and UNC shares cleanly (directory symlink with `read_dir`
+  verification, falling back to mirroring with a notice), and propagate
+  non-zero game exit codes and `crash:` lines from `wal-<system>.log`
+  instead of masking crashes as `exit code: 0` (#2, rea-launcher-sdk#2).
 
 ### Changed
 
-- Updated rea-launcher-sdk to v0.11.2.
+- Updated rea-launcher-sdk to v0.12.2.
 
 ## 0.4.1 - 2026-11-19
 

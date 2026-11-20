@@ -51,10 +51,10 @@ index 2973162..dc98941 100644
      "crates/payload-nesica",
      "crates/payload-typex",
 diff --git a/crates/launcher/src/rundir.rs b/crates/launcher/src/rundir.rs
-index fdbd1f2..1f789db 100644
+index fdbd1f2..ac4ac5f 100644
 --- a/crates/launcher/src/rundir.rs
 +++ b/crates/launcher/src/rundir.rs
-@@ -66,12 +66,62 @@ fn merge(from: &Path, to: &Path) -> Result<()> {
+@@ -66,12 +66,104 @@ fn merge(from: &Path, to: &Path) -> Result<()> {
      Ok(())
  }
  
@@ -64,16 +64,58 @@ index fdbd1f2..1f789db 100644
 +    std::os::unix::fs::symlink(src, dst)
 +}
 +
++/// True when `path` is a Windows UNC path (`\\server\share` or `\\?\UNC\...`).
++#[cfg(windows)]
++fn is_unc_path(path: &Path) -> bool {
++    let s = path.to_string_lossy();
++    (s.starts_with(r"\\") && !s.starts_with(r"\\?\"))
++        || s.starts_with(r"\\?\UNC\")
++        || s.starts_with(r"\\?\unc\")
++}
++
 +/// Windows (no symlinks without administrator rights or developer mode): a folder is a
 +/// directory junction (a directory symlink for a folder on a network share, which a junction
-+/// cannot reach), a file a copy ([`mirrored`] keeps it up to date).
++/// cannot reach — verified by `fs::read_dir`, falling back to mirroring if linking is denied),
++/// a file a copy ([`mirrored`] keeps it up to date).
 +#[cfg(windows)]
 +fn link(src: &Path, dst: &Path) -> std::io::Result<()> {
-+    if src.is_dir() {
-+        junction::create(src, dst).or_else(|e| std::os::windows::fs::symlink_dir(src, dst).map_err(|_| e))
-+    } else {
-+        copy_mirror(src, dst)
++    if !src.is_dir() {
++        return copy_mirror(src, dst);
 +    }
++    if !is_unc_path(src) && junction::create(src, dst).is_ok() {
++        if fs::read_dir(dst).is_ok() {
++            return Ok(());
++        }
++        let _ = remove_link(dst);
++    }
++    if std::os::windows::fs::symlink_dir(src, dst).is_ok() {
++        if fs::read_dir(dst).is_ok() {
++            return Ok(());
++        }
++        let _ = remove_link(dst);
++    }
++    eprintln!(
++        "rundir: copying {} into {} (Windows could not link this folder; enable Developer Mode to link network shares without copying)",
++        src.display(),
++        dst.display()
++    );
++    copy_dir_mirror(src, dst)
++}
++
++#[cfg(windows)]
++fn copy_dir_mirror(src: &Path, dst: &Path) -> std::io::Result<()> {
++    fs::create_dir_all(dst)?;
++    for entry in fs::read_dir(src)? {
++        let entry = entry?;
++        let from = entry.path();
++        let to = dst.join(entry.file_name());
++        if from.is_dir() {
++            copy_dir_mirror(&from, &to)?;
++        } else if !mirrored(&from, &to)? {
++            copy_mirror(&from, &to)?;
++        }
++    }
++    Ok(())
 +}
 +
 +/// Removes a link (Windows: a junction is a directory).
@@ -118,7 +160,7 @@ index fdbd1f2..1f789db 100644
          }
      }
      let excluded = |name: &str| {
-@@ -87,10 +137,13 @@ pub fn build(run_dir: &Path, game_dir: &Path, hide: &[String], payloads: &[(&Pat
+@@ -87,10 +179,13 @@ pub fn build(run_dir: &Path, game_dir: &Path, hide: &[String], payloads: &[(&Pat
          }
          let dst = run_dir.join(&name);
          if fs::symlink_metadata(&dst).is_ok() {
@@ -134,7 +176,7 @@ index fdbd1f2..1f789db 100644
      }
      for (src, name) in payloads {
          let dst = run_dir.join(name);
-@@ -172,7 +225,7 @@ fn level(run_dir: &Path, game_dir: &Path, rel: &Path, hide: &[String], dirs: &BT
+@@ -172,7 +267,7 @@ fn level(run_dir: &Path, game_dir: &Path, rel: &Path, hide: &[String], dirs: &BT
      let dst = run_dir.join(rel);
      // a real directory replaces a link left by a previous layout
      if fs::symlink_metadata(&dst).is_ok_and(|m| m.file_type().is_symlink()) {
@@ -178,10 +220,10 @@ index 0000000..5b6bdbc
 +] }
 diff --git a/crates/winhost/src/main.rs b/crates/winhost/src/main.rs
 new file mode 100644
-index 0000000..4826513
+index 0000000..c17fa69
 --- /dev/null
 +++ b/crates/winhost/src/main.rs
-@@ -0,0 +1,346 @@
+@@ -0,0 +1,363 @@
 +//! The launcher's `run` on Windows itself: the same profiles (system profiles, user layers,
 +//! `--profile`), the same run directory (links: directory junctions and file copies), the same
 +//! payloads through `wal-loader`, the same input server; what Wine's prefix did (the cabinet's
@@ -282,7 +324,7 @@ index 0000000..4826513
 +    let script = args.script.as_deref().map(script::Script::load).transpose()?;
 +    let job = native::Job::new()?;
 +    let code = match run(&profile, &args, script) {
-+        Ok(()) => 0,
++        Ok(code) => code,
 +        Err(e) => {
 +            eprintln!("error: {e:#}");
 +            1
@@ -299,7 +341,7 @@ index 0000000..4826513
 +}
 +
 +#[cfg(windows)]
-+fn run(profile: &Profile, args: &Args, script: Option<script::Script>) -> Result<()> {
++fn run(profile: &Profile, args: &Args, script: Option<script::Script>) -> Result<u32> {
 +    use std::os::windows::process::CommandExt;
 +
 +    if profile.exe.is_empty() {
@@ -416,10 +458,11 @@ index 0000000..4826513
 +        eprintln!("winhost: run_drives, registry and fonts of the profile are not applied on Windows");
 +    }
 +
++    let log_path = run_dir.join(format!("wal-{}.log", system.name()));
 +    let screen = native::screen_size().unwrap_or((1920, 1080));
 +    let mut vars: Vec<(String, String)> = vec![
 +        (env::PORT.into(), profile.port.to_string()),
-+        (env::LOG.into(), run_dir.join(format!("wal-{}.log", system.name())).display().to_string()),
++        (env::LOG.into(), log_path.display().to_string()),
 +        ("WAL_SINDEN_BORDER".into(), "0".into()),
 +    ];
 +    if !profile.native_map.is_empty() {
@@ -462,7 +505,7 @@ index 0000000..4826513
 +        let cmd = game_command(&profile.args, false, None);
 +        let argv: Vec<_> = std::iter::once(cmd.get_program()).chain(cmd.get_args()).collect();
 +        println!("cd {:?} && {:?}", run_exe_dir, argv);
-+        return Ok(());
++        return Ok(0);
 +    }
 +
 +    let server = server::Server::start(profile.port)?;
@@ -526,7 +569,23 @@ index 0000000..4826513
 +        }
 +    };
 +    eprintln!("winhost: game exited ({status})");
-+    Ok(())
++    let code = status.code().map(|c| c as u32).unwrap_or(1);
++    if code != 0
++        && let Ok(text) = std::fs::read_to_string(&log_path)
++    {
++        let crashes: Vec<&str> = text
++            .lines()
++            .filter(|l| l.starts_with("crash:"))
++            .take(4)
++            .collect();
++        for line in &crashes {
++            eprintln!("{line}");
++        }
++        if !crashes.is_empty() {
++            eprintln!("winhost: crash log: {}", log_path.display());
++        }
++    }
++    Ok(code)
 +}
 diff --git a/crates/winhost/src/native.rs b/crates/winhost/src/native.rs
 new file mode 100644

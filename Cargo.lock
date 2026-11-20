@@ -1920,8 +1920,8 @@ checksum = "20675572f6f24e9e76ef639bc5552774ed45f1c30e2951e1e99c59888861c539"
 
 [[package]]
 name = "rea-launcher"
-version = "0.11.2"
-source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.11.2#527d2109517c6d95552415de2c8f70f67e680228"
+version = "0.12.2"
+source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.12.2#c9134e931fe919fcfbfc4b2a421ab0ce70f32990"
 dependencies = [
  "junction",
  "sha2",
@@ -1929,13 +1929,13 @@ dependencies = [
 
 [[package]]
 name = "rea-launcher-build"
-version = "0.11.2"
-source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.11.2#527d2109517c6d95552415de2c8f70f67e680228"
+version = "0.12.2"
+source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.12.2#c9134e931fe919fcfbfc4b2a421ab0ce70f32990"
 
 [[package]]
 name = "rea-launcher-native"
-version = "0.11.2"
-source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.11.2#527d2109517c6d95552415de2c8f70f67e680228"
+version = "0.12.2"
+source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.12.2#c9134e931fe919fcfbfc4b2a421ab0ce70f32990"
 dependencies = [
  "libc",
  "rea-launcher",
@@ -1945,8 +1945,8 @@ dependencies = [
 
 [[package]]
 name = "rea-launcher-ui"
-version = "0.11.2"
-source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.11.2#527d2109517c6d95552415de2c8f70f67e680228"
+version = "0.12.2"
+source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.12.2#c9134e931fe919fcfbfc4b2a421ab0ce70f32990"
 dependencies = [
  "eframe",
  "egui_kittest",
@@ -1957,8 +1957,8 @@ dependencies = [
 
 [[package]]
 name = "rea-launcher-win32"
-version = "0.11.2"
-source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.11.2#527d2109517c6d95552415de2c8f70f67e680228"
+version = "0.12.2"
+source = "git+https://github.com/akitaonrails/rea-launcher-sdk?tag=v0.12.2#c9134e931fe919fcfbfc4b2a421ab0ce70f32990"
 dependencies = [
  "rea-launcher",
  "windows-sys 0.61.2",
@@ -2107,7 +2107,7 @@ dependencies = [
 
 [[package]]
 name = "sega-core"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "rea-launcher",
  "tempfile",
@@ -2115,7 +2115,7 @@ dependencies = [
 
 [[package]]
 name = "sega-launcher"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "eframe",
