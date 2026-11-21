@@ -6,6 +6,21 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+### Added
+
+- Per-game save mirroring (`saves/<game>/` inside the data folder), kept in
+  step with each game's runtime before launch and after exit across Lindbergh,
+  WAL, xemu, and Flycast routes.
+- Desktop shortcut icon: replaced placeholder icon with custom high-contrast
+  256×256 SEGA Arcade Racing artwork embedded in `sega-launcher.exe` and
+  bundled with `sega-launcher.desktop` in the Linux package.
+- Weekly upstream component watch workflow (`watch-upstream.yml`).
+
+### Fixed
+
+- Read-only `--check` now runs alongside an open launcher without blocking on
+  the single-instance lock, and the already-open message mentions Task Manager.
+
 ## 0.6.0 - 2026-11-21
 
 ### Added

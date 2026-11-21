@@ -448,11 +448,18 @@ Test options for --play:
 
 
 $ sega-launcher --check
-exit 5
+exit 1
 -- stdout
+or2sdx  not in your game folders
+or2sp   not in your game folders
+cthr    not in your game folders
+sr3     not in your game folders
+src     not in your game folders
+dcusa   not in your game folders
+f355    not in your game folders
+unknown epr-23399.ic22 (SHA-256 5d70d26611cd85c98dd76952edc5296bdc36cc48a3e6d470c97a5f65f7dfcc3a) in <tmp>/games/f355: report it at https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
+unknown Rally/Rally.exe (SHA-256 f730c2cd58854202a191be4b166013d5de4ccab58e6ec221ba3937354237e119) in <tmp>/games/rally: report it at https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
 -- stderr
-Sega Racing Launcher: The Sega Racing Launcher is already open. Close it first, then try again.
-Report a problem: https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
 
 $ sega-launcher --list
 exit 0
@@ -467,7 +474,7 @@ $ sega-launcher --list --library <tmp>/games
 exit 5
 -- stdout
 -- stderr
-Sega Racing Launcher: The Sega Racing Launcher is already open. Close it first, then try again.
+Sega Racing Launcher: The Sega Racing Launcher is already open. Close it first (or end it from Task Manager if it isn't responding), then try again.
 Report a problem: https://github.com/akitaonrails/rea-teknoparrot-sega-series/issues/new/choose
 
 == launcher.cfg

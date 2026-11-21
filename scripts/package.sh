@@ -50,6 +50,8 @@ if [ "$os" = linux ]; then
 	[ -f "$bin/lib/libSDL2-2.0.so.0" ] || die "missing $bin/lib/libSDL2-2.0.so.0"
 	"$root/scripts/build-components.sh" "$comps" lindbergh wal runner winetricks directx flycast xemu assets
 	install -m 755 "$bin/sega-launcher" "$out/sega-launcher"
+	cp "$root/packaging/appimage/sega-launcher.png" "$out/sega-launcher.png"
+	cp "$root/packaging/appimage/sega-launcher.desktop" "$out/sega-launcher.desktop"
 	mkdir -p "$out/lib"
 	cp "$bin"/lib/* "$out/lib/"
 	[ -f "$bin/SDL2-copyright.txt" ] && cp "$bin/SDL2-copyright.txt" "$out/licenses/"

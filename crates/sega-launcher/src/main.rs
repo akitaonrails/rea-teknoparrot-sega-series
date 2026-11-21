@@ -140,11 +140,17 @@ fn main() -> ExitCode {
         match rea_launcher::instance::single(INSTANCE) {
             Ok(guard) => Some(guard),
             Err(running) if inv.is_action() || writes(&inv) => {
-                fail("The Sega Racing Launcher is already open. Close it first, then try again.");
+                fail(
+                    "The Sega Racing Launcher is already open. Close it first (or end it from \
+                     Task Manager if it isn't responding), then try again.",
+                );
                 return ExitCode::from(running.exit_code() as u8);
             }
             Err(_) => {
-                eprintln!("The Sega Racing Launcher is already open.");
+                eprintln!(
+                    "The Sega Racing Launcher is already open (end it from Task Manager if it \
+                     isn't responding)."
+                );
                 return ExitCode::from(OK);
             }
         }
@@ -270,7 +276,7 @@ fn writes(inv: &Invocation) -> bool {
 /// `--list` that writes nothing (it only reads, so it works while the
 /// window is open).
 fn needs_lock(inv: &Invocation) -> bool {
-    inv.mode != Mode::List || writes(inv)
+    !matches!(inv.mode, Mode::List | Mode::Check(_)) || writes(inv)
 }
 
 fn state(game: &Game) -> String {
@@ -545,7 +551,8 @@ mod tests {
         assert!(!needs_lock(&parse_v(&["--list"])));
         assert!(needs_lock(&parse_v(&["--list", "--library", "/games"])));
         assert!(needs_lock(&parse_v(&["--list", "--bios", "/bios"])));
-        assert!(needs_lock(&parse_v(&["--check"])));
+        assert!(!needs_lock(&parse_v(&["--check"])));
+        assert!(needs_lock(&parse_v(&["--check", "--library", "/games"])));
         assert!(needs_lock(&parse_v(&[])));
     }
 

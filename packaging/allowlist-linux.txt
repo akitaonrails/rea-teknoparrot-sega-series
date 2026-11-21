@@ -1,6 +1,8 @@
 # Every file of the Linux package (sdk/packaging/smoke-package.sh): anything
 # else fails the check, so no game file or stray build output can ship.
 sega-launcher x
+sega-launcher.png
+sega-launcher.desktop
 lib/libSDL2-2.0.so.0
 README.txt
 SDL2-copyright.txt optional

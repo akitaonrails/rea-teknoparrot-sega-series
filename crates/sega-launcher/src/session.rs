@@ -47,6 +47,7 @@ pub enum Display {
 }
 
 pub struct Prepared {
+    pub game: Game,
     pub plan: Plan,
     pub runtime: PathBuf,
     /// The launcher's data folder (runtimes, windowsarcadeloader's prefix):
@@ -157,6 +158,9 @@ pub fn prepare(
         .with_context(|| format!("reading {}", entry.dir.display()))?;
     linkfarm::apply(&rt, &ops, Occupied::Refuse)
         .with_context(|| format!("building {}", rt.display()))?;
+    let saves_dir = sega_core::saves::dir(&paths.data, game.slug);
+    sega_core::saves::sync_before(game, &rt, &saves_dir, Host::current())
+        .context("syncing save files")?;
     if matches!(game.route, Route::Xemu { .. }) {
         let image = rt.join(format!("{}.bin", game.slug));
         fatx::pack_dir(&entry.dir, &image)
@@ -236,6 +240,7 @@ pub fn prepare(
         linkfarm::apply(root, &links, Occupied::Refuse)?;
     }
     Ok(Prepared {
+        game: *game,
         plan,
         runtime: rt,
         data: paths.data.clone(),
@@ -263,6 +268,8 @@ pub fn run(
     let mut attempt = 1;
     loop {
         let (outcome, hung) = run_once(p, libraries, input, &stop, &log)?;
+        let saves_dir = sega_core::saves::dir(&p.data, p.game.slug);
+        let _ = sega_core::saves::sync_after(&p.game, &p.runtime, &saves_dir, Host::current());
         if let Some(why) = didnt_start(&outcome, &fs::read_to_string(&log_path).unwrap_or_default())
         {
             bail!("{why}");

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Sega Racing Launcher
+Comment=One launcher for the Sega arcade racers on TeknoParrot dumps
+Exec=sega-launcher
+Icon=sega-launcher
+Terminal=false
+Categories=Game;ArcadeGame;
