@@ -6,6 +6,8 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+## 0.6.0 - 2026-11-21
+
 ### Added
 
 - Games page: short trivia card over the top-right quarter of each game's
