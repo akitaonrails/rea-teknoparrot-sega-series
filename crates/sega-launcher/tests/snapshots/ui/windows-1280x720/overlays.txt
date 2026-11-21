@@ -5,6 +5,7 @@ Window
       GenericContainer
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Sega Racing Studio's deformable-mud arcade rally racer on Europa-R — three championship stages plus the classic Desert '95 bonus track."
         Label value="Ready"
         Label value="Folder: \\games\\sr3"
         Button label="Play" disabled [56 454 226 504]
@@ -30,6 +31,7 @@ Window
       GenericContainer
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Sega Racing Studio's deformable-mud arcade rally racer on Europa-R — three championship stages plus the classic Desert '95 bonus track."
         Label value="Ready"
         Label value="Folder: \\games\\sr3"
         Button label="Play" [56 454 226 504]
@@ -56,6 +58,7 @@ Window
       GenericContainer
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Sega Racing Studio's deformable-mud arcade rally racer on Europa-R — three championship stages plus the classic Desert '95 bonus track."
         Label value="Ready"
         Label value="Folder: \\games\\sr3"
         Button label="Play" disabled [56 454 226 504]
@@ -81,6 +84,7 @@ Window
       GenericContainer
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Sega Racing Studio's deformable-mud arcade rally racer on Europa-R — three championship stages plus the classic Desert '95 bonus track."
         Label value="Ready"
         Label value="Folder: \\games\\sr3"
         Button label="Play" disabled [56 454 226 504]
@@ -107,6 +111,7 @@ Window
       GenericContainer
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Sega Racing Studio's deformable-mud arcade rally racer on Europa-R — three championship stages plus the classic Desert '95 bonus track."
         Label value="Ready"
         Label value="Folder: \\games\\sr3"
         Button label="Play" disabled [56 454 226 504]
@@ -133,6 +138,7 @@ Window
       GenericContainer
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Sega Racing Studio's deformable-mud arcade rally racer on Europa-R — three championship stages plus the classic Desert '95 bonus track."
         Label value="Ready"
         Label value="Folder: \\games\\sr3"
         Button label="Play" [56 454 226 504]

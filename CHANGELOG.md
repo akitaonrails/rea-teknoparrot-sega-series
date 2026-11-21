@@ -6,6 +6,20 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+### Added
+
+- Games page: short trivia card over the top-right quarter of each game's
+  hero art (`HubBackend::blurb`).
+
+### Fixed
+
+- Updated `rea-launcher-sdk` to v0.12.4 so wheel buttons (Start, Coin,
+  face buttons) map automatically from `PadMap` and pedals re-guess on live
+  axis state (rea-launcher-sdk#3).
+- Added `patches/wal/0005-windows-iat-for-readonly-sections.patch` so
+  RingEdge titles with read-only `.rdata` always declare an IAT directory on
+  Windows.
+
 ## 0.5.0 - 2026-11-20
 
 ### Added

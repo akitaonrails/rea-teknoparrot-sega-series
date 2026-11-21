@@ -252,6 +252,10 @@ impl HubBackend for Sega {
         &HUB_GAMES
     }
 
+    fn blurb(&self, i: usize) -> Option<&'static str> {
+        Some(GAMES[i].blurb)
+    }
+
     fn options(&self) -> &'static [OptionSpec] {
         settings::OPTIONS
     }

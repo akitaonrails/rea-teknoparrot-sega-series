@@ -5,6 +5,7 @@ Window
       GenericContainer
         Label value="OutRun 2 SP SDX"
         Label value="Sega Lindbergh · 2006"
+        Label value="Super Deluxe Lindbergh edition of OutRun 2 SP with widescreen HD visuals, 30 stages across both tours and 10 licensed Ferraris."
         Label value="Not in your library"
         Label value="Not found in your game folders. Add its folder in Settings, then choose Rescan."
         Button label="Play" description="Not found in your game folders." disabled [62 524 251 580]
@@ -28,6 +29,7 @@ Window
       GenericContainer
         Label value="OutRun 2 SP SDX"
         Label value="Sega Lindbergh · 2006 · 1.003 (DVP-0015, TeknoParrot dump)"
+        Label value="Super Deluxe Lindbergh edition of OutRun 2 SP with widescreen HD visuals, 30 stages across both tours and 10 licensed Ferraris."
         Label value="Ready"
         Label value="Folder: /games/or2sdx"
         Button label="Play" [62 504 251 560]
@@ -51,6 +53,7 @@ Window
       GenericContainer
         Label value="OutRun 2 SP Special Tours"
         Label value="Sega Chihiro · 2004 · Japan (TeknoParrot dump)"
+        Label value="AM2's expanded Chihiro sequel to OutRun 2 adding 15 American-inspired courses, slipstreaming and Heart Attack mode."
         Label value="Ready"
         Label value="Folder: /games/or2sp"
         Label value="Needs your BIOS folder: add it in Settings."
@@ -75,6 +78,7 @@ Window
       GenericContainer
         Label value="Crazy Taxi High Roller"
         Label value="Sega Chihiro · 2003 · 3.000 Japan (TeknoParrot dump)"
+        Label value="Hitmaker's Chihiro arcade edition of Crazy Taxi 3 — Glitter Oasis, West Coast and Small Apple with group fares and Crazy Hop."
         Label value="Ready"
         Label value="Folder: /games/cthr"
         Label value="Needs your BIOS folder: add it in Settings."
@@ -99,6 +103,7 @@ Window
       GenericContainer
         Label value="SEGA Rally 3"
         Label value="Sega Europa-R · 2008 · Europa-R (TeknoParrot dump)"
+        Label value="Sega Racing Studio's deformable-mud arcade rally racer on Europa-R — three championship stages plus the classic Desert '95 bonus track."
         Label value="Ready"
         Label value="Folder: /games/sr3"
         Button label="Play" [62 504 251 560]
@@ -122,6 +127,7 @@ Window
       GenericContainer
         Label value="SEGA Racing Classic"
         Label value="Sega RingWide · 2009 · 1.01.00 (TeknoParrot dump)"
+        Label value="HD 720p RingWide remaster of Daytona USA — Three Seven Speedway, Dinosaur Canyon and Seaside Street Galaxy at 60 fps."
         Label value="Ready"
         Label value="Folder: /games/src"
         Button label="Play" [62 504 251 560]
@@ -145,6 +151,7 @@ Window
       GenericContainer
         Label value="Daytona Championship USA"
         Label value="Sega PC (Shell) · 2017 · New Season Edition (TeknoParrot dump)"
+        Label value="Sega Amusements' modern 1080p Daytona sequel with three classic remastered tracks, three new circuits and Instant Rematch."
         Label value="Ready"
         Label value="Folder: /games/dcusa"
         Button label="Play" [62 504 251 560]
@@ -168,6 +175,7 @@ Window
       GenericContainer
         Label value="F355 Challenge 2"
         Label value="Sega NAOMI · 2001 · International Course Edition, twin (MAME f355twn2)"
+        Label value="Yu Suzuki's authentic Ferrari F355 simulator on NAOMI — expanded with Fiorano, Sepang, Nürburgring and Nardo alongside Suzuka and Monza."
         Label value="Ready"
         Label value="Folder: /games/f355"
         Label value="Needs your BIOS folder: add it in Settings."

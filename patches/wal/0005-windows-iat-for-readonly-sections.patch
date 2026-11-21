@@ -1,0 +1,193 @@
+diff --git a/crates/launcher/src/rundir.rs b/crates/launcher/src/rundir.rs
+index ac4ac5f..8a408ab 100644
+--- a/crates/launcher/src/rundir.rs
++++ b/crates/launcher/src/rundir.rs
+@@ -355,6 +355,92 @@ mod tests {
+         assert!(!g.join(A).exists() && !g.join(B).exists());
+         fs::remove_dir_all(&g).unwrap();
+     }
++
++    /// A PE32 image laid out as Initial D 8's dump: its import thunks at the start of `.rdata`
++    /// (0x1000, two arrays), the import descriptors in a section of their own (`.mackt`,
++    /// 0x2000), the IAT data directory `iat` (empty in the dump). File offsets = RVAs.
++    fn dumped_pe32(iat: (u32, u32)) -> Vec<u8> {
++        let mut d = vec![0u8; 0x3000];
++        let put = |d: &mut Vec<u8>, at: usize, v: u32| d[at..at + 4].copy_from_slice(&v.to_le_bytes());
++        d[0..2].copy_from_slice(b"MZ");
++        put(&mut d, 0x3C, 0x80);
++        d[0x80..0x84].copy_from_slice(b"PE\0\0");
++        d[0x84..0x86].copy_from_slice(&0x14Cu16.to_le_bytes());
++        d[0x86..0x88].copy_from_slice(&2u16.to_le_bytes()); // sections
++        d[0x94..0x96].copy_from_slice(&0xE0u16.to_le_bytes()); // optional header size
++        let opt = 0x98;
++        d[opt..opt + 2].copy_from_slice(&0x10Bu16.to_le_bytes());
++        put(&mut d, opt + 92, 16); // NumberOfRvaAndSizes
++        put(&mut d, opt + 96 + 8, 0x2000); // import directory
++        put(&mut d, opt + 96 + 12, 60);
++        put(&mut d, opt + 96 + 96, iat.0);
++        put(&mut d, opt + 96 + 100, iat.1);
++        let sections = opt + 0xE0;
++        let layout = [(b".rdata\0\0", 0x1000u32, 0xC000_0040u32), (b".mackt\0\0", 0x2000, 0xE000_0060)];
++        for (i, (name, va, flags)) in layout.into_iter().enumerate() {
++            let s = sections + 40 * i;
++            d[s..s + 8].copy_from_slice(name);
++            put(&mut d, s + 8, 0x1000);
++            put(&mut d, s + 12, va);
++            put(&mut d, s + 16, 0x1000);
++            put(&mut d, s + 20, va);
++            put(&mut d, s + 36, flags);
++        }
++        // a.dll: 2 functions, thunks at 0x1000; b.dll: 1 function, thunks at 0x1010
++        for (i, (thunks, n, name)) in [(0x1000u32, 2u32, 0x2100u32), (0x1010, 1, 0x2110)].into_iter().enumerate() {
++            let at = 0x2000 + 20 * i;
++            put(&mut d, at, thunks); // OriginalFirstThunk (same names)
++            put(&mut d, at + 12, name);
++            put(&mut d, at + 16, thunks);
++            for k in 0..n {
++                put(&mut d, (thunks + 4 * k) as usize, 0x2200);
++            }
++        }
++        d[0x2100..0x2105].copy_from_slice(b"a.dll");
++        d[0x2110..0x2115].copy_from_slice(b"b.dll");
++        d
++    }
++
++    fn u32_at(d: &[u8], at: usize) -> u32 {
++        u32::from_le_bytes(d[at..at + 4].try_into().unwrap())
++    }
++
++    #[test]
++    fn readonly_section_holding_the_imports_gets_an_iat_directory() {
++        let t = tmp("iat");
++        let (src, dst) = (t.join("game.exe"), t.join("run.exe"));
++        fs::write(&src, dumped_pe32((0, 0))).unwrap();
++        readonly_sections(&src, &dst, &[".rdata".to_string()]).unwrap();
++        let d = fs::read(&dst).unwrap();
++        // .rdata read-only, .mackt untouched
++        assert_eq!(u32_at(&d, 0x98 + 0xE0 + 36), 0x4000_0040);
++        assert_eq!(u32_at(&d, 0x98 + 0xE0 + 40 + 36), 0xE000_0060);
++        // the IAT directory: both thunk arrays, null terminators included (0x1000..0x1018)
++        assert_eq!((u32_at(&d, 0x98 + 96 + 96), u32_at(&d, 0x98 + 96 + 100)), (0x1000, 0x18));
++        fs::remove_dir_all(&t).unwrap();
++    }
++
++    #[test]
++    fn declared_iat_directory_kept() {
++        let t = tmp("iat-kept");
++        let (src, dst) = (t.join("game.exe"), t.join("run.exe"));
++        fs::write(&src, dumped_pe32((0x1000, 0x8))).unwrap();
++        readonly_sections(&src, &dst, &[".rdata".to_string()]).unwrap();
++        let d = fs::read(&dst).unwrap();
++        assert_eq!((u32_at(&d, 0x98 + 96 + 96), u32_at(&d, 0x98 + 96 + 100)), (0x1000, 0x8));
++        fs::remove_dir_all(&t).unwrap();
++    }
++
++    #[test]
++    fn imports_outside_the_readonly_sections_left_alone() {
++        let t = tmp("iat-other");
++        let (src, dst) = (t.join("game.exe"), t.join("run.exe"));
++        fs::write(&src, dumped_pe32((0, 0))).unwrap();
++        readonly_sections(&src, &dst, &[".mackt".to_string()]).unwrap();
++        let d = fs::read(&dst).unwrap();
++        assert_eq!((u32_at(&d, 0x98 + 96 + 96), u32_at(&d, 0x98 + 96 + 100)), (0, 0));
++        fs::remove_dir_all(&t).unwrap();
++    }
+ }
+ 
+ /// Whether `exe` is a 64-bit (x86-64) PE executable.
+@@ -385,6 +471,13 @@ pub fn copy_fixed_base(src: &Path, dst: &Path) -> Result<()> {
+ 
+ /// Clears IMAGE_SCN_MEM_WRITE of the sections `names` (e.g. `.rdata`) in the run directory's
+ /// executable `dst`: a copy of `src`, or the copy another option already made.
++///
++/// A dump whose import thunks are in such a section and that declares no IAT data directory
++/// gets one ([`declare_iat`]): Windows' loader makes only that directory's pages writable
++/// while it fills the thunks, and wrote into the read-only `.rdata` of Initial D 8's
++/// `InitialD8_GLW_RE_SBZZ_redumped_.exe` (its imports rebuilt in `.mackt`, the thunks left at
++/// the start of `.rdata`): an access violation in ntdll before the entry point, the payload
++/// never loaded. Wine's loader unprotects each thunk array itself.
+ pub fn readonly_sections(src: &Path, dst: &Path, names: &[String]) -> Result<()> {
+     let copied = fs::symlink_metadata(dst).is_ok_and(|m| m.file_type().is_file());
+     let mut data = fs::read(if copied { dst } else { src }).with_context(|| format!("reading {}", src.display()))?;
+@@ -396,22 +489,81 @@ pub fn readonly_sections(src: &Path, dst: &Path, names: &[String]) -> Result<()>
+     let optional = u16::from_le_bytes([data[pe + 20], data[pe + 21]]) as usize;
+     let table = pe + 24 + optional;
+     let mut changed = Vec::new();
++    let mut readonly = Vec::new();
+     for i in 0..count {
+         let at = table + 40 * i;
+         let Some(header) = data.get(at..at + 40) else { break };
+         let name = String::from_utf8_lossy(&header[..8]).trim_end_matches('\0').to_string();
+         if names.iter().any(|n| *n == name) {
++            let va = u32::from_le_bytes(header[12..16].try_into().unwrap());
++            let size = u32::from_le_bytes(header[8..12].try_into().unwrap()).max(u32::from_le_bytes(header[16..20].try_into().unwrap()));
++            readonly.push((va, va.saturating_add(size)));
+             let flags = u32::from_le_bytes(header[36..40].try_into().unwrap()) & !0x8000_0000;
+             data[at + 36..at + 40].copy_from_slice(&flags.to_le_bytes());
+             changed.push(name);
+         }
+     }
++    let iat = declare_iat(&mut data, pe, &readonly);
+     let _ = fs::remove_file(dst);
+     fs::write(dst, data).with_context(|| format!("writing {}", dst.display()))?;
+     eprintln!("launcher: {} sections read-only: {}", dst.display(), changed.join(", "));
++    if let Some((rva, size)) = iat {
++        eprintln!("launcher: {} import address table declared at {rva:#x} ({size:#x} bytes)", dst.display());
++    }
+     Ok(())
+ }
+ 
++/// Sets the IAT data directory of the PE image `data` (PE header at `pe`) to the span of the
++/// import thunk arrays (their null entries included) that lie in the `readonly` RVA ranges,
++/// when the image declares none. Returns the directory set; `None` when it already had one,
++/// has no imports there, or its headers are not readable.
++fn declare_iat(data: &mut [u8], pe: usize, readonly: &[(u32, u32)]) -> Option<(u32, u32)> {
++    let u16_at = |d: &[u8], at: usize| d.get(at..at + 2).map(|b| u16::from_le_bytes(b.try_into().unwrap()));
++    let u32_at = |d: &[u8], at: usize| d.get(at..at + 4).map(|b| u32::from_le_bytes(b.try_into().unwrap()));
++    let optional = pe + 24;
++    let (thunk, directories) = match u16_at(data, optional)? {
++        0x10B => (4usize, optional + 96),
++        0x20B => (8, optional + 112),
++        _ => return None,
++    };
++    // NumberOfRvaAndSizes (the field just before the directories) must reach entry 12 (IAT)
++    if u32_at(data, directories - 4)? < 13 || u32_at(data, directories + 96)? != 0 || u32_at(data, directories + 100)? != 0 {
++        return None;
++    }
++    let count = u16_at(data, pe + 6)? as usize;
++    let table = optional + u16_at(data, pe + 20)? as usize;
++    let file_offset = |d: &[u8], rva: u32| -> Option<usize> {
++        (0..count).find_map(|i| {
++            let s = table + 40 * i;
++            let (va, vsize, raw_size, raw) = (u32_at(d, s + 12)?, u32_at(d, s + 8)?, u32_at(d, s + 16)?, u32_at(d, s + 20)?);
++            (rva >= va && rva - va < vsize.max(raw_size)).then(|| (raw + (rva - va)) as usize)
++        })
++    };
++    let mut descriptor = file_offset(data, u32_at(data, directories + 8)?)?;
++    let (mut start, mut end) = (u32::MAX, 0u32);
++    // IMAGE_IMPORT_DESCRIPTOR: 20 bytes, Name at +12, FirstThunk at +16; a zero Name ends them
++    while u32_at(data, descriptor + 12).is_some_and(|name| name != 0) {
++        let first = u32_at(data, descriptor + 16)?;
++        if readonly.iter().any(|&(lo, hi)| first >= lo && first < hi) {
++            let mut at = file_offset(data, first)?;
++            let mut rva = first;
++            while data.get(at..at + thunk)?.iter().any(|&b| b != 0) {
++                at += thunk;
++                rva += thunk as u32;
++            }
++            start = start.min(first);
++            end = end.max(rva + thunk as u32);
++        }
++        descriptor += 20;
++    }
++    if start >= end {
++        return None;
++    }
++    data[directories + 96..directories + 100].copy_from_slice(&start.to_le_bytes());
++    data[directories + 100..directories + 104].copy_from_slice(&(end - start).to_le_bytes());
++    Some((start, end - start))
++}
++
+ /// Enables IMAGE_FILE_LARGE_ADDRESS_AWARE in a copy of a PE32 executable.
+ pub fn copy_large_address_aware(src: &Path, dst: &Path) -> Result<()> {
+     let _ = fs::remove_file(dst);

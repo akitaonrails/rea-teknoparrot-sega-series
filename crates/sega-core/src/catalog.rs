@@ -50,6 +50,8 @@ pub struct Game {
     pub short: &'static str,
     pub year: u16,
     pub board: &'static str,
+    /// Short trivia/context shown over the top-right quarter of the hero art.
+    pub blurb: &'static str,
     pub route: Route,
     /// The file that identifies the edition, relative to the game folder.
     pub main_file: &'static str,
@@ -135,6 +137,7 @@ pub const GAMES: &[Game] = &[
         short: "OR2SDX",
         year: 2006,
         board: "Sega Lindbergh",
+        blurb: "Super Deluxe Lindbergh edition of OutRun 2 SP with widescreen HD visuals, 30 stages across both tours and 10 licensed Ferraris.",
         route: Route::Lindbergh,
         main_file: "or2g/disk0/Jennifer/Jennifer",
         editions: &[Edition::sha256(
@@ -151,6 +154,7 @@ pub const GAMES: &[Game] = &[
         short: "OR2 SP",
         year: 2004,
         board: "Sega Chihiro",
+        blurb: "AM2's expanded Chihiro sequel to OutRun 2 adding 15 American-inspired courses, slipstreaming and Heart Attack mode.",
         route: Route::Xemu { net_firmware: true },
         main_file: "outrun2.xbe",
         editions: &[Edition::sha256(
@@ -167,6 +171,7 @@ pub const GAMES: &[Game] = &[
         short: "CT HR",
         year: 2003,
         board: "Sega Chihiro",
+        blurb: "Hitmaker's Chihiro arcade edition of Crazy Taxi 3 — Glitter Oasis, West Coast and Small Apple with group fares and Crazy Hop.",
         route: Route::Xemu {
             net_firmware: false,
         },
@@ -185,6 +190,7 @@ pub const GAMES: &[Game] = &[
         short: "SR3",
         year: 2008,
         board: "Sega Europa-R",
+        blurb: "Sega Racing Studio's deformable-mud arcade rally racer on Europa-R — three championship stages plus the classic Desert '95 bonus track.",
         route: Route::Wal {
             system: "europar",
             profile: "sega-rally-3",
@@ -204,6 +210,7 @@ pub const GAMES: &[Game] = &[
         short: "SRC",
         year: 2009,
         board: "Sega RingWide",
+        blurb: "HD 720p RingWide remaster of Daytona USA — Three Seven Speedway, Dinosaur Canyon and Seaside Street Galaxy at 60 fps.",
         route: Route::Wal {
             system: "ringedge",
             profile: "sega-racing-classic",
@@ -223,6 +230,7 @@ pub const GAMES: &[Game] = &[
         short: "DCUSA",
         year: 2017,
         board: "Sega PC (Shell)",
+        blurb: "Sega Amusements' modern 1080p Daytona sequel with three classic remastered tracks, three new circuits and Instant Rematch.",
         route: Route::Wal {
             system: "segashell",
             profile: "daytona-championship-usa",
@@ -242,6 +250,7 @@ pub const GAMES: &[Game] = &[
         short: "F355",
         year: 2001,
         board: "Sega NAOMI",
+        blurb: "Yu Suzuki's authentic Ferrari F355 simulator on NAOMI — expanded with Fiorano, Sepang, Nürburgring and Nardo alongside Suzuka and Monza.",
         route: Route::Flycast { set: "f355twn2" },
         main_file: "epr-23399.ic22",
         editions: &[Edition::sha256(
