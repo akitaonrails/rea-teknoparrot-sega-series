@@ -27,11 +27,12 @@ pub fn bindings(paths: &HubPaths, warn: impl FnOnce(&str)) -> Bindings<Button> {
 }
 
 /// The input thread with the player's pad layout `bindings`; a wheel's
-/// paddles shift.
-pub fn service(bindings: &Bindings<Button>) -> InputService {
-    InputService::start(
+/// paddles shift. Prefers a saved `wheel.ini` in the data folder when present.
+pub fn service(paths: &HubPaths, bindings: &Bindings<Button>) -> InputService {
+    InputService::start_with_wheel_file(
         bindings.map().clone(),
         Some((Button::GearUp, Button::GearDown)),
+        Some(paths.wheel_file()),
     )
 }
 
@@ -66,8 +67,8 @@ pub fn tuning(s: &Settings) -> Tuning {
 
 /// The first wheel SDL sees, as lindbergh-loader reads it (a short look
 /// before the game starts; `None` while the input thread holds SDL).
-pub fn lindbergh_wheel() -> Option<LindberghWheel> {
-    let w = feeder::find_wheel()?;
+pub fn lindbergh_wheel(paths: &HubPaths) -> Option<LindberghWheel> {
+    let w = feeder::find_wheel_with_profile(Some(&paths.wheel_file()))?;
     // a pedal resting at the top of its range reads backwards
     let pedal = |p: Option<PedalAxis>| p.map(|a| (a.axis, a.rest > 0));
     Some(LindberghWheel {

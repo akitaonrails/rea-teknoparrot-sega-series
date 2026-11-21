@@ -81,7 +81,10 @@ pub fn spec(paths: HubPaths) -> HubSpec {
 pub fn run(paths: HubPaths) -> Result<(), String> {
     let log = Log::new(paths.log());
     let bindings = crate::input::bindings(&paths, |w| log.warn(w));
-    let mut backend = Sega::new(paths.clone(), Some(crate::input::service(&bindings)));
+    let mut backend = Sega::new(
+        paths.clone(),
+        Some(crate::input::service(&paths, &bindings)),
+    );
     backend.bindings = bindings;
     hub::run(spec(paths), backend)
 }

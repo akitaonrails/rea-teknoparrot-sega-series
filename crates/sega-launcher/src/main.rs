@@ -392,7 +392,7 @@ fn play(
     let devices = (!inv.test.no_input
         && inv.test.script.is_none()
         && matches!(game.route, Route::Wal { .. }))
-    .then(|| input::service(&input::bindings(paths, warn)));
+    .then(|| input::service(paths, &input::bindings(paths, warn)));
     let feed = if let Some(f) = &inv.test.script {
         let text = std::fs::read_to_string(f).map_err(|e| format!("{}: {e}", f.display()))?;
         let script = Script::parse::<Button>(&text).map_err(|e| format!("{}: {e}", f.display()))?;

@@ -207,7 +207,7 @@ pub fn prepare(
         wal_root: paths::wal_root(paths),
         // lindbergh-loader reads the wheel itself: tell it which one and how
         wheel: (game.route == Route::Lindbergh && display == Display::Screen)
-            .then(input::lindbergh_wheel)
+            .then(|| input::lindbergh_wheel(paths))
             .flatten(),
     };
     let nic = default_interface(&fs::read_to_string("/proc/net/route").unwrap_or_default());
