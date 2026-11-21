@@ -6,6 +6,8 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+## 0.7.0 - 2026-11-21
+
 ### Added
 
 - Per-game save mirroring (`saves/<game>/` inside the data folder), kept in
