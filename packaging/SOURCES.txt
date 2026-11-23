@@ -12,8 +12,8 @@ windowsarcadeloader (GPL-3.0-or-later): components/wal
 
 GE-Proton (Wine and its components; LGPL-2.1 and others), Linux package only:
 components/runner
-  https://github.com/GloriousEggroll/proton-ge-custom/tree/GE-Proton11-12
-  (release GE-Proton11-12, unmodified)
+  https://github.com/GloriousEggroll/proton-ge-custom/tree/GE-Proton11-13
+  (release GE-Proton11-13, unmodified)
 
 winetricks (LGPL-2.1), Linux package only: components/winetricks
   https://github.com/Winetricks/winetricks/tree/20260125 (unmodified)

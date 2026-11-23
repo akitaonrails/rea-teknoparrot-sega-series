@@ -2,8 +2,8 @@
 # fetched by scripts/build-components.sh: checked by SHA-256, downloaded to a .part
 # file first (a download cut short never wedges the next build).
 #
-# GE-Proton 11-12: the Wine runner of the Linux package
-runner https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-12/GE-Proton11-12-x86_64.tar.gz 0595159e417c3dbbfb7cc3ae0d3ed15a617cc607aa23ef756ea79029d7af5d70
+# GE-Proton 11-13: the Wine runner of the Linux package
+runner https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-13/GE-Proton11-13-x86_64.tar.gz 2761e8efec78e37f12812269d6157c3dd52f8bfed34568a2d4fcac3ca1b9ff22
 # winetricks (windowsarcadeloader installs native XAudio with it)
 winetricks https://raw.githubusercontent.com/Winetricks/winetricks/20260125/src/winetricks 431f82fc74000e6c864409f1d8fb495d696c03928808e3e8acffc45179312a7b
 # Microsoft's DirectX June 2010 redistributable, from winetricks' own mirror and digest:

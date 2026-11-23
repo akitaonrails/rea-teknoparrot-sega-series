@@ -6,6 +6,12 @@ All notable changes to this launcher. The format follows
 
 ## Unreleased
 
+## 0.7.5 - 2026-11-23
+
+### Changed
+
+- Updated bundled Linux Wine runner from `GE-Proton11-12` to `GE-Proton11-13` (#3).
+
 ## 0.7.4 - 2026-11-22
 
 ### Fixed

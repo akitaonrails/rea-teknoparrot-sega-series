@@ -7,7 +7,7 @@
 #               arcade-launcher.exe (its Windows build, linked with LLD), payloads/,
 #               systemprofiles/  (needs Rust with the i686/x86_64-pc-windows-gnu targets, MinGW,
 #               LLD and mono's mcs); not rebuilt while its commit and patches are unchanged
-#   runner/     GE-Proton 11-12
+#   runner/     GE-Proton 11-13
 # (every download: packaging/components.pins, fetched and checked by sdk/packaging/pins.sh)
 #   winetricks  pinned, checked by SHA-256 (windowsarcadeloader installs native XAudio with it)
 #   directx/    Microsoft's DirectX June 2010 redistributable, checked by SHA-256: winetricks'
@@ -29,7 +29,7 @@ LINDBERGH_REPO=https://github.com/lindbergh-loader/lindbergh-loader
 LINDBERGH_COMMIT=0af606d845b70339c335785c0eba68b47b78df3c
 WAL_REPO=https://github.com/aderumier/windowsarcadeloader
 WAL_COMMIT=4f42c6d86ddaaa9d2e4e8c21e0046bb3027b111d
-RUNNER=GE-Proton11-12-x86_64
+RUNNER=GE-Proton11-13-x86_64
 # the downloads, checked by SHA-256 (packaging/components.pins)
 . "$here/sdk/packaging/pins.sh"
 fetch() { # pin dir: the file's path
